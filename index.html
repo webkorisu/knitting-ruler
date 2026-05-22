@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="color-scheme" content="light only">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
@@ -28,122 +28,198 @@
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      touch-action: none;
+    }
     body {
       font-family: 'Zen Maru Gothic', sans-serif;
-      background: var(--bg);
+      background: #1a2e28;
       color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      position: fixed;
+      inset: 0;
     }
 
-    /* ===== Header ===== */
-    header {
-      text-align: center;
-      padding: 18px 20px 16px;
+    /* ===== フルスクリーン Viewer ===== */
+    #viewer {
+      position: fixed;
+      inset: 0;
       width: 100%;
+      height: 100%;
+      background: #1a2e28;
+      touch-action: none;
+      cursor: default;
+      z-index: 1;
     }
-    header h1 {
-      font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: clamp(15px, 4vw, 20px);
+    #viewer.has-image { cursor: grab; }
+    #viewer.has-image:active { cursor: grabbing; }
+
+    #placeholder {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 16px;
+      color: rgba(180,220,212,0.7);
+      pointer-events: none;
+    }
+    #placeholder .ph-icon { font-size: 52px; opacity: .55; }
+    #placeholder .ph-text {
+      font-size: 14px;
+      letter-spacing: .08em;
       font-weight: 500;
-      color: var(--text);
-      letter-spacing: .10em;
-      line-height: 1.4;
-      margin-bottom: 3px;
+      text-align: center;
+      line-height: 2;
     }
-    header h2 {
+    #placeholder .ph-tap {
       font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(22px, 5vw, 34px);
-      font-weight: 400;
-      color: var(--text);
-      letter-spacing: .14em;
-      line-height: 1.2;
-      margin-bottom: 8px;
+      font-size: 18px;
+      letter-spacing: .18em;
+      color: rgba(180,220,212,0.5);
     }
-    .title-ja-sub {
-      font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text);
-      letter-spacing: .06em;
-      opacity: 0.65;
-      margin-bottom: 10px;
+    #chart-canvas {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      display: none;
+    }
+    #file-input { display: none; }
+
+    /* ===== フローティングパネル ===== */
+    #float-panel {
+      position: fixed;
+      z-index: 200;
+      top: 16px;
+      left: 16px;
+      width: 300px;
+      background: rgba(255,255,255,0.96);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      user-select: none;
+      touch-action: none;
+      transition: box-shadow .15s;
+      overflow: hidden;
+    }
+    #float-panel.dragging {
+      box-shadow: 0 16px 48px rgba(0,0,0,0.28), 0 4px 12px rgba(0,0,0,0.15);
+      opacity: 0.95;
+    }
+    #float-panel.collapsed #panel-body { display: none; }
+
+    /* パネルヘッダー（ドラッグハンドル） */
+    #panel-header {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 10px;
+      justify-content: space-between;
+      padding: 10px 14px 10px 14px;
+      background: var(--primary);
+      cursor: grab;
+      -webkit-tap-highlight-color: transparent;
+      gap: 8px;
     }
-    .title-ja-sub::before, .title-ja-sub::after {
-      content: '';
-      display: block;
-      width: 24px;
-      height: 1px;
-      background: currentColor;
-      opacity: 0.45;
+    #panel-header:active { cursor: grabbing; }
+    #panel-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+    #panel-drag-icon {
+      font-size: 13px;
+      opacity: 0.6;
+      flex-shrink: 0;
+      color: var(--text);
+    }
+    #panel-title-text {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: .08em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #panel-header-btns {
+      display: flex;
+      gap: 4px;
       flex-shrink: 0;
     }
-    .brand {
-      font-family: 'Cormorant Garamond', serif;
+    .panel-hbtn {
+      background: rgba(255,255,255,0.5);
+      border: 1px solid rgba(74,107,99,0.2);
+      border-radius: 6px;
+      width: 26px; height: 26px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
       font-size: 13px;
-      font-weight: 400;
-      color: #A07080;
-      letter-spacing: .42em;
-      padding-top: 8px;
+      color: var(--text);
+      transition: background .12s;
+      -webkit-tap-highlight-color: transparent;
+      flex-shrink: 0;
     }
+    .panel-hbtn:hover { background: rgba(255,255,255,0.8); }
+    .panel-hbtn:active { transform: scale(.9); }
 
-    /* ===== Controls ===== */
-    .controls {
-      width: 100%;
-      max-width: 680px;
-      padding: 0 16px 12px;
+    /* パネルボディ */
+    #panel-body {
+      padding: 12px 14px;
       display: flex;
       flex-direction: column;
       gap: 10px;
+      max-height: calc(100vh - 80px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
     }
 
-    /* ファイル選択 */
-    .upload-area {
+    /* ファイル選択ボタン（パネル内） */
+    .upload-btn {
+      width: 100%;
       background: var(--surface);
       border: 1.5px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 14px 20px;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       cursor: pointer;
       transition: border-color .2s, background .2s;
+      -webkit-tap-highlight-color: transparent;
     }
-    .upload-area:hover { border-color: var(--primary); background: #f4faf8; }
-    .upload-area label {
-      font-size: 13px;
+    .upload-btn:hover { border-color: var(--primary); background: #f4faf8; }
+    .upload-btn-label {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 12px;
       font-weight: 700;
       color: var(--text);
       letter-spacing: .06em;
-      cursor: pointer;
       white-space: nowrap;
+      cursor: pointer;
     }
-    .upload-area span.filename {
-      font-size: 12px;
+    .upload-filename {
+      font-size: 11px;
       color: var(--text-sub);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      flex: 1;
+      min-width: 0;
     }
-    #file-input { display: none; }
 
     /* 汎用ボタン */
     .btn {
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       letter-spacing: .06em;
       border: 1.5px solid var(--border);
       border-radius: var(--radius-sm);
       background: var(--surface);
       color: var(--text);
-      padding: 8px 16px;
+      padding: 7px 12px;
       cursor: pointer;
       transition: background .15s, border-color .15s, transform .1s;
       user-select: none;
@@ -154,18 +230,31 @@
     .btn.primary { background: var(--primary); border-color: #9ecfc4; color: #3a5c55; }
     .btn.primary:hover { background: #a8d4cb; }
 
+    /* ズームバー */
+    .zoom-bar {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .zoom-label {
+      font-size: 11px;
+      color: var(--text-sub);
+      letter-spacing: .04em;
+      margin-left: auto;
+    }
+
     /* ===== 定規カスタマイズカード ===== */
     .ruler-card {
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px 16px;
+      background: #f8fdfc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
     .ruler-card-title {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--text-sub);
       letter-spacing: .08em;
@@ -188,24 +277,24 @@
     .ruler-control {
       display: flex;
       align-items: center;
-      gap: 10px;
-      border-radius: var(--radius-sm);
+      gap: 8px;
     }
     .ruler-control label {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--text-sub);
-      letter-spacing: .06em;
+      letter-spacing: .05em;
       white-space: nowrap;
-      min-width: 2.5em;
+      min-width: 4em;
     }
     .ruler-control input[type=range] {
       flex: 1;
       accent-color: #D4B5C4;
       cursor: pointer;
+      height: 14px;
     }
     .ruler-control span {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-sub);
       white-space: nowrap;
       min-width: 36px;
@@ -213,10 +302,10 @@
     }
 
     /* カラー行 */
-    .ruler-color-row { flex-wrap: wrap; gap: 8px; }
-    .color-presets { display: flex; gap: 6px; flex-wrap: wrap; }
+    .ruler-color-row { flex-wrap: wrap; gap: 6px; }
+    .color-presets { display: flex; gap: 5px; flex-wrap: wrap; }
     .color-dot {
-      width: 26px; height: 26px;
+      width: 22px; height: 22px;
       border-radius: 50%;
       border: 2px solid transparent;
       cursor: pointer;
@@ -228,13 +317,13 @@
     .color-dot.active { border-color: var(--text-sub); transform: scale(1.1); }
     #ruler-color { width:0; height:0; border:none; padding:0; opacity:0; position:absolute; }
     .color-custom-label {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
       color: var(--text-sub);
       letter-spacing: .06em;
       border: 1.5px solid var(--border);
       border-radius: 20px;
-      padding: 4px 10px;
+      padding: 3px 8px;
       cursor: pointer;
       transition: background .15s;
       white-space: nowrap;
@@ -244,18 +333,17 @@
     /* トグル行 */
     .toggle-row {
       display: flex;
-      gap: 16px;
+      gap: 12px;
       flex-wrap: wrap;
       align-items: center;
-      padding-top: 2px;
     }
     .toggle-item {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
     .toggle-label {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--text-sub);
       letter-spacing: .06em;
@@ -289,59 +377,6 @@
     }
     .toggle-switch input:checked + .toggle-knob { background: #D4B5C4; }
     .toggle-switch input:checked + .toggle-knob::before { transform: translateX(16px); }
-
-    /* ===== Viewer wrap ===== */
-    .viewer-wrap {
-      width: 100%;
-      max-width: 680px;
-      padding: 0 16px 16px;
-    }
-
-    /* ズームバー（viewer上部） */
-    .zoom-bar {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .zoom-label {
-      font-size: 12px;
-      color: var(--text-sub);
-      letter-spacing: .04em;
-      margin-left: auto;
-    }
-
-    /* viewer本体 */
-    #viewer {
-      width: 100%;
-      aspect-ratio: 4/3;
-      min-height: 260px;
-      max-height: 65vh;
-      background: #fff;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      position: relative;
-      touch-action: none;
-      cursor: default;
-    }
-    #viewer.has-image { cursor: grab; }
-    #viewer.has-image:active { cursor: grabbing; }
-    #placeholder {
-      position: absolute; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 10px;
-      color: var(--text-sub); font-size: 13px;
-      letter-spacing: .06em;
-      pointer-events: none;
-    }
-    #placeholder .ph-icon { font-size: 36px; opacity: .45; }
-    #chart-canvas {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%;
-      display: none;
-    }
 
     /* ===== 定規オーバーレイ ===== */
     #ruler-overlay {
@@ -417,28 +452,53 @@
       border-left: 1px solid rgba(200,160,170,0.3);
     }
 
-    /* ===== フッター ===== */
-    .footer-notes {
-      width: 100%;
-      max-width: 680px;
-      padding: 8px 16px 32px;
+    /* ===== 定規右端リサイズハンドル ===== */
+    #ruler-resize-handle {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 18px;
+      height: 100%;
+      cursor: ew-resize;
+      pointer-events: all;
       display: flex;
-      flex-direction: column;
-      gap: 6px;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+      z-index: 2;
     }
+    #ruler-resize-handle::before {
+      content: '';
+      display: block;
+      width: 2px;
+      height: 60%;
+      min-height: 16px;
+      border-radius: 2px;
+      background: currentColor;
+      opacity: 0.45;
+      transition: opacity .15s, width .15s;
+    }
+    #ruler-resize-handle:hover::before,
+    #ruler-resize-handle:active::before {
+      opacity: 0.75;
+      width: 3px;
+    }
+
+    /* ===== フッターアコーディオン（パネル内） ===== */
     .data-note {
       border-radius: var(--radius-sm);
       overflow: hidden;
-      border: 1.5px solid var(--border);
+      border: 1px solid var(--border);
       background: var(--surface);
     }
     .data-note-btn {
       width: 100%;
       background: none;
       border: none;
-      padding: 11px 16px;
+      padding: 9px 12px;
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--text-sub);
       cursor: pointer;
@@ -447,10 +507,11 @@
       justify-content: space-between;
       letter-spacing: .06em;
       transition: background .15s;
+      -webkit-tap-highlight-color: transparent;
     }
     .data-note-btn:hover { background: #f4faf8; }
     .data-note-arrow {
-      font-size: 10px;
+      font-size: 9px;
       transition: transform .25s ease;
       color: var(--text-sub);
       opacity: .6;
@@ -458,121 +519,43 @@
     .data-note.open .data-note-arrow { transform: rotate(180deg); }
     .data-note-body {
       display: none;
-      padding: 12px 16px 14px;
+      padding: 10px 12px 12px;
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 11px;
+      font-size: 10px;
       color: var(--text-sub);
-      line-height: 2.0;
+      line-height: 1.9;
       border-top: 1px solid var(--border);
     }
     .data-note.open .data-note-body { display: block; }
     .data-note-body p { margin-bottom: 6px; }
     .data-note-body p:last-child { margin-bottom: 0; }
+
+    /* パネルセクション区切り */
+    .panel-divider {
+      height: 1px;
+      background: var(--border);
+      opacity: 0.6;
+      margin: 2px 0;
+    }
   </style>
 </head>
 <body>
 
-<header>
-  <h1>編み図ルーラー</h1>
-  <h2>Knitting Chart Ruler</h2>
-  <p class="title-ja-sub">編み図に重ねて使う、動かせる定規</p>
-  <p class="brand">✿ YUCCHI ✿</p>
-</header>
-
-<div class="controls">
-
-  <!-- ファイル選択 -->
-  <div class="upload-area" onclick="document.getElementById('file-input').click()">
-    <label for="file-input">📂 編み図を開く</label>
-    <span class="filename" id="filename-label">ファイルを選んでください</span>
-    <input type="file" id="file-input" accept="image/*">
+<!-- ===== フルスクリーン Viewer ===== -->
+<div id="viewer">
+  <div id="placeholder">
+    <span class="ph-icon">🧶</span>
+    <div class="ph-text">ここに編み図が表示されます</div>
+    <div class="ph-tap">Knitting Chart Ruler</div>
   </div>
-
-  <!-- 定規カスタマイズ -->
-  <div class="ruler-card disabled" id="ruler-card">
-    <div class="ruler-card-title">📏 定規のカスタマイズ</div>
-    <span class="ruler-card-waiting">📂 先に編み図を開いてください</span>
-
-    <div class="ruler-control">
-      <label for="ruler-size">太さ</label>
-      <input type="range" id="ruler-size" min="24" max="120" value="48" step="4">
-      <span id="ruler-size-label">48 px</span>
-    </div>
-    <div class="ruler-control">
-      <label for="ruler-opacity">濃度</label>
-      <input type="range" id="ruler-opacity" min="5" max="90" value="50" step="5">
-      <span id="ruler-opacity-label">50%</span>
-    </div>
-    <div class="ruler-control ruler-color-row">
-      <label>色</label>
-      <div class="color-presets" id="color-presets">
-        <button class="color-dot active" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
-        <button class="color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
-        <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="ラベンダー"></button>
-        <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
-        <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
-        <button class="color-dot" data-color="#FFFFFF" style="background:#FFFFFF;border:1.5px solid #ccc;" title="ホワイト"></button>
-      </div>
-      <input type="color" id="ruler-color" value="#F2D6D6">
-      <label for="ruler-color" class="color-custom-label">自由に選ぶ</label>
-    </div>
-
-    <div class="ruler-control">
-      <label for="ruler-width">横幅</label>
-      <input type="range" id="ruler-width" min="20" max="100" value="100" step="5">
-      <span id="ruler-width-label">100%</span>
-    </div>
-
-    <div class="ruler-control">
-      <label for="ruler-tick">縦線間隔</label>
-      <input type="range" id="ruler-tick" min="8" max="80" value="20" step="4">
-      <span id="ruler-tick-label">20 px</span>
-    </div>
-
-    <!-- トグル行 -->
-    <div class="toggle-row">
-      <div class="toggle-item">
-        <span class="toggle-label">縦線</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="toggle-tick" checked>
-          <span class="toggle-knob"></span>
-        </label>
-      </div>
-      <div class="toggle-item">
-        <span class="toggle-label">カウンター</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="toggle-counter" checked>
-          <span class="toggle-knob"></span>
-        </label>
-      </div>
-    </div>
-  </div>
-
+  <canvas id="chart-canvas"></canvas>
 </div>
-
-<!-- ===== Viewer ===== -->
-<div class="viewer-wrap">
-
-  <!-- ズームボタン（viewer直上） -->
-  <div class="zoom-bar">
-    <button class="btn primary" id="btn-zoom-in">拡大 ＋</button>
-    <button class="btn primary" id="btn-zoom-out">縮小 −</button>
-    <button class="btn"         id="btn-reset">リセット</button>
-    <span class="zoom-label" id="zoom-label">100%</span>
-  </div>
-
-  <div id="viewer">
-    <div id="placeholder">
-      <span class="ph-icon">🧶</span>
-      <span>ここに編み図が表示されます</span>
-    </div>
-    <canvas id="chart-canvas"></canvas>
-  </div>
-</div>
+<input type="file" id="file-input" accept="image/*">
 
 <!-- ===== 定規オーバーレイ ===== -->
 <div id="ruler-overlay">
   <div id="ruler-handle">
+    <div id="ruler-resize-handle"></div>
     <div id="mini-counter">
       <button class="mc-btn" id="mc-minus" title="−1">−</button>
       <span class="mc-num" id="mc-num">0</span>
@@ -582,64 +565,157 @@
   </div>
 </div>
 
-<!-- ===== フッター ===== -->
-<div class="footer-notes">
-  <div style="display:flex;flex-direction:column;gap:6px;">
-
-    <div class="data-note" id="howtoNote">
-      <button class="data-note-btn" onclick="toggleNote('howtoNote')">
-        <span>✿ 使い方</span>
-        <span class="data-note-arrow">▼</span>
-      </button>
-      <div class="data-note-body">
-        <p>① 「📂 編み図を開く」をタップして画像を選びます。</p>
-        <p>② 編み図が表示されたら、ドラッグ（1本指）で上下左右に移動、ピンチ（2本指）またはボタンで拡大・縮小できます。PC はマウスホイールでも拡大縮小できます。</p>
-        <p>③ 半透明の定規を上下にドラッグして、読みたい段に合わせてください。定規は画面に固定されているので、編み図を動かしても位置はズレません。</p>
-        <p>④ 定規の右端のカウンターで数を記録できます。＋／− で増減、↺ でリセットします。用途は自由にどうぞ。</p>
-        <p>⑤ 「📏 定規のカスタマイズ」で太さ・色・濃度を好みに調整できます。設定は次回も引き継がれます。</p>
-      </div>
+<!-- ===== フローティングパネル ===== -->
+<div id="float-panel">
+  <!-- ドラッグハンドル兼ヘッダー -->
+  <div id="panel-header">
+    <div id="panel-header-left">
+      <span id="panel-drag-icon">⠿</span>
+      <span id="panel-title-text">📏 編み図ルーラー</span>
     </div>
-
-    <div class="data-note" id="formatNote">
-      <button class="data-note-btn" onclick="toggleNote('formatNote')">
-        <span>✿ 対応ファイル形式</span>
-        <span class="data-note-arrow">▼</span>
-      </button>
-      <div class="data-note-body">
-        <p>対応しているのは画像ファイルのみです。JPG / PNG / WebP / GIF・HEIC（iPhoneの写真）など、ブラウザが対応している画像形式であれば読み込めます。</p>
-        <p>⚠️ PDF はそのままでは開けません。スクリーンショットで画像に変換してからお使いください。</p>
-        <p>📱 スマホ：PDF アプリで全画面表示 → スクリーンショット → そのまま読み込めます。</p>
-        <p>💻 Mac：PDF を全画面表示 → Shift + ⌘ + 4 で必要な部分だけ切り取り。</p>
-        <p>💻 Windows：PDF を全画面表示 → Snipping Tool（スタートメニューから検索）で切り取り。</p>
-      </div>
+    <div id="panel-header-btns">
+      <button class="panel-hbtn" id="panel-file-btn" title="編み図を開く" onclick="document.getElementById('file-input').click()">📂</button>
+      <button class="panel-hbtn" id="panel-toggle-btn" title="折りたたむ" onclick="togglePanel()">−</button>
     </div>
-
-    <div class="data-note" id="aboutNote">
-      <button class="data-note-btn" onclick="toggleNote('aboutNote')">
-        <span>✿ このアプリについて</span>
-        <span class="data-note-arrow">▼</span>
-      </button>
-      <div class="data-note-body">
-        <p>このアプリは、編み物や日々の暮らしをちょっと便利にするために作られた個人制作のツールです。</p>
-        <p>編み図は端末内でのみ表示されます。外部への送信は一切行いません。必ずご自身の編み図の著作権の扱いをご確認のうえご使用ください。</p>
-        <p>作者（YUCCHI）は、アプリの内容・結果によって生じたいかなる損害についても責任を負いかねます。あらかじめご了承ください。</p>
-      </div>
-    </div>
-
-    <div class="data-note" id="dataNote">
-      <button class="data-note-btn" onclick="toggleNote('dataNote')">
-        <span>✿ データについて</span>
-        <span class="data-note-arrow">▼</span>
-      </button>
-      <div class="data-note-body">
-        <p>定規の設定（色・太さ・濃度）はこの端末のブラウザに保存されます。次回開いたときも同じ設定で使えます。</p>
-        <p>読み込んだ編み図画像はブラウザに保存されません。ページを閉じると消えます。</p>
-        <p>外部サーバーへの通信は一切行っておらず、すべての処理はこの端末内で完結します。</p>
-      </div>
-    </div>
-
   </div>
-</div>
+
+  <!-- パネルボディ -->
+  <div id="panel-body">
+
+    <!-- ファイル選択 -->
+    <div class="upload-btn" onclick="document.getElementById('file-input').click()">
+      <span class="upload-btn-label">📂 編み図を開く</span>
+      <span class="upload-filename" id="filename-label">ファイルを選んでください</span>
+    </div>
+
+    <!-- ズームボタン -->
+    <div class="zoom-bar">
+      <button class="btn primary" id="btn-zoom-in">拡大 ＋</button>
+      <button class="btn primary" id="btn-zoom-out">縮小 −</button>
+      <button class="btn"         id="btn-reset">リセット</button>
+      <span class="zoom-label" id="zoom-label">100%</span>
+    </div>
+
+    <!-- 定規カスタマイズ -->
+    <div class="ruler-card disabled" id="ruler-card">
+      <div class="ruler-card-title">📏 定規のカスタマイズ</div>
+      <span class="ruler-card-waiting">📂 先に編み図を開いてください</span>
+
+      <div class="ruler-control">
+        <label for="ruler-size">太さ</label>
+        <input type="range" id="ruler-size" min="24" max="120" value="48" step="4">
+        <span id="ruler-size-label">48 px</span>
+      </div>
+      <div class="ruler-control">
+        <label for="ruler-opacity">濃度</label>
+        <input type="range" id="ruler-opacity" min="5" max="90" value="50" step="5">
+        <span id="ruler-opacity-label">50%</span>
+      </div>
+      <div class="ruler-control ruler-color-row">
+        <label>色</label>
+        <div class="color-presets" id="color-presets">
+          <button class="color-dot active" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
+          <button class="color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
+          <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="ラベンダー"></button>
+          <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
+          <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
+          <button class="color-dot" data-color="#FFFFFF" style="background:#FFFFFF;border:1.5px solid #ccc;" title="ホワイト"></button>
+        </div>
+        <input type="color" id="ruler-color" value="#F2D6D6">
+        <label for="ruler-color" class="color-custom-label">自由に選ぶ</label>
+      </div>
+
+      <div class="ruler-control">
+        <label for="ruler-width">横幅</label>
+        <input type="range" id="ruler-width" min="20" max="100" value="100" step="5">
+        <span id="ruler-width-label">100%</span>
+      </div>
+
+      <div class="ruler-control">
+        <label for="ruler-tick">縦線間隔</label>
+        <input type="range" id="ruler-tick" min="8" max="80" value="20" step="4">
+        <span id="ruler-tick-label">20 px</span>
+      </div>
+
+      <!-- トグル行 -->
+      <div class="toggle-row">
+        <div class="toggle-item">
+          <span class="toggle-label">縦線</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-tick" checked>
+            <span class="toggle-knob"></span>
+          </label>
+        </div>
+        <div class="toggle-item">
+          <span class="toggle-label">カウンター</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-counter" checked>
+            <span class="toggle-knob"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-divider"></div>
+
+    <!-- アコーディオン -->
+    <div style="display:flex;flex-direction:column;gap:5px;">
+
+      <div class="data-note" id="howtoNote">
+        <button class="data-note-btn" onclick="toggleNote('howtoNote')">
+          <span>✿ 使い方</span>
+          <span class="data-note-arrow">▼</span>
+        </button>
+        <div class="data-note-body">
+          <p>① 「📂 編み図を開く」をタップして画像を選びます。</p>
+          <p>② ドラッグ（1本指）で移動、ピンチ（2本指）またはボタンで拡大・縮小。PCはマウスホイールでも可。</p>
+          <p>③ 半透明の定規を上下にドラッグして読みたい段に合わせてください。</p>
+          <p>④ 定規右端のカウンターで数を記録できます。＋／− で増減、↺ でリセット。</p>
+          <p>⑤ パネルはドラッグで好きな場所に移動できます。「−」で折りたためます。</p>
+        </div>
+      </div>
+
+      <div class="data-note" id="formatNote">
+        <button class="data-note-btn" onclick="toggleNote('formatNote')">
+          <span>✿ 対応ファイル形式</span>
+          <span class="data-note-arrow">▼</span>
+        </button>
+        <div class="data-note-body">
+          <p>JPG / PNG / WebP / GIF・HEIC（iPhoneの写真）など、ブラウザが対応している画像形式が読み込めます。</p>
+          <p>⚠️ PDFはそのままでは開けません。スクリーンショットで画像に変換してからお使いください。</p>
+          <p>📱 スマホ：PDFアプリで全画面表示 → スクリーンショット → そのまま読み込めます。</p>
+          <p>💻 Mac：Shift+⌘+4 で切り取り。Windows：Snipping Toolで切り取り。</p>
+        </div>
+      </div>
+
+      <div class="data-note" id="aboutNote">
+        <button class="data-note-btn" onclick="toggleNote('aboutNote')">
+          <span>✿ このアプリについて</span>
+          <span class="data-note-arrow">▼</span>
+        </button>
+        <div class="data-note-body">
+          <p>このアプリは、編み物や日々の暮らしをちょっと便利にするために作られた個人制作のツールです。</p>
+          <p>編み図は端末内でのみ表示されます。外部への送信は一切行いません。</p>
+          <p>作者（YUCCHI）は、アプリの内容・結果によって生じたいかなる損害についても責任を負いかねます。あらかじめご了承ください。</p>
+        </div>
+      </div>
+
+      <div class="data-note" id="dataNote">
+        <button class="data-note-btn" onclick="toggleNote('dataNote')">
+          <span>✿ データについて</span>
+          <span class="data-note-arrow">▼</span>
+        </button>
+        <div class="data-note-body">
+          <p>定規の設定（色・太さ・濃度）はこの端末のブラウザに保存されます。次回開いたときも同じ設定で使えます。</p>
+          <p>読み込んだ編み図画像はブラウザに保存されません。ページを閉じると消えます。</p>
+          <p>外部サーバーへの通信は一切行っておらず、すべての処理はこの端末内で完結します。</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /#panel-body -->
+</div><!-- /#float-panel -->
 
 <script>
   /* ========== 要素取得 ========== */
@@ -670,6 +746,7 @@
   const mcPlus  = document.getElementById('mc-plus');
   const mcMinus = document.getElementById('mc-minus');
   const mcReset = document.getElementById('mc-reset');
+  const floatPanel = document.getElementById('float-panel');
 
   /* ========== 状態 ========== */
   let img      = null;
@@ -681,26 +758,21 @@
   let rulerHeight = 48;
   let rulerColor  = '#F2D6D6';
   let rulerAlpha  = 0.50;
-  let rulerWidth  = 100;   // 横幅 %（20〜100）
-  let rulerTick   = 20;    // 縦線間隔 px
-  let showTick    = true;  // 縦線表示
-  let showCounter = true;  // カウンター表示
+  let rulerWidth  = 100;
+  let rulerTick   = 20;
+  let showTick    = true;
+  let showCounter = true;
   let rowCount    = 0;
+  let rulerAlpha100 = 50;
 
-  /* ========== localStorage 保存・復元 ========== */
+  /* ========== localStorage ========== */
   const STORAGE_KEY = 'yucchi_ruler';
 
   function saveSettings() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        color: rulerColor,
-        alpha: rulerAlpha,
-        height: rulerHeight,
-        width: rulerWidth,
-        tick: rulerTick,
-        showTick,
-        showCounter,
-        count: rowCount
+        color: rulerColor, alpha: rulerAlpha, height: rulerHeight,
+        width: rulerWidth, tick: rulerTick, showTick, showCounter, count: rowCount
       }));
     } catch(e) {}
   }
@@ -710,14 +782,13 @@
       const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
       if (!s) return;
       if (s.color)  rulerColor  = s.color;
-      if (s.alpha != null) rulerAlpha = s.alpha;
-      if (s.height) rulerHeight = s.height;
-      if (s.width  != null) rulerWidth  = s.width;
-      if (s.tick   != null) rulerTick   = s.tick;
+      if (s.alpha  != null) rulerAlpha  = s.alpha;
+      if (s.height)          rulerHeight = s.height;
+      if (s.width  != null)  rulerWidth  = s.width;
+      if (s.tick   != null)  rulerTick   = s.tick;
       if (s.showTick    != null) showTick    = s.showTick;
       if (s.showCounter != null) showCounter = s.showCounter;
-      if (s.count  != null) rowCount = s.count;
-      // UIに反映
+      if (s.count  != null)  rowCount = s.count;
       rulerColorInput.value = rulerColor;
       rulerAlpha100 = Math.round(rulerAlpha * 100);
       rulerOpacityInput.value  = rulerAlpha100;
@@ -736,7 +807,6 @@
       });
     } catch(e) {}
   }
-  let rulerAlpha100 = 50;
 
   /* ========== 画像読み込み ========== */
   fileInput.addEventListener('change', e => {
@@ -762,7 +832,7 @@
   });
 
   function fitImage() {
-    const vw = viewer.clientWidth, vh = viewer.clientHeight;
+    const vw = window.innerWidth, vh = window.innerHeight;
     canvas.width = vw; canvas.height = vh;
     const sx = vw / img.width, sy = vh / img.height;
     scale = Math.min(sx, sy, 1);
@@ -790,6 +860,14 @@
     rulerHandle.style.height = rulerHeight + 'px';
   }
 
+  function updateResizeHandleColor() {
+    const hex = rulerColor;
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    rulerResizeHandle.style.color = `rgb(${r},${g},${b})`;
+  }
+
   function applyRulerStyle() {
     if (!img) return;
     const hex = rulerColor;
@@ -799,41 +877,35 @@
     const fa = rulerAlpha;
     const la = Math.min(1, rulerAlpha * 1.6);
     const ta = rulerAlpha * 0.55;
-    // 横幅・位置（左寄せ固定）
     rulerHandle.style.width = rulerWidth + '%';
     rulerHandle.style.left  = '0';
-    // 背景色
     rulerHandle.style.background = `rgba(${r},${g},${b},${fa})`;
     rulerHandle.style.borderTop    = `2.5px dashed rgba(${r},${g},${b},${la})`;
     rulerHandle.style.borderBottom = `2.5px dashed rgba(${r},${g},${b},${la})`;
-    // 縦線
     if (showTick) {
       rulerHandle.style.backgroundImage = `repeating-linear-gradient(90deg,transparent,transparent ${rulerTick-1}px,rgba(${r},${g},${b},${ta}) ${rulerTick-1}px,rgba(${r},${g},${b},${ta}) ${rulerTick}px)`;
     } else {
       rulerHandle.style.backgroundImage = 'none';
     }
-    // カウンター表示切替
     miniCounter.style.display = showCounter ? 'flex' : 'none';
+    updateResizeHandleColor();
   }
 
   /* スライダー */
   rulerSizeInput.addEventListener('input', () => {
     rulerHeight = parseInt(rulerSizeInput.value);
     rulerSizeLabel.textContent = rulerHeight + ' px';
-    applyRulerPos();
-    saveSettings();
+    applyRulerPos(); saveSettings();
   });
   rulerOpacityInput.addEventListener('input', () => {
     rulerAlpha = parseInt(rulerOpacityInput.value) / 100;
     rulerOpacityLabel.textContent = rulerOpacityInput.value + '%';
-    applyRulerStyle();
-    saveSettings();
+    applyRulerStyle(); saveSettings();
   });
   rulerColorInput.addEventListener('input', () => {
     rulerColor = rulerColorInput.value;
     document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-    applyRulerStyle();
-    saveSettings();
+    applyRulerStyle(); saveSettings();
   });
   colorPresets.addEventListener('click', e => {
     const dot = e.target.closest('.color-dot');
@@ -842,36 +914,36 @@
     rulerColorInput.value = rulerColor;
     document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
     dot.classList.add('active');
-    applyRulerStyle();
-    saveSettings();
+    applyRulerStyle(); saveSettings();
+  });
+  rulerWidthInput.addEventListener('input', () => {
+    rulerWidth = parseInt(rulerWidthInput.value);
+    rulerWidthLabel.textContent = rulerWidth + '%';
+    applyRulerStyle(); saveSettings();
+  });
+  rulerTickInput.addEventListener('input', () => {
+    rulerTick = parseInt(rulerTickInput.value);
+    rulerTickLabel.textContent = rulerTick + ' px';
+    applyRulerStyle(); saveSettings();
+  });
+  toggleTickEl.addEventListener('change', () => {
+    showTick = toggleTickEl.checked;
+    applyRulerStyle(); saveSettings();
+  });
+  toggleCounterEl.addEventListener('change', () => {
+    showCounter = toggleCounterEl.checked;
+    applyRulerStyle(); saveSettings();
   });
 
   /* ========== ミニカウンター ========== */
-  function updateCounter() {
-    mcNum.textContent = rowCount;
-    saveSettings();
-  }
-  mcPlus.addEventListener('click', e => {
-    e.stopPropagation();
-    rowCount++;
-    updateCounter();
-  });
-  mcMinus.addEventListener('click', e => {
-    e.stopPropagation();
-    if (rowCount > 0) rowCount--;
-    updateCounter();
-  });
-  mcReset.addEventListener('click', e => {
-    e.stopPropagation();
-    rowCount = 0;
-    updateCounter();
-  });
+  function updateCounter() { mcNum.textContent = rowCount; saveSettings(); }
+  mcPlus.addEventListener('click',  e => { e.stopPropagation(); rowCount++; updateCounter(); });
+  mcMinus.addEventListener('click', e => { e.stopPropagation(); if(rowCount>0) rowCount--; updateCounter(); });
+  mcReset.addEventListener('click', e => { e.stopPropagation(); rowCount=0; updateCounter(); });
 
   /* ========== 定規ドラッグ ========== */
   let rulerDragging = false, rulerDragStartY = 0, rulerDragStartTop = 0;
-
   rulerHandle.addEventListener('pointerdown', e => {
-    // カウンターボタンのクリックはドラッグしない
     if (e.target.closest('#mini-counter')) return;
     rulerDragging = true;
     rulerDragStartY   = e.clientY;
@@ -889,10 +961,42 @@
   rulerHandle.addEventListener('pointerup',    () => { rulerDragging = false; });
   rulerHandle.addEventListener('pointercancel',() => { rulerDragging = false; });
 
+  /* ========== 定規右端リサイズ ========== */
+  const rulerResizeHandle = document.getElementById('ruler-resize-handle');
+  let resizeDragging = false, resizeDragStartX = 0, resizeStartWidth = 0;
+
+  rulerResizeHandle.addEventListener('pointerdown', e => {
+    resizeDragging = true;
+    resizeDragStartX  = e.clientX;
+    resizeStartWidth  = rulerWidth; // 現在の横幅%
+    rulerResizeHandle.setPointerCapture(e.pointerId);
+    e.stopPropagation(); // 定規ドラッグに伝播しない
+    e.preventDefault();
+  });
+  rulerResizeHandle.addEventListener('pointermove', e => {
+    if (!resizeDragging) return;
+    const dx = e.clientX - resizeDragStartX;
+    const screenW = window.innerWidth;
+    const deltaPct = (dx / screenW) * 100;
+    const newWidth = Math.max(10, Math.min(100, resizeStartWidth + deltaPct));
+    rulerWidth = Math.round(newWidth);
+    // スライダーにも反映
+    rulerWidthInput.value = rulerWidth;
+    rulerWidthLabel.textContent = rulerWidth + '%';
+    applyRulerStyle();
+    e.preventDefault();
+  });
+  rulerResizeHandle.addEventListener('pointerup', () => {
+    if (resizeDragging) { resizeDragging = false; saveSettings(); }
+  });
+  rulerResizeHandle.addEventListener('pointercancel', () => { resizeDragging = false; });
+
   /* ========== パン（マウス） ========== */
   let panning = false, panStartX = 0, panStartY = 0, panOffsetX = 0, panOffsetY = 0;
   viewer.addEventListener('mousedown', e => {
     if (!img) return;
+    // パネル上のマウス操作は無視
+    if (e.target.closest('#float-panel')) return;
     panning = true;
     panStartX = e.clientX; panStartY = e.clientY;
     panOffsetX = offsetX;  panOffsetY = offsetY;
@@ -906,12 +1010,23 @@
   });
   window.addEventListener('mouseup', () => { panning = false; });
 
-  /* ========== ホイールズーム ========== */
+  /* ========== ホイールズーム（感度調整） ========== */
   viewer.addEventListener('wheel', e => {
     if (!img) return;
     e.preventDefault();
     const rect = viewer.getBoundingClientRect();
-    zoomAt(e.clientX - rect.left, e.clientY - rect.top, e.deltaY < 0 ? 1.1 : 0.9);
+    // deltaMode: 0=pixel, 1=line, 2=page
+    let rawDelta = e.deltaY;
+    if (e.deltaMode === 1) rawDelta *= 20;
+    if (e.deltaMode === 2) rawDelta *= 400;
+
+    // Macのトラックパッドはdeltaが大きいので係数で抑える
+    // 1ステップの最大変化を制限してビュンビュン防止
+    const sensitivity = 0.008;
+    const clamped = Math.max(-60, Math.min(60, rawDelta)); // 1フレームの最大変化量
+    const factor = Math.exp(-clamped * sensitivity);
+
+    zoomAt(e.clientX - rect.left, e.clientY - rect.top, factor);
   }, { passive: false });
 
   function zoomAt(cx, cy, factor) {
@@ -924,10 +1039,11 @@
     drawImage();
   }
 
-  /* ========== タッチ：パン＋ピンチ ========== */
+  /* ========== タッチ：パン＋ピンチ（感度調整） ========== */
   let touches = [], lastPinchDist = 0, lastTouchX = 0, lastTouchY = 0;
   viewer.addEventListener('touchstart', e => {
     if (!img) return;
+    if (e.target.closest('#float-panel') || e.target.closest('#ruler-handle')) return;
     touches = Array.from(e.touches);
     if (touches.length === 1) { lastTouchX = touches[0].clientX; lastTouchY = touches[0].clientY; }
     else if (touches.length === 2) { lastPinchDist = pinchDist(touches); }
@@ -935,6 +1051,7 @@
   }, { passive: false });
   viewer.addEventListener('touchmove', e => {
     if (!img) return;
+    if (e.target.closest('#float-panel') || e.target.closest('#ruler-handle')) return;
     const now = Array.from(e.touches);
     if (now.length === 1 && touches.length === 1) {
       offsetX += now[0].clientX - lastTouchX;
@@ -945,7 +1062,12 @@
       const d = pinchDist(now);
       if (lastPinchDist > 0) {
         const rect = viewer.getBoundingClientRect();
-        zoomAt(((now[0].clientX+now[1].clientX)/2)-rect.left, ((now[0].clientY+now[1].clientY)/2)-rect.top, d/lastPinchDist);
+        const cx = ((now[0].clientX+now[1].clientX)/2) - rect.left;
+        const cy = ((now[0].clientY+now[1].clientY)/2) - rect.top;
+        // ピンチの変化量を0.7乗でゆるやかに（急激な拡大縮小を抑制）
+        const rawRatio = d / lastPinchDist;
+        const smoothRatio = Math.pow(rawRatio, 0.65);
+        zoomAt(cx, cy, smoothRatio);
       }
       lastPinchDist = d;
     }
@@ -962,39 +1084,118 @@
   }
 
   /* ========== ズームボタン ========== */
-  document.getElementById('btn-zoom-in').addEventListener('click', () => {
-    if (!img) return;
-    zoomAt(canvas.width/2, canvas.height/2, 1.2);
-  });
-  document.getElementById('btn-zoom-out').addEventListener('click', () => {
-    if (!img) return;
-    zoomAt(canvas.width/2, canvas.height/2, 1/1.2);
-  });
-  document.getElementById('btn-reset').addEventListener('click', () => {
-    if (!img) return;
-    fitImage(); drawImage();
-  });
+  document.getElementById('btn-zoom-in').addEventListener('click',  () => { if(img) zoomAt(canvas.width/2, canvas.height/2, 1.2); });
+  document.getElementById('btn-zoom-out').addEventListener('click', () => { if(img) zoomAt(canvas.width/2, canvas.height/2, 1/1.2); });
+  document.getElementById('btn-reset').addEventListener('click',    () => { if(img) { fitImage(); drawImage(); } });
 
   function updateZoomLabel() {
     zoomLabel.textContent = Math.round(scale * 100) + '%';
   }
 
-  /* ========== リサイズ対応 ========== */
-  window.addEventListener('resize', () => {
-    if (!img) return;
+  /* ========== リサイズ・向き変更対応 ========== */
+  function onResize() {
+    if (!img) {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+      return;
+    }
     const pw = canvas.width, ph = canvas.height;
-    canvas.width = viewer.clientWidth; canvas.height = viewer.clientHeight;
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    // 中心を維持してオフセット調整
     offsetX += (canvas.width  - pw) / 2;
     offsetY += (canvas.height - ph) / 2;
     drawImage();
+    // 定規が画面外に出ないようにクランプ
+    rulerTop = Math.max(0, Math.min(window.innerHeight - rulerHeight, rulerTop));
+    applyRulerPos();
+    // パネルが画面外に出ないようにクランプ
+    clampPanel();
+  }
+
+  window.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', () => {
+    // orientationchange後にサイズが確定するまで少し待つ
+    setTimeout(onResize, 200);
   });
+
+  /* ========== フローティングパネル ドラッグ ========== */
+  const panelHeader = document.getElementById('panel-header');
+  let panelDragging = false;
+  let pdStartX = 0, pdStartY = 0;
+  let pdPanelX = 0, pdPanelY = 0;
+
+  function getPanelPos() {
+    const r = floatPanel.getBoundingClientRect();
+    return { x: r.left, y: r.top };
+  }
+
+  function setPanelPos(x, y) {
+    const pw = floatPanel.offsetWidth;
+    const ph = floatPanel.offsetHeight;
+    const maxX = window.innerWidth  - pw;
+    const maxY = window.innerHeight - ph;
+    const cx = Math.max(0, Math.min(maxX, x));
+    const cy = Math.max(0, Math.min(maxY, y));
+    floatPanel.style.left = cx + 'px';
+    floatPanel.style.top  = cy + 'px';
+    floatPanel.style.right  = 'auto';
+    floatPanel.style.bottom = 'auto';
+  }
+
+  function clampPanel() {
+    const pos = getPanelPos();
+    setPanelPos(pos.x, pos.y);
+  }
+
+  // Pointer Events でパネルドラッグ（マウス・タッチ両対応）
+  panelHeader.addEventListener('pointerdown', e => {
+    // ボタンのクリックはドラッグしない
+    if (e.target.closest('.panel-hbtn')) return;
+    panelDragging = true;
+    const pos = getPanelPos();
+    pdStartX = e.clientX;
+    pdStartY = e.clientY;
+    pdPanelX = pos.x;
+    pdPanelY = pos.y;
+    panelHeader.setPointerCapture(e.pointerId);
+    floatPanel.classList.add('dragging');
+    e.preventDefault();
+  });
+  panelHeader.addEventListener('pointermove', e => {
+    if (!panelDragging) return;
+    const dx = e.clientX - pdStartX;
+    const dy = e.clientY - pdStartY;
+    setPanelPos(pdPanelX + dx, pdPanelY + dy);
+    e.preventDefault();
+  });
+  panelHeader.addEventListener('pointerup', () => {
+    panelDragging = false;
+    floatPanel.classList.remove('dragging');
+  });
+  panelHeader.addEventListener('pointercancel', () => {
+    panelDragging = false;
+    floatPanel.classList.remove('dragging');
+  });
+
+  /* ========== パネル折りたたみ ========== */
+  function togglePanel() {
+    const collapsed = floatPanel.classList.toggle('collapsed');
+    document.getElementById('panel-toggle-btn').textContent = collapsed ? '＋' : '−';
+    document.getElementById('panel-toggle-btn').title = collapsed ? '開く' : '折りたたむ';
+    // 折りたたみ後にパネルが画面外に出ないようクランプ
+    setTimeout(clampPanel, 10);
+  }
 
   /* ========== アコーディオン ========== */
   function toggleNote(id) {
     document.getElementById(id).classList.toggle('open');
   }
 
-  /* ========== 初期化：設定を復元 ========== */
+  /* ========== 初期化 ========== */
+  // canvas初期サイズ
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
   loadSettings();
 </script>
 </body>
