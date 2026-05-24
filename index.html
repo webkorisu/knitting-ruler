@@ -237,12 +237,12 @@
       z-index: 200;
       bottom: 24px;
       left: 20px;
-      background: rgba(255,255,255,0.96);
-      border: 1.5px solid var(--border);
+      background: rgba(255,255,255,0.25);
+      border: 1.5px solid rgba(195,216,210,0.35);
       border-radius: 40px;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.08);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       user-select: none;
       touch-action: none;
       display: none;
@@ -278,7 +278,7 @@
     .zp-btn.reset  { font-size: 14px; color: var(--text-sub); width: 40px; }
     #zoom-label {
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 11px;
+      font-size: 16px;
       font-weight: 700;
       color: var(--text-sub);
       min-width: 40px;
@@ -291,6 +291,17 @@
       height: 24px;
       background: var(--border);
       flex-shrink: 0;
+    }
+
+    .zp-caption, .cp-caption {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-sub);
+      letter-spacing: .08em;
+      padding: 0 10px 0 12px;
+      pointer-events: none;
+      white-space: nowrap;
     }
 
     /* ===== 定規カスタマイズカード ===== */
@@ -309,20 +320,6 @@
       color: var(--text-sub);
       letter-spacing: .08em;
     }
-    .ruler-card.disabled {
-      opacity: 0.45;
-      pointer-events: none;
-      user-select: none;
-    }
-    .ruler-card-waiting {
-      font-size: 11px;
-      color: var(--text-sub);
-      letter-spacing: .04em;
-      text-align: center;
-    }
-    .ruler-card.disabled  .ruler-card-waiting { display: block; }
-    .ruler-card:not(.disabled) .ruler-card-waiting { display: none; }
-
     /* スライダー行 */
     .ruler-control {
       display: flex;
@@ -431,8 +428,8 @@
     /* ===== 定規オーバーレイ ===== */
     #ruler-overlay {
       position: fixed;
-      left: 0; top: 0;
-      width: 100%; height: 100vh;
+      inset: 0;
+      width: 100%; height: 100%;
       pointer-events: none;
       z-index: 100;
       display: none;
@@ -440,10 +437,10 @@
     #ruler-handle {
       position: absolute;
       left: 0; width: 100%;
+      box-sizing: border-box;
       height: 48px;
       background: rgba(242,214,214,0.5);
-      border-top: 2.5px dashed rgba(242,180,180,0.9);
-      border-bottom: 2.5px dashed rgba(242,180,180,0.9);
+      border: none;
       cursor: grab;
       pointer-events: all;
       touch-action: none;
@@ -452,9 +449,34 @@
       align-items: center;
       justify-content: flex-end;
       padding-right: 8px;
-      overflow: hidden;
     }
     #ruler-handle:active { cursor: grabbing; }
+
+    /* 端ヒント（上下左右にうっすら光彩） */
+    /* 立体定規オン時のみ光彩ヒント */
+    #ruler-handle.ruler-3d::before,
+    #ruler-handle.ruler-3d::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    #ruler-handle.ruler-3d::before {
+      background:
+        linear-gradient(to bottom, rgba(255,255,255,0.35) 0px, transparent 14px),
+        linear-gradient(to top,    rgba(255,255,255,0.35) 0px, transparent 14px);
+    }
+    #ruler-handle.ruler-3d::after {
+      background:
+        linear-gradient(to right, rgba(255,255,255,0.35) 0px, transparent 14px),
+        linear-gradient(to left,  rgba(255,255,255,0.35) 0px, transparent 14px);
+    }
+    #ruler-handle.ruler-3d:hover::before,
+    #ruler-handle.ruler-3d:hover::after,
+    #ruler-handle.ruler-3d:active::before,
+    #ruler-handle.ruler-3d:active::after { opacity: 1; }
 
     /* ===== カウンターフローティングパネル ===== */
     #counter-panel {
@@ -519,6 +541,174 @@
       flex-shrink: 0;
     }
 
+    /* ===== プリセット ===== */
+    .preset-section {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .preset-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-sub);
+      letter-spacing: .08em;
+    }
+    .preset-save-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .preset-name-input {
+      flex: 1;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 11px;
+      color: var(--text);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 10px;
+      background: var(--surface);
+      outline: none;
+      min-width: 0;
+    }
+    .preset-name-input:focus { border-color: #9ecfc4; }
+    .preset-save-btn {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: #3a5c55;
+      background: var(--primary);
+      border: none;
+      border-radius: 20px;
+      padding: 5px 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .preset-save-btn:hover { background: #a8d4cb; }
+    .preset-save-btn:active { transform: scale(.95); }
+    #preset-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .preset-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f8fdfc;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: background .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .preset-item:hover { background: #eef8f5; }
+    .preset-item:active { transform: scale(.98); }
+    .preset-color-dot, .preset-swatch {
+      width: 34px; height: 13px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .preset-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: .04em;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .preset-meta {
+      font-size: 10px;
+      color: var(--text-sub);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .preset-del-btn {
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      font-size: 13px;
+      cursor: pointer;
+      padding: 0 2px;
+      opacity: 0.5;
+      transition: opacity .15s;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      line-height: 1;
+    }
+    .preset-del-btn:hover { opacity: 1; }
+    .preset-empty {
+      font-size: 11px;
+      color: var(--text-sub);
+      text-align: center;
+      padding: 6px 0;
+      opacity: 0.7;
+    }
+
+    /* ===== モーダル ===== */
+    #preset-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+    }
+    #preset-modal-overlay.open { display: flex; }
+    #preset-modal {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 20px 16px;
+      width: min(300px, 88vw);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.16);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .modal-msg {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: .05em;
+      line-height: 1.7;
+      text-align: center;
+    }
+    .modal-btns {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+    .modal-btn {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      border-radius: var(--radius-sm);
+      padding: 8px 20px;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      transition: background .12s, transform .1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .modal-btn:active { transform: scale(.96); }
+    .modal-btn.cancel { background: #fff; color: var(--text-sub); }
+    .modal-btn.cancel:hover { background: #f4f4f4; }
+    .modal-btn.confirm { background: var(--primary); color: #3a5c55; border-color: #9ecfc4; }
+    .modal-btn.confirm:hover { background: #a8d4cb; }
+
     /* ===== フッターアコーディオン（パネル内） ===== */
     .data-note {
       border-radius: var(--radius-sm);
@@ -575,10 +765,20 @@
 </head>
 <body>
 
+<!-- ===== モーダル ===== -->
+<div id="preset-modal-overlay">
+  <div id="preset-modal">
+    <div class="modal-msg" id="modal-msg"></div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel"  id="modal-cancel">キャンセル</button>
+      <button class="modal-btn confirm" id="modal-confirm">上書き保存</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== フルスクリーン Viewer ===== -->
 <div id="viewer">
   <div id="placeholder">
-    <span class="ph-icon">🧶</span>
     <div class="ph-text">ここに編み図が表示されます</div>
     <div class="ph-tap">Knitting Chart Ruler</div>
   </div>
@@ -593,7 +793,7 @@
 
 <!-- ===== カウンターフローティングパネル ===== -->
 <div id="counter-panel">
-  <button class="cp-btn reset" id="cp-reset" title="リセット">↺</button>
+  <span class="cp-caption">段</span>
   <div class="cp-divider"></div>
   <button class="cp-btn" id="cp-minus" title="−1">−</button>
   <span id="cp-num">0</span>
@@ -606,8 +806,6 @@
   <button class="zp-btn" id="btn-zoom-in"  title="拡大">＋</button>
   <span id="zoom-label">100%</span>
   <button class="zp-btn" id="btn-zoom-out" title="縮小">−</button>
-  <div class="zp-divider"></div>
-  <button class="zp-btn reset" id="btn-reset" title="リセット">⟳</button>
 </div>
 
 
@@ -636,13 +834,17 @@
     <!-- ズームボタンはフローティングパネルに移動 -->
 
     <!-- 定規カスタマイズ -->
-    <div class="ruler-card disabled" id="ruler-card">
+    <div class="ruler-card" id="ruler-card">
       <div class="ruler-card-title">📏 定規のカスタマイズ</div>
-      <span class="ruler-card-waiting">📂 先に編み図を開いてください</span>
 
       <div class="ruler-control">
-        <label for="ruler-size">太さ</label>
-        <input type="range" id="ruler-size" min="24" max="120" value="48" step="4">
+        <label for="ruler-width">横幅</label>
+        <input type="range" id="ruler-width" min="20" max="100" value="100" step="5">
+        <span id="ruler-width-label">100%</span>
+      </div>
+      <div class="ruler-control">
+        <label for="ruler-size">縦幅</label>
+        <input type="range" id="ruler-size" min="24" max="600" value="48" step="4">
         <span id="ruler-size-label">48 px</span>
       </div>
       <div class="ruler-control">
@@ -661,30 +863,11 @@
           <button class="color-dot" data-color="#FFFFFF" style="background:#FFFFFF;border:1.5px solid #ccc;" title="ホワイト"></button>
         </div>
         <input type="color" id="ruler-color" value="#F2D6D6">
-        <label for="ruler-color" class="color-custom-label">自由に選ぶ</label>
-      </div>
-
-      <div class="ruler-control">
-        <label for="ruler-width">横幅</label>
-        <input type="range" id="ruler-width" min="20" max="100" value="100" step="5">
-        <span id="ruler-width-label">100%</span>
-      </div>
-
-      <div class="ruler-control">
-        <label for="ruler-tick">縦線間隔</label>
-        <input type="range" id="ruler-tick" min="8" max="80" value="20" step="4">
-        <span id="ruler-tick-label">20 px</span>
+        <label for="ruler-color" class="color-custom-label">その他</label>
       </div>
 
       <!-- トグル行 -->
       <div class="toggle-row">
-        <div class="toggle-item">
-          <span class="toggle-label">縦線</span>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggle-tick" checked>
-            <span class="toggle-knob"></span>
-          </label>
-        </div>
         <div class="toggle-item">
           <span class="toggle-label">カウンター</span>
           <label class="toggle-switch">
@@ -692,6 +875,23 @@
             <span class="toggle-knob"></span>
           </label>
         </div>
+        <div class="toggle-item">
+          <span class="toggle-label">立体定規</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-ruler-3d">
+            <span class="toggle-knob"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- プリセット -->
+      <div class="preset-section">
+        <div class="preset-title">💾 お気に入り定規</div>
+        <div class="preset-save-row">
+          <input type="text" id="preset-name-input" class="preset-name-input" placeholder="名前をつけて保存…" maxlength="20">
+          <button class="preset-save-btn" id="preset-save-btn">保存</button>
+        </div>
+        <div id="preset-list"></div>
       </div>
     </div>
 
@@ -767,7 +967,6 @@
   const zoomLabel    = document.getElementById('zoom-label');
   const rulerOverlay = document.getElementById('ruler-overlay');
   const rulerHandle  = document.getElementById('ruler-handle');
-  const rulerCard    = document.getElementById('ruler-card');
   const rulerSizeInput    = document.getElementById('ruler-size');
   const rulerSizeLabel    = document.getElementById('ruler-size-label');
   const rulerOpacityInput = document.getElementById('ruler-opacity');
@@ -776,16 +975,13 @@
   const colorPresets      = document.getElementById('color-presets');
   const rulerWidthInput   = document.getElementById('ruler-width');
   const rulerWidthLabel   = document.getElementById('ruler-width-label');
-  const rulerTickInput    = document.getElementById('ruler-tick');
-  const rulerTickLabel    = document.getElementById('ruler-tick-label');
-  const toggleTickEl      = document.getElementById('toggle-tick');
   const toggleCounterEl   = document.getElementById('toggle-counter');
+  const toggleRuler3dEl   = document.getElementById('toggle-ruler-3d');
   const counterPanel = document.getElementById('counter-panel');
   const zoomPanel    = document.getElementById('zoom-panel');
   const cpNum   = document.getElementById('cp-num');
   const cpPlus  = document.getElementById('cp-plus');
   const cpMinus = document.getElementById('cp-minus');
-  const cpReset = document.getElementById('cp-reset');
   const floatPanel = document.getElementById('float-panel');
 
   /* ========== 状態 ========== */
@@ -797,13 +993,12 @@
   let rulerTop    = 200;
   let rulerLeft   = 0;
   let rulerHeight = 48;
-  const MIN_RULER_H = 12, MAX_RULER_H = 300;
+  const MIN_RULER_H = 12;
   let rulerColor  = '#F2D6D6';
   let rulerAlpha  = 0.50;
   let rulerWidth  = 100;  // 横幅 %（左端からの幅）
-  let rulerTick   = 20;
-  let showTick    = true;
   let showCounter = true;
+  let showRuler3d = false;
   let rowCount    = 0;
   let rulerAlpha100 = 50;
 
@@ -814,8 +1009,8 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         color: rulerColor, alpha: rulerAlpha, height: rulerHeight,
-        width: rulerWidth, left: rulerLeft, tick: rulerTick,
-        showTick, showCounter, count: rowCount
+        width: rulerWidth, left: rulerLeft,
+        showCounter, showRuler3d, count: rowCount
       }));
     } catch(e) {}
   }
@@ -829,9 +1024,8 @@
       if (s.height)      rulerHeight = s.height;
       if (s.width  != null) rulerWidth  = s.width;
       if (s.left   != null) rulerLeft   = s.left;
-      if (s.tick   != null) rulerTick   = s.tick;
-      if (s.showTick    != null) showTick    = s.showTick;
       if (s.showCounter != null) showCounter = s.showCounter;
+      if (s.showRuler3d != null) showRuler3d = s.showRuler3d;
       if (s.count  != null) rowCount = s.count;
       rulerColorInput.value = rulerColor;
       rulerAlpha100 = Math.round(rulerAlpha * 100);
@@ -841,10 +1035,8 @@
       rulerSizeLabel.textContent = rulerHeight + ' px';
       rulerWidthInput.value = rulerWidth;
       rulerWidthLabel.textContent = rulerWidth + '%';
-      rulerTickInput.value  = rulerTick;
-      rulerTickLabel.textContent = rulerTick + ' px';
-      toggleTickEl.checked    = showTick;
       toggleCounterEl.checked = showCounter;
+      toggleRuler3dEl.checked = showRuler3d;
       cpNum.textContent = rowCount;
       document.querySelectorAll('.color-dot').forEach(d => {
         d.classList.toggle('active', d.dataset.color === rulerColor);
@@ -865,7 +1057,6 @@
         placeholder.style.display = 'none';
         canvas.style.display = 'block';
         viewer.classList.add('has-image');
-        rulerCard.classList.remove('disabled');
         fitImage();
         drawImage();
         showRuler();
@@ -903,15 +1094,23 @@
   }
 
   function applyRulerPos() {
-    rulerHandle.style.top    = rulerTop + 'px';
+    const border = 2; // border幅
+    const sw = window.innerWidth;
+    const sh = window.innerHeight;
+    // 左端・幅をpxで計算し、画面端から必ずborder分内側に収める
+    let leftPx  = (rulerLeft  / 100) * sw;
+    let widthPx = (rulerWidth / 100) * sw;
+    leftPx  = Math.max(border, leftPx);
+    widthPx = Math.min(widthPx, sw - leftPx - border);
+    const topPx    = Math.max(border, Math.min(sh - rulerHeight - border, rulerTop));
+    rulerHandle.style.top    = topPx  + 'px';
     rulerHandle.style.height = rulerHeight + 'px';
-    rulerHandle.style.left   = rulerLeft + '%';
-    rulerHandle.style.width  = rulerWidth + '%';
+    rulerHandle.style.left   = leftPx  + 'px';
+    rulerHandle.style.width  = widthPx + 'px';
   }
 
 
   function applyRulerStyle() {
-    if (!img) return;
     const hex = rulerColor;
     const r = parseInt(hex.slice(1,3),16);
     const g = parseInt(hex.slice(3,5),16);
@@ -920,12 +1119,16 @@
     const la = Math.min(1, rulerAlpha * 1.6);
     const ta = rulerAlpha * 0.55;
     rulerHandle.style.background = `rgba(${r},${g},${b},${fa})`;
-    rulerHandle.style.borderTop    = `2.5px dashed rgba(${r},${g},${b},${la})`;
-    rulerHandle.style.borderBottom = `2.5px dashed rgba(${r},${g},${b},${la})`;
-    if (showTick) {
-      rulerHandle.style.backgroundImage = `repeating-linear-gradient(90deg,transparent,transparent ${rulerTick-1}px,rgba(${r},${g},${b},${ta}) ${rulerTick-1}px,rgba(${r},${g},${b},${ta}) ${rulerTick}px)`;
+    rulerHandle.style.border = `2px solid rgba(${r},${g},${b},${la})`;
+    rulerHandle.style.backgroundImage = 'none';
+    if (showRuler3d) {
+      rulerHandle.style.borderRadius = '10px';
+      rulerHandle.style.boxShadow = `inset 0 2px 6px rgba(255,255,255,0.5), inset 0 -2px 4px rgba(${r},${g},${b},0.25), 0 2px 8px rgba(${r},${g},${b},0.2)`;
+      rulerHandle.classList.add('ruler-3d');
     } else {
-      rulerHandle.style.backgroundImage = 'none';
+      rulerHandle.style.borderRadius = '0px';
+      rulerHandle.style.boxShadow = 'none';
+      rulerHandle.classList.remove('ruler-3d');
     }
   }
 
@@ -963,18 +1166,14 @@
     applyRulerStyle();
     saveSettings();
   });
-  rulerTickInput.addEventListener('input', () => {
-    rulerTick = parseInt(rulerTickInput.value);
-    rulerTickLabel.textContent = rulerTick + ' px';
-    applyRulerStyle(); saveSettings();
-  });
-  toggleTickEl.addEventListener('change', () => {
-    showTick = toggleTickEl.checked;
-    applyRulerStyle(); saveSettings();
-  });
   toggleCounterEl.addEventListener('change', () => {
     showCounter = toggleCounterEl.checked;
-    if (img) counterPanel.style.display = showCounter ? 'flex' : 'none';
+    counterPanel.style.display = showCounter ? 'flex' : 'none';
+    saveSettings();
+  });
+  toggleRuler3dEl.addEventListener('change', () => {
+    showRuler3d = toggleRuler3dEl.checked;
+    applyRulerStyle();
     saveSettings();
   });
 
@@ -982,14 +1181,46 @@
   function updateCounter() { cpNum.textContent = rowCount; saveSettings(); }
   cpPlus.addEventListener('click',  e => { e.stopPropagation(); rowCount++; updateCounter(); });
   cpMinus.addEventListener('click', e => { e.stopPropagation(); if(rowCount>0) rowCount--; updateCounter(); });
-  cpReset.addEventListener('click', e => { e.stopPropagation(); rowCount=0; updateCounter(); });
 
-  /* ========== 定規ドラッグ（上下＋左右） ========== */
+  /* ========== 定規端リサイズ＋移動（統合） ========== */
+  const EDGE_HIT = 40;
   let rulerDragging = false, rulerDragStartX = 0, rulerDragStartY = 0;
   let rulerDragStartTop = 0, rulerDragStartLeft = 0;
+  let resizeDragging = false, resizeSide = '', resizeDragStartX = 0, resizeDragStartY = 0;
+  let resizeStartWidth = 0, resizeStartLeft = 0, resizeStartHeight = 0, resizeStartTop = 0;
 
+  // どの辺に当たったか判定
+  function getEdgeSide(e) {
+    const rect = rulerHandle.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    if (x <= EDGE_HIT)              return 'left';
+    if (x >= rect.width - EDGE_HIT) return 'right';
+    if (y <= EDGE_HIT)              return 'top';
+    if (y >= rect.height - EDGE_HIT)return 'bottom';
+    return null;
+  }
+
+  // 定規ドラッグのpointerdownより先に端チェック
   rulerHandle.addEventListener('pointerdown', e => {
-    if (e.target.closest('.cp-btn')) return; // カウンターボタンは除外
+    if (e.target.closest('.cp-btn')) return;
+    const side = getEdgeSide(e);
+    if (side) {
+      // 端ドラッグ開始
+      resizeDragging    = true;
+      resizeSide        = side;
+      resizeDragStartX  = e.clientX;
+      resizeDragStartY  = e.clientY;
+      resizeStartWidth  = rulerWidth;
+      resizeStartLeft   = rulerLeft;
+      resizeStartHeight = rulerHeight;
+      resizeStartTop    = rulerTop;
+      rulerHandle.setPointerCapture(e.pointerId);
+      e.preventDefault();
+      return;
+    }
+    // 端でなければ移動ドラッグ
+    if (rulerDragging) return;
     rulerDragging = true;
     rulerDragStartX    = e.clientX;
     rulerDragStartY    = e.clientY;
@@ -997,21 +1228,58 @@
     rulerDragStartLeft = rulerLeft;
     rulerHandle.setPointerCapture(e.pointerId);
     e.preventDefault();
-  });
+  }, true); // キャプチャフェーズで先に受ける
+
   rulerHandle.addEventListener('pointermove', e => {
-    if (!rulerDragging) return;
-    const dy = e.clientY - rulerDragStartY;
-    const dx = e.clientX - rulerDragStartX;
-    rulerTop  = Math.max(0, Math.min(window.innerHeight - rulerHeight, rulerDragStartTop + dy));
-    // 左右：定規の右端が画面外に出ないように制限
-    const leftPx = (rulerDragStartLeft / 100) * window.innerWidth + dx;
-    const maxLeftPx = window.innerWidth - (rulerWidth / 100) * window.innerWidth;
-    rulerLeft = Math.max(0, Math.min(100 - rulerWidth, (leftPx / window.innerWidth) * 100));
-    applyRulerPos();
-    e.preventDefault();
+    if (resizeDragging) {
+      const dx = e.clientX - resizeDragStartX;
+      const dy = e.clientY - resizeDragStartY;
+      const dxPct = (dx / window.innerWidth)  * 100;
+      if (resizeSide === 'right') {
+        rulerWidth = Math.max(5, Math.min(100 - resizeStartLeft, resizeStartWidth + dxPct));
+        rulerWidth = Math.round(rulerWidth * 10) / 10;
+      } else if (resizeSide === 'left') {
+        const rightEdge = resizeStartLeft + resizeStartWidth;
+        rulerLeft  = Math.max(0, Math.min(rightEdge - 5, resizeStartLeft + dxPct));
+        rulerLeft  = Math.round(rulerLeft * 10) / 10;
+        rulerWidth = Math.round((rightEdge - rulerLeft) * 10) / 10;
+      } else if (resizeSide === 'bottom') {
+        const maxH = window.innerHeight - resizeStartTop;
+        rulerHeight = Math.max(MIN_RULER_H, Math.min(maxH, resizeStartHeight + dy));
+        rulerHeight = Math.round(rulerHeight);
+      } else if (resizeSide === 'top') {
+        const bottomEdge = resizeStartTop + resizeStartHeight;
+        rulerTop    = Math.max(0, Math.min(bottomEdge - MIN_RULER_H, resizeStartTop + dy));
+        rulerTop    = Math.round(rulerTop);
+        rulerHeight = Math.round(bottomEdge - rulerTop);
+      }
+      // スライダーに反映
+      rulerWidthInput.value = Math.round(rulerWidth);
+      rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
+      rulerSizeInput.value = Math.max(24, Math.min(120, rulerHeight));
+      rulerSizeLabel.textContent = rulerHeight + ' px';
+      applyRulerPos();
+      e.preventDefault();
+    } else if (rulerDragging) {
+      const dy = e.clientY - rulerDragStartY;
+      const dx = e.clientX - rulerDragStartX;
+      rulerTop  = Math.max(0, Math.min(window.innerHeight - rulerHeight, rulerDragStartTop + dy));
+      const leftPx = (rulerDragStartLeft / 100) * window.innerWidth + dx;
+      rulerLeft = Math.max(0, Math.min(100 - rulerWidth, (leftPx / window.innerWidth) * 100));
+      applyRulerPos();
+      e.preventDefault();
+    }
   });
-  rulerHandle.addEventListener('pointerup',    () => { if (rulerDragging) { rulerDragging = false; saveSettings(); } });
-  rulerHandle.addEventListener('pointercancel',() => { rulerDragging = false; });
+
+  rulerHandle.addEventListener('pointerup', () => {
+    if (resizeDragging || rulerDragging) saveSettings();
+    resizeDragging = false;
+    rulerDragging  = false;
+  });
+  rulerHandle.addEventListener('pointercancel', () => {
+    resizeDragging = false;
+    rulerDragging  = false;
+  });
 
   /* ========== パン（マウス） ========== */
   let panning = false, panStartX = 0, panStartY = 0, panOffsetX = 0, panOffsetY = 0;
@@ -1108,7 +1376,6 @@
   /* ========== ズームボタン ========== */
   document.getElementById('btn-zoom-in').addEventListener('click',  () => { if(img) zoomAt(canvas.width/2, canvas.height/2, 1.2); });
   document.getElementById('btn-zoom-out').addEventListener('click', () => { if(img) zoomAt(canvas.width/2, canvas.height/2, 1/1.2); });
-  document.getElementById('btn-reset').addEventListener('click',    () => { if(img) { fitImage(); drawImage(); } });
 
   function updateZoomLabel() {
     zoomLabel.textContent = Math.round(scale * 100) + '%';
@@ -1170,6 +1437,133 @@
   });
   zoomPanel.addEventListener('pointerup',     () => { zpDragging = false; zoomPanel.classList.remove('dragging'); });
   zoomPanel.addEventListener('pointercancel', () => { zpDragging = false; zoomPanel.classList.remove('dragging'); });
+
+  /* モーダル制御 */
+  const modalOverlay = document.getElementById('preset-modal-overlay');
+  const modalMsg     = document.getElementById('modal-msg');
+  const modalCancel  = document.getElementById('modal-cancel');
+  const modalConfirm = document.getElementById('modal-confirm');
+
+  function showModal(msg, confirmLabel, onConfirm, showCancel = true) {
+    modalMsg.textContent = msg;
+    modalConfirm.textContent = confirmLabel;
+    modalCancel.style.display = showCancel ? '' : 'none';
+    modalOverlay.classList.add('open');
+    modalConfirm.onclick = () => { closeModal(); onConfirm(); };
+    modalCancel.onclick  = () => closeModal();
+    modalOverlay.onclick = e => { if (e.target === modalOverlay) closeModal(); };
+  }
+  function closeModal() { modalOverlay.classList.remove('open'); }
+
+  /* ========== プリセット ========== */
+  const PRESET_KEY   = 'yucchi_ruler_presets';
+  const MAX_PRESETS  = 5;
+  const presetList   = document.getElementById('preset-list');
+  const presetNameInput = document.getElementById('preset-name-input');
+  const presetSaveBtn   = document.getElementById('preset-save-btn');
+
+  function loadPresets() {
+    try { return JSON.parse(localStorage.getItem(PRESET_KEY)) || []; } catch(e) { return []; }
+  }
+  function savePresets(presets) {
+    try { localStorage.setItem(PRESET_KEY, JSON.stringify(presets)); } catch(e) {}
+  }
+
+  function currentRulerSnapshot() {
+    return {
+      color: rulerColor, alpha: rulerAlpha,
+      width: rulerWidth, height: rulerHeight,
+      showRuler3d
+    };
+  }
+
+  function applyPreset(p) {
+    rulerColor   = p.color;
+    rulerAlpha   = p.alpha;
+    rulerWidth   = p.width;
+    rulerHeight  = p.height;
+    showRuler3d  = p.showRuler3d ?? false;
+    // UI反映
+    rulerColorInput.value = rulerColor;
+    rulerOpacityInput.value = Math.round(rulerAlpha * 100);
+    rulerOpacityLabel.textContent = Math.round(rulerAlpha * 100) + '%';
+    rulerWidthInput.value = Math.round(rulerWidth);
+    rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
+    rulerSizeInput.value = Math.max(24, Math.min(600, rulerHeight));
+    rulerSizeLabel.textContent = rulerHeight + ' px';
+    toggleRuler3dEl.checked = showRuler3d;
+    document.querySelectorAll('.color-dot').forEach(d =>
+      d.classList.toggle('active', d.dataset.color === rulerColor));
+    applyRulerPos();
+    applyRulerStyle();
+    saveSettings();
+  }
+
+  function renderPresets() {
+    const presets = loadPresets();
+    presetList.innerHTML = '';
+    if (presets.length === 0) {
+      presetList.innerHTML = '<div class="preset-empty">保存した定規はありません</div>';
+      return;
+    }
+    presets.forEach((p, i) => {
+      const item = document.createElement('div');
+      item.className = 'preset-item';
+      item.innerHTML = `
+        <div class="preset-swatch" style="background:${p.color};opacity:${Math.min(1, p.alpha + 0.3)};border:1.5px solid ${p.color}"></div>
+        <span class="preset-item-name">${p.name}</span>
+        <span class="preset-item-meta">${Math.round(p.width)}% / ${p.height}px</span>
+        <button class="preset-del-btn" data-i="${i}" title="削除" style="margin-left:auto">✕</button>
+      `;
+      // 行クリックで呼び出し（削除ボタン除く）
+      item.addEventListener('click', e => {
+        if (e.target.closest('.preset-del-btn')) return;
+        applyPreset(p);
+      });
+      item.querySelector('.preset-del-btn').addEventListener('click', e => {
+        e.stopPropagation();
+        showModal(`「${p.name}」を削除しますか？`, '削除する', () => {
+          const ps = loadPresets();
+          ps.splice(i, 1);
+          savePresets(ps);
+          renderPresets();
+        });
+      });
+      presetList.appendChild(item);
+    });
+  }
+
+  presetSaveBtn.addEventListener('click', () => {
+    const name = presetNameInput.value.trim();
+    // 名前なし → モーダル警告
+    if (!name) {
+      showModal('名前を入力してください。', 'OK', () => presetNameInput.focus(), false);
+      return;
+    }
+    const presets = loadPresets();
+    const dupIdx  = presets.findIndex(p => p.name === name);
+    if (dupIdx !== -1) {
+      // 同名あり → 上書き確認モーダル
+      showModal(`「${name}」はすでに保存されています。\n上書きしますか？`, '上書き保存', () => {
+        presets[dupIdx] = { name, ...currentRulerSnapshot() };
+        savePresets(presets);
+        presetNameInput.value = '';
+        renderPresets();
+      });
+    } else {
+      // 新規保存
+      if (presets.length >= MAX_PRESETS) {
+        showModal(`保存できるのは${MAX_PRESETS}個までです。\n先に削除してから保存してください。`, 'OK', () => {}, false);
+        return;
+      }
+      presets.push({ name, ...currentRulerSnapshot() });
+      savePresets(presets);
+      presetNameInput.value = '';
+      renderPresets();
+    }
+  });
+
+  renderPresets();
 
   /* ========== カウンターパネル ドラッグ ========== */
   let cpDragging = false, cpDragStartX = 0, cpDragStartY = 0;
@@ -1286,6 +1680,7 @@
   canvas.width  = window.innerWidth;
   canvas.height = window.innerHeight;
   loadSettings();
+  showRuler(); // ファイル選択前から定規を表示
 </script>
 </body>
 </html>
