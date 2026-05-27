@@ -33,6 +33,7 @@
       height: 100%;
       overflow: hidden;
       touch-action: none;
+      overscroll-behavior: none;
     }
     body {
       font-family: 'Zen Maru Gothic', sans-serif;
@@ -40,6 +41,8 @@
       color: var(--text);
       position: fixed;
       inset: 0;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     /* ===== フルスクリーン Viewer ===== */
@@ -61,14 +64,15 @@
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       gap: 16px;
-      color: rgba(180,220,212,0.7);
+      color: rgba(160,112,128,0.55);
       pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
     }
-    #placeholder .ph-icon { font-size: 52px; opacity: .55; }
     #placeholder .ph-text {
       font-size: 14px;
       letter-spacing: .08em;
-      font-weight: 500;
+      font-weight: 700;
       text-align: center;
       line-height: 2;
     }
@@ -76,7 +80,7 @@
       font-family: 'Cormorant Garamond', serif;
       font-size: 18px;
       letter-spacing: .18em;
-      color: rgba(180,220,212,0.5);
+      color: rgba(160,112,128,0.38);
     }
     #chart-canvas {
       position: absolute; inset: 0;
@@ -451,6 +455,15 @@
       padding-right: 8px;
     }
     #ruler-handle:active { cursor: grabbing; }
+    #ruler-handle.dragging {
+      opacity: 0.6;
+      cursor: grabbing;
+      transition: opacity .1s;
+    }
+    #ruler-handle.resizing {
+      opacity: 0.55;
+      transition: opacity .1s;
+    }
 
     /* 端ヒント（上下左右にうっすら光彩） */
     /* 立体定規オン時のみ光彩ヒント */
@@ -571,6 +584,8 @@
       background: var(--surface);
       outline: none;
       min-width: 0;
+      user-select: text;
+      -webkit-user-select: text;
     }
     .preset-name-input:focus { border-color: #9ecfc4; }
     .preset-save-btn {
@@ -1094,15 +1109,14 @@
   }
 
   function applyRulerPos() {
-    const border = 2; // border幅
+    const border = 2;
     const sw = window.innerWidth;
     const sh = window.innerHeight;
-    // 左端・幅をpxで計算し、画面端から必ずborder分内側に収める
     let leftPx  = (rulerLeft  / 100) * sw;
     let widthPx = (rulerWidth / 100) * sw;
     leftPx  = Math.max(border, leftPx);
     widthPx = Math.min(widthPx, sw - leftPx - border);
-    const topPx    = Math.max(border, Math.min(sh - rulerHeight - border, rulerTop));
+    const topPx = Math.max(0, Math.min(sh - rulerHeight, rulerTop));
     rulerHandle.style.top    = topPx  + 'px';
     rulerHandle.style.height = rulerHeight + 'px';
     rulerHandle.style.left   = leftPx  + 'px';
@@ -1206,7 +1220,6 @@
     if (e.target.closest('.cp-btn')) return;
     const side = getEdgeSide(e);
     if (side) {
-      // 端ドラッグ開始
       resizeDragging    = true;
       resizeSide        = side;
       resizeDragStartX  = e.clientX;
@@ -1216,10 +1229,10 @@
       resizeStartHeight = rulerHeight;
       resizeStartTop    = rulerTop;
       rulerHandle.setPointerCapture(e.pointerId);
+      rulerHandle.classList.add('resizing');
       e.preventDefault();
       return;
     }
-    // 端でなければ移動ドラッグ
     if (rulerDragging) return;
     rulerDragging = true;
     rulerDragStartX    = e.clientX;
@@ -1227,6 +1240,7 @@
     rulerDragStartTop  = rulerTop;
     rulerDragStartLeft = rulerLeft;
     rulerHandle.setPointerCapture(e.pointerId);
+    rulerHandle.classList.add('dragging');
     e.preventDefault();
   }, true); // キャプチャフェーズで先に受ける
 
@@ -1275,11 +1289,20 @@
     if (resizeDragging || rulerDragging) saveSettings();
     resizeDragging = false;
     rulerDragging  = false;
+    rulerHandle.classList.remove('dragging', 'resizing');
   });
   rulerHandle.addEventListener('pointercancel', () => {
     resizeDragging = false;
     rulerDragging  = false;
+    rulerHandle.classList.remove('dragging', 'resizing');
   });
+
+  rulerHandle.addEventListener('touchstart', e => {
+    e.preventDefault();
+  }, { passive: false });
+  rulerHandle.addEventListener('touchmove', e => {
+    e.preventDefault();
+  }, { passive: false });
 
   /* ========== パン（マウス） ========== */
   let panning = false, panStartX = 0, panStartY = 0, panOffsetX = 0, panOffsetY = 0;
@@ -1568,6 +1591,7 @@
   /* ========== カウンターパネル ドラッグ ========== */
   let cpDragging = false, cpDragStartX = 0, cpDragStartY = 0;
   let cpPanelX = 0, cpPanelY = 0;
+  let pdDragged = false; // ドラッグ判定フラグ
 
   function getCpPos() {
     const r = counterPanel.getBoundingClientRect();
@@ -1633,9 +1657,9 @@
 
   // Pointer Events でパネルドラッグ（マウス・タッチ両対応）
   panelHeader.addEventListener('pointerdown', e => {
-    // ボタンのクリックはドラッグしない
     if (e.target.closest('.panel-hbtn')) return;
     panelDragging = true;
+    pdDragged = false;
     const pos = getPanelPos();
     pdStartX = e.clientX;
     pdStartY = e.clientY;
@@ -1649,26 +1673,48 @@
     if (!panelDragging) return;
     const dx = e.clientX - pdStartX;
     const dy = e.clientY - pdStartY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) pdDragged = true;
     setPanelPos(pdPanelX + dx, pdPanelY + dy);
     e.preventDefault();
   });
   panelHeader.addEventListener('pointerup', () => {
     panelDragging = false;
     floatPanel.classList.remove('dragging');
+    setTimeout(() => { pdDragged = false; }, 100);
   });
   panelHeader.addEventListener('pointercancel', () => {
     panelDragging = false;
+    pdDragged = false;
     floatPanel.classList.remove('dragging');
   });
 
   /* ========== パネル折りたたみ ========== */
-  function togglePanel() {
-    const collapsed = floatPanel.classList.toggle('collapsed');
-    document.getElementById('panel-toggle-btn').textContent = collapsed ? '＋' : '−';
-    document.getElementById('panel-toggle-btn').title = collapsed ? '開く' : '折りたたむ';
-    // 折りたたみ後にパネルが画面外に出ないようクランプ
+  window.togglePanel = function(forceClose = false) {
+    const willCollapse = forceClose || !floatPanel.classList.contains('collapsed');
+    floatPanel.classList.toggle('collapsed', willCollapse);
+    document.getElementById('panel-toggle-btn').textContent = willCollapse ? '＋' : '−';
+    document.getElementById('panel-toggle-btn').title = willCollapse ? '開く' : '折りたたむ';
     setTimeout(clampPanel, 10);
   }
+
+  // 折りたたみ時はパネル全体タップで開く
+  floatPanel.addEventListener('click', e => {
+    if (!floatPanel.classList.contains('collapsed')) return;
+    if (e.target.closest('.panel-hbtn')) return; // ボタンは除外
+    if (pdDragged) return;
+    togglePanel();
+  });
+
+  // viewerタップでパネルを閉じる
+  viewer.addEventListener('pointerdown', e => {
+    if (e.target.closest('#float-panel')) return;
+    if (e.target.closest('#counter-panel')) return;
+    if (e.target.closest('#zoom-panel')) return;
+    if (e.target.closest('#ruler-handle')) return;
+    if (!floatPanel.classList.contains('collapsed')) {
+      togglePanel(true);
+    }
+  });
 
   /* ========== アコーディオン ========== */
   function toggleNote(id) {
