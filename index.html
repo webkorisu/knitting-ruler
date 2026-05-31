@@ -7,7 +7,10 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
+  <meta http-equiv="Expires" content="0">
   <title>編み図ルーラー | Knitting Chart Ruler ✿ YUCCHI ✿</title>
+  <link rel="icon" href="favicon.ico">
+  <link rel="shortcut icon" href="favicon.ico">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     /* ===== CSS Variables: 04 Fresh Mint ===== */
@@ -308,6 +311,38 @@
       white-space: nowrap;
     }
 
+    /* ===== 定規タブ ===== */
+    .ruler-tabs {
+      display: flex;
+      gap: 4px;
+      background: #f0f8f5;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+    }
+    .ruler-tab {
+      flex: 1;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-sub);
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 4px;
+      cursor: pointer;
+      letter-spacing: .04em;
+      transition: background .15s, color .15s;
+      -webkit-tap-highlight-color: transparent;
+      white-space: nowrap;
+    }
+    .ruler-tab.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    }
+    .ruler-tab:not(.active):hover { background: rgba(255,255,255,0.6); }
+
     /* ===== 定規カスタマイズカード ===== */
     .ruler-card {
       background: #f8fdfc;
@@ -429,7 +464,84 @@
     .toggle-switch input:checked + .toggle-knob { background: #D4B5C4; }
     .toggle-switch input:checked + .toggle-knob::before { transform: translateX(16px); }
 
-    /* ===== 定規オーバーレイ ===== */
+    /* ===== 窓定規オーバーレイ ===== */
+    #frame-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+      display: none;
+    }
+    /* 外枠の4枚パネル（上下左右） */
+    .frame-panel {
+      position: absolute;
+      pointer-events: all;
+      touch-action: none;
+      cursor: grab;
+    }
+    .frame-panel:active { cursor: grabbing; }
+    .frame-panel.dragging { opacity: 0.35; transition: opacity .15s; }
+    #frame-top    { top: 0; left: 0; right: 0; }
+    #frame-bottom { bottom: 0; left: 0; right: 0; }
+    #frame-left   { }
+    #frame-right  { }
+    /* 窓のリサイズハンドル（透明） */
+    .frame-win-edge {
+      position: absolute;
+      background: transparent;
+      pointer-events: all;
+      touch-action: none;
+      z-index: 5;
+    }
+    .frame-win-edge.top    { top: 0;    left: 20px; right: 20px; height: 14px; cursor: ns-resize; }
+    .frame-win-edge.bottom { bottom: 0; left: 20px; right: 20px; height: 14px; cursor: ns-resize; }
+    .frame-win-edge.left   { left: 0;   top: 20px; bottom: 20px; width: 14px;  cursor: ew-resize; }
+    .frame-win-edge.right  { right: 0;  top: 20px; bottom: 20px; width: 14px;  cursor: ew-resize; }
+    .frame-win-corner {
+      position: absolute;
+      width: 24px; height: 24px;
+      background: transparent;
+      pointer-events: all;
+      touch-action: none;
+      z-index: 6;
+    }
+    .frame-win-corner.tl { top: 0; left: 0;     cursor: nwse-resize; }
+    .frame-win-corner.tr { top: 0; right: 0;    cursor: nesw-resize; }
+    .frame-win-corner.bl { bottom: 0; left: 0;  cursor: nesw-resize; }
+    .frame-win-corner.br { bottom: 0; right: 0; cursor: nwse-resize; }
+    /* 窓の中央ドラッグエリア */
+    #frame-win-drag {
+      position: absolute;
+      inset: 14px;
+      cursor: move;
+      pointer-events: all;
+      touch-action: none;
+      z-index: 4;
+    }
+
+    /* 外枠リサイズモード */
+    .frame-panel.resize-mode {
+      cursor: default;
+      opacity: 1 !important;
+    }
+    /* 外枠の外側リサイズハンドル（透明） */
+    .frame-outer-edge {
+      position: absolute;
+      background: transparent;
+      pointer-events: all;
+      touch-action: none;
+      z-index: 7;
+    }
+    /* top パネルの上辺 */
+    #frame-top    .frame-outer-edge { top: 0;    left: 0; right: 0;   height: 14px; cursor: ns-resize; }
+    /* bottom パネルの下辺 */
+    #frame-bottom .frame-outer-edge { bottom: 0; left: 0; right: 0;   height: 14px; cursor: ns-resize; }
+    /* left パネルの左辺 */
+    #frame-left   .frame-outer-edge { left: 0;   top: 0;  bottom: 0;  width:  14px; cursor: ew-resize; }
+    /* right パネルの右辺 */
+    #frame-right  .frame-outer-edge { right: 0;  top: 0;  bottom: 0;  width:  14px; cursor: ew-resize; }
+
+    /* ===== 帯定規オーバーレイ ===== */
     #ruler-overlay {
       position: fixed;
       inset: 0;
@@ -464,6 +576,49 @@
       opacity: 0.55;
       transition: opacity .1s;
     }
+
+    .frame-color-dot {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform .15s, border-color .15s;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .frame-color-dot:hover  { transform: scale(1.15); }
+    .frame-color-dot.active { border-color: var(--text-sub); transform: scale(1.1); }
+
+    /* ===== 四つ角リサイズハンドル ===== */
+    .ruler-corner {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      background: transparent;
+      border: none;
+      pointer-events: all;
+      touch-action: none;
+      z-index: 10;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ruler-corner.tl { top: 0; left: 0;     cursor: nwse-resize; }
+    .ruler-corner.tr { top: 0; right: 0;    cursor: nesw-resize; }
+    .ruler-corner.bl { bottom: 0; left: 0;  cursor: nesw-resize; }
+    .ruler-corner.br { bottom: 0; right: 0; cursor: nwse-resize; }
+
+    /* ===== 上下左右リサイズハンドル ===== */
+    .ruler-edge {
+      position: absolute;
+      background: transparent;
+      pointer-events: all;
+      touch-action: none;
+      z-index: 9;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ruler-edge.top    { top: 0;    left: 28px; right: 28px; height: 14px; cursor: ns-resize; }
+    .ruler-edge.bottom { bottom: 0; left: 28px; right: 28px; height: 14px; cursor: ns-resize; }
+    .ruler-edge.left   { left: 0;   top: 28px; bottom: 28px; width: 14px;  cursor: ew-resize; }
+    .ruler-edge.right  { right: 0;  top: 28px; bottom: 28px; width: 14px;  cursor: ew-resize; }
 
     /* 端ヒント（上下左右にうっすら光彩） */
     /* 立体定規オン時のみ光彩ヒント */
@@ -624,6 +779,14 @@
     }
     .preset-item:hover { background: #eef8f5; }
     .preset-item:active { transform: scale(.98); }
+    .preset-item.preset-active {
+      background: #e4f4f0;
+      border-color: #9ecfc4;
+    }
+    .preset-item.preset-active .preset-item-name {
+      font-weight: 700;
+      color: var(--text);
+    }
     .preset-color-dot, .preset-swatch {
       width: 34px; height: 13px;
       border-radius: 3px;
@@ -801,9 +964,46 @@
 </div>
 <input type="file" id="file-input" accept="image/*">
 
+<!-- ===== 窓定規オーバーレイ ===== -->
+<div id="frame-overlay">
+  <div class="frame-panel" id="frame-top">
+    <div class="frame-outer-edge" data-outer="top"></div>
+  </div>
+  <div class="frame-panel" id="frame-bottom">
+    <div class="frame-outer-edge" data-outer="bottom"></div>
+  </div>
+  <div class="frame-panel" id="frame-left">
+    <div class="frame-outer-edge" data-outer="left"></div>
+  </div>
+  <div class="frame-panel" id="frame-right">
+    <div class="frame-outer-edge" data-outer="right"></div>
+  </div>
+  <!-- 窓のリサイズ・移動ハンドル -->
+  <div id="frame-win-wrap" style="position:absolute;pointer-events:none;">
+    <div id="frame-win-drag"></div>
+    <div class="frame-win-edge top"    data-we="top"></div>
+    <div class="frame-win-edge bottom" data-we="bottom"></div>
+    <div class="frame-win-edge left"   data-we="left"></div>
+    <div class="frame-win-edge right"  data-we="right"></div>
+    <div class="frame-win-corner tl"   data-wc="tl"></div>
+    <div class="frame-win-corner tr"   data-wc="tr"></div>
+    <div class="frame-win-corner bl"   data-wc="bl"></div>
+    <div class="frame-win-corner br"   data-wc="br"></div>
+  </div>
+</div>
+
 <!-- ===== 定規オーバーレイ ===== -->
 <div id="ruler-overlay">
-  <div id="ruler-handle"></div>
+  <div id="ruler-handle">
+    <div class="ruler-corner tl" data-corner="tl"></div>
+    <div class="ruler-corner tr" data-corner="tr"></div>
+    <div class="ruler-corner bl" data-corner="bl"></div>
+    <div class="ruler-corner br" data-corner="br"></div>
+    <div class="ruler-edge top"    data-edge="top"></div>
+    <div class="ruler-edge bottom" data-edge="bottom"></div>
+    <div class="ruler-edge left"   data-edge="left"></div>
+    <div class="ruler-edge right"  data-edge="right"></div>
+  </div>
 </div>
 
 <!-- ===== カウンターフローティングパネル ===== -->
@@ -847,6 +1047,12 @@
     </div>
 
     <!-- ズームボタンはフローティングパネルに移動 -->
+
+    <!-- 定規タブ -->
+    <div class="ruler-tabs">
+      <button class="ruler-tab active" id="tab-band" onclick="switchRulerTab('band')">📏 帯定規</button>
+      <button class="ruler-tab"        id="tab-frame" onclick="switchRulerTab('frame')">🔲 窓定規</button>
+    </div>
 
     <!-- 定規カスタマイズ -->
     <div class="ruler-card" id="ruler-card">
@@ -908,11 +1114,33 @@
         </div>
         <div id="preset-list"></div>
       </div>
+    </div><!-- /#ruler-card (帯定規) -->
+
+    <!-- 窓定規カード -->
+    <div class="ruler-card" id="frame-card" style="display:none;">
+      <div class="ruler-card-title">🔲 窓定規のカスタマイズ</div>
+
+      <div class="ruler-control">
+        <label for="frame-opacity">濃度</label>
+        <input type="range" id="frame-opacity" min="5" max="90" value="50" step="5">
+        <span id="frame-opacity-label">50%</span>
+      </div>
+      <div class="ruler-control ruler-color-row">
+        <label>色</label>
+        <div class="color-presets" id="frame-color-presets">
+          <button class="frame-color-dot active" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
+          <button class="frame-color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
+          <button class="frame-color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="ラベンダー"></button>
+          <button class="frame-color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
+          <button class="frame-color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
+          <button class="frame-color-dot" data-color="#FFFFFF" style="background:#FFFFFF;border:1.5px solid #ccc;" title="ホワイト"></button>
+        </div>
+        <input type="color" id="frame-color" value="#F2D6D6" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
+        <label for="frame-color" class="color-custom-label">その他</label>
+      </div>
     </div>
 
     <div class="panel-divider"></div>
-
-    <!-- アコーディオン -->
     <div style="display:flex;flex-direction:column;gap:5px;">
 
       <div class="data-note" id="howtoNote">
@@ -1203,6 +1431,139 @@
   let resizeDragging = false, resizeSide = '', resizeDragStartX = 0, resizeDragStartY = 0;
   let resizeStartWidth = 0, resizeStartLeft = 0, resizeStartHeight = 0, resizeStartTop = 0;
 
+  // ===== 上下左右リサイズ =====
+  document.querySelectorAll('.ruler-edge').forEach(edge => {
+    let edgeDragging = false;
+    let edgeStartX = 0, edgeStartY = 0;
+    let edgeStartWidth = 0, edgeStartLeft = 0, edgeStartHeight = 0, edgeStartTop = 0;
+    const side = edge.dataset.edge;
+
+    edge.addEventListener('pointerdown', e => {
+      e.stopPropagation();
+      edgeDragging     = true;
+      edgeStartX       = e.clientX;
+      edgeStartY       = e.clientY;
+      edgeStartWidth   = rulerWidth;
+      edgeStartLeft    = rulerLeft;
+      edgeStartHeight  = rulerHeight;
+      edgeStartTop     = rulerTop;
+      edge.setPointerCapture(e.pointerId);
+      rulerHandle.classList.add('resizing');
+      e.preventDefault();
+    });
+    edge.addEventListener('pointermove', e => {
+      if (!edgeDragging) return;
+      const dx = e.clientX - edgeStartX;
+      const dy = e.clientY - edgeStartY;
+      const dxPct = (dx / window.innerWidth) * 100;
+      if (side === 'right') {
+        rulerWidth = Math.max(5, Math.min(100 - edgeStartLeft, edgeStartWidth + dxPct));
+        rulerWidth = Math.round(rulerWidth * 10) / 10;
+      } else if (side === 'left') {
+        const rightEdge = edgeStartLeft + edgeStartWidth;
+        rulerLeft  = Math.max(0, Math.min(rightEdge - 5, edgeStartLeft + dxPct));
+        rulerLeft  = Math.round(rulerLeft * 10) / 10;
+        rulerWidth = Math.round((rightEdge - rulerLeft) * 10) / 10;
+      } else if (side === 'bottom') {
+        const maxH = window.innerHeight - edgeStartTop;
+        rulerHeight = Math.max(MIN_RULER_H, Math.min(maxH, edgeStartHeight + dy));
+        rulerHeight = Math.round(rulerHeight);
+      } else if (side === 'top') {
+        const bottomEdge = edgeStartTop + edgeStartHeight;
+        rulerTop    = Math.max(0, Math.min(bottomEdge - MIN_RULER_H, edgeStartTop + dy));
+        rulerTop    = Math.round(rulerTop);
+        rulerHeight = Math.round(bottomEdge - rulerTop);
+      }
+      rulerWidthInput.value = Math.round(rulerWidth);
+      rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
+      rulerSizeInput.value = Math.max(24, Math.min(120, rulerHeight));
+      rulerSizeLabel.textContent = rulerHeight + ' px';
+      applyRulerPos();
+      e.preventDefault();
+    });
+    edge.addEventListener('pointerup', () => {
+      if (edgeDragging) saveSettings();
+      edgeDragging = false;
+      rulerHandle.classList.remove('resizing');
+    });
+    edge.addEventListener('pointercancel', () => {
+      edgeDragging = false;
+      rulerHandle.classList.remove('resizing');
+    });
+  });
+
+  // ===== 四つ角リサイズ =====
+  let cornerDragging = false, cornerSide = '';
+  let cornerStartX = 0, cornerStartY = 0;
+  let cornerStartWidth = 0, cornerStartLeft = 0, cornerStartHeight = 0, cornerStartTop = 0;
+
+  document.querySelectorAll('.ruler-corner').forEach(corner => {
+    corner.addEventListener('pointerdown', e => {
+      e.stopPropagation();
+      cornerDragging   = true;
+      cornerSide       = corner.dataset.corner;
+      cornerStartX     = e.clientX;
+      cornerStartY     = e.clientY;
+      cornerStartWidth = rulerWidth;
+      cornerStartLeft  = rulerLeft;
+      cornerStartHeight= rulerHeight;
+      cornerStartTop   = rulerTop;
+      corner.setPointerCapture(e.pointerId);
+      rulerHandle.classList.add('resizing');
+      e.preventDefault();
+    });
+    corner.addEventListener('pointermove', e => {
+      if (!cornerDragging || corner.dataset.corner !== cornerSide) return;
+      const dx = e.clientX - cornerStartX;
+      const dy = e.clientY - cornerStartY;
+      const dxPct = (dx / window.innerWidth) * 100;
+      const sw = window.innerWidth;
+
+      // 横方向
+      if (cornerSide === 'tr' || cornerSide === 'br') {
+        // 右コーナー：右端を伸縮
+        rulerWidth = Math.max(5, Math.min(100 - cornerStartLeft, cornerStartWidth + dxPct));
+        rulerWidth = Math.round(rulerWidth * 10) / 10;
+      } else {
+        // 左コーナー：左端を伸縮
+        const rightEdge = cornerStartLeft + cornerStartWidth;
+        rulerLeft  = Math.max(0, Math.min(rightEdge - 5, cornerStartLeft + dxPct));
+        rulerLeft  = Math.round(rulerLeft * 10) / 10;
+        rulerWidth = Math.round((rightEdge - rulerLeft) * 10) / 10;
+      }
+
+      // 縦方向
+      if (cornerSide === 'bl' || cornerSide === 'br') {
+        // 下コーナー：下端を伸縮
+        const maxH = window.innerHeight - cornerStartTop;
+        rulerHeight = Math.max(MIN_RULER_H, Math.min(maxH, cornerStartHeight + dy));
+        rulerHeight = Math.round(rulerHeight);
+      } else {
+        // 上コーナー：上端を伸縮
+        const bottomEdge = cornerStartTop + cornerStartHeight;
+        rulerTop    = Math.max(0, Math.min(bottomEdge - MIN_RULER_H, cornerStartTop + dy));
+        rulerTop    = Math.round(rulerTop);
+        rulerHeight = Math.round(bottomEdge - rulerTop);
+      }
+
+      rulerWidthInput.value = Math.round(rulerWidth);
+      rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
+      rulerSizeInput.value = Math.max(24, Math.min(120, rulerHeight));
+      rulerSizeLabel.textContent = rulerHeight + ' px';
+      applyRulerPos();
+      e.preventDefault();
+    });
+    corner.addEventListener('pointerup', () => {
+      if (cornerDragging) saveSettings();
+      cornerDragging = false;
+      rulerHandle.classList.remove('resizing');
+    });
+    corner.addEventListener('pointercancel', () => {
+      cornerDragging = false;
+      rulerHandle.classList.remove('resizing');
+    });
+  });
+
   // どの辺に当たったか判定
   function getEdgeSide(e) {
     const rect = rulerHandle.getBoundingClientRect();
@@ -1218,6 +1579,8 @@
   // 定規ドラッグのpointerdownより先に端チェック
   rulerHandle.addEventListener('pointerdown', e => {
     if (e.target.closest('.cp-btn')) return;
+    if (e.target.closest('.ruler-corner')) return; // コーナーは除外
+    if (e.target.closest('.ruler-edge')) return;   // 辺ハンドルは除外
     const side = getEdgeSide(e);
     if (side) {
       resizeDragging    = true;
@@ -1485,6 +1848,9 @@
   const presetNameInput = document.getElementById('preset-name-input');
   const presetSaveBtn   = document.getElementById('preset-save-btn');
 
+  let activePresetIndex    = -1;   // 現在選択中のプリセット番号（-1=未選択）
+  let activePresetSnapshot = null; // 選択時の設定スナップショット
+
   function loadPresets() {
     try { return JSON.parse(localStorage.getItem(PRESET_KEY)) || []; } catch(e) { return []; }
   }
@@ -1500,7 +1866,7 @@
     };
   }
 
-  function applyPreset(p) {
+  function applyPreset(p, idx) {
     rulerColor   = p.color;
     rulerAlpha   = p.alpha;
     rulerWidth   = p.width;
@@ -1520,6 +1886,23 @@
     applyRulerPos();
     applyRulerStyle();
     saveSettings();
+    // アクティブプリセット更新
+    activePresetIndex    = idx ?? -1;
+    activePresetSnapshot = { ...currentRulerSnapshot() };
+    renderPresets();
+  }
+
+  // 現在の設定がアクティブプリセットから変更されているか
+  function isPresetDirty() {
+    if (activePresetIndex === -1 || !activePresetSnapshot) return false;
+    const s = activePresetSnapshot;
+    return (
+      rulerColor   !== s.color   ||
+      rulerAlpha   !== s.alpha   ||
+      rulerWidth   !== s.width   ||
+      rulerHeight  !== s.height  ||
+      showRuler3d  !== s.showRuler3d
+    );
   }
 
   function renderPresets() {
@@ -1531,17 +1914,33 @@
     }
     presets.forEach((p, i) => {
       const item = document.createElement('div');
-      item.className = 'preset-item';
+      item.className = 'preset-item' + (i === activePresetIndex ? ' preset-active' : '');
       item.innerHTML = `
         <div class="preset-swatch" style="background:${p.color};opacity:${Math.min(1, p.alpha + 0.3)};border:1.5px solid ${p.color}"></div>
         <span class="preset-item-name">${p.name}</span>
         <span class="preset-item-meta">${Math.round(p.width)}% / ${p.height}px</span>
         <button class="preset-del-btn" data-i="${i}" title="削除" style="margin-left:auto">✕</button>
       `;
-      // 行クリックで呼び出し（削除ボタン除く）
       item.addEventListener('click', e => {
         if (e.target.closest('.preset-del-btn')) return;
-        applyPreset(p);
+        if (i === activePresetIndex) return; // 同じプリセットは何もしない
+        const doSwitch = () => applyPreset(p, i);
+        if (isPresetDirty()) {
+          const ps = loadPresets();
+          showModal(
+            `「${ps[activePresetIndex].name}」を上書き保存しますか？`,
+            '上書き保存',
+            () => {
+              ps[activePresetIndex] = { name: ps[activePresetIndex].name, ...currentRulerSnapshot() };
+              savePresets(ps);
+              doSwitch();
+            }
+          );
+          // キャンセル時はそのまま切り替えるだけ
+          modalCancel.onclick = () => { closeModal(); doSwitch(); };
+        } else {
+          doSwitch();
+        }
       });
       item.querySelector('.preset-del-btn').addEventListener('click', e => {
         e.stopPropagation();
@@ -1549,6 +1948,8 @@
           const ps = loadPresets();
           ps.splice(i, 1);
           savePresets(ps);
+          if (activePresetIndex === i) activePresetIndex = -1;
+          else if (activePresetIndex > i) activePresetIndex--;
           renderPresets();
         });
       });
@@ -1711,6 +2112,7 @@
     if (e.target.closest('#counter-panel')) return;
     if (e.target.closest('#zoom-panel')) return;
     if (e.target.closest('#ruler-handle')) return;
+    if (e.target.closest('#frame-overlay')) return;
     if (!floatPanel.classList.contains('collapsed')) {
       togglePanel(true);
     }
@@ -1721,12 +2123,430 @@
     document.getElementById(id).classList.toggle('open');
   }
 
+  /* ========== 定規タブ切り替え ========== */
+  let currentRulerTab = 'band'; // 'band' | 'frame'
+
+  window.switchRulerTab = function(tab) {
+    currentRulerTab = tab;
+    document.getElementById('tab-band').classList.toggle('active',  tab === 'band');
+    document.getElementById('tab-frame').classList.toggle('active', tab === 'frame');
+    document.getElementById('ruler-card').style.display  = tab === 'band'  ? '' : 'none';
+    document.getElementById('frame-card').style.display  = tab === 'frame' ? '' : 'none';
+    // プリセットは帯定規タブのみ表示
+    document.querySelector('.preset-section').style.display = tab === 'band' ? '' : 'none';
+    if (tab === 'band') {
+      rulerOverlay.style.display = 'block';
+      frameOverlay.style.display = 'none';
+    } else {
+      rulerOverlay.style.display = 'none';
+      frameOverlay.style.display = 'block';
+      applyFrameOuterPos();
+      applyFrameStyle();
+    }
+  };
+
+  /* ========== 窓定規 ========== */
+  const frameOverlay  = document.getElementById('frame-overlay');
+  const frameWinWrap  = document.getElementById('frame-win-wrap');
+  const frameWinDrag  = document.getElementById('frame-win-drag');
+  const frameColorInput = document.getElementById('frame-color');
+
+  // 状態：外枠 (px)
+  let fOuter = { top: 60, left: 40, right: 40, bottom: 60 }; // 外枠の各辺の幅(px)
+  // 状態：窓 (px, 画面座標)
+  let fWin = { x: 0, y: 0, w: 0, h: 0 };
+  let fColor = '#F2D6D6';
+  let fAlpha = 0.50;
+  const F_MIN = 20; // 窓・外枠の最小サイズ
+
+  function initFramePos() {
+    const sw = window.innerWidth, sh = window.innerHeight;
+    fOuter = { top: 60, left: 60, bottom: 60, right: 60 };
+    fWin.x = fOuter.left;
+    fWin.y = fOuter.top;
+    fWin.w = sw - fOuter.left - fOuter.right;
+    fWin.h = sh - fOuter.top  - fOuter.bottom;
+  }
+
+  function applyFramePos() {
+    const sw = window.innerWidth, sh = window.innerHeight;
+    // 通常モード：外枠は画面端まで（fOuter = 窓座標）
+    fOuter.top    = fWin.y;
+    fOuter.left   = fWin.x;
+    fOuter.bottom = sh - (fWin.y + fWin.h);
+    fOuter.right  = sw - (fWin.x + fWin.w);
+    applyFrameOuterPos();
+  }
+
+  const F_OUTER_MIN = 30; // 外枠の最小幅（px）
+
+  function applyFrameOuterPos() {
+    const sw = window.innerWidth, sh = window.innerHeight;
+
+    // 外枠の外側座標（fOuter は窓からの余白）
+    const outerTop    = Math.max(0,  fWin.y - fOuter.top);
+    const outerLeft   = Math.max(0,  fWin.x - fOuter.left);
+    const outerRight  = Math.min(sw, fWin.x + fWin.w + fOuter.right);
+    const outerBottom = Math.min(sh, fWin.y + fWin.h + fOuter.bottom);
+
+    // 窓の座標
+    const winT = fWin.y, winL = fWin.x;
+    const winR = fWin.x + fWin.w, winB = fWin.y + fWin.h;
+
+    const set = (id, t, l, w, h) => {
+      const e = document.getElementById(id);
+      e.style.top    = t + 'px';
+      e.style.left   = l + 'px';
+      e.style.width  = Math.max(0, w) + 'px';
+      e.style.height = Math.max(0, h) + 'px';
+    };
+
+    // 上パネル：外枠の上端〜窓の上端、横幅は外枠全体
+    set('frame-top',    outerTop,  outerLeft, outerRight - outerLeft, winT - outerTop);
+    // 下パネル：窓の下端〜外枠の下端、横幅は外枠全体
+    set('frame-bottom', winB,      outerLeft, outerRight - outerLeft, outerBottom - winB);
+    // 左パネル：窓の上端〜窓の下端、左端〜窓の左端
+    set('frame-left',   winT,      outerLeft, winL - outerLeft,       winB - winT);
+    // 右パネル：窓の上端〜窓の下端、窓の右端〜外枠の右端
+    set('frame-right',  winT,      winR,      outerRight - winR,      winB - winT);
+
+    // 窓ラップ
+    frameWinWrap.style.left   = fWin.x + 'px';
+    frameWinWrap.style.top    = fWin.y + 'px';
+    frameWinWrap.style.width  = fWin.w + 'px';
+    frameWinWrap.style.height = fWin.h + 'px';
+    frameWinWrap.style.pointerEvents = 'none';
+  }
+
+  function applyFrameStyle() {
+    const hex = fColor;
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    const bg = `rgba(${r},${g},${b},${fAlpha})`;
+    ['frame-top','frame-bottom','frame-left','frame-right'].forEach(id => {
+      document.getElementById(id).style.background = bg;
+    });
+  }
+
+  function saveFrameSettings() {
+    try {
+      localStorage.setItem('yucchi_ruler_frame', JSON.stringify({
+        fWin, fOuter, fColor, fAlpha
+      }));
+    } catch(e) {}
+  }
+  function loadFrameSettings() {
+    try {
+      const s = JSON.parse(localStorage.getItem('yucchi_ruler_frame'));
+      if (!s) return false;
+      if (s.fWin)   fWin   = s.fWin;
+      if (s.fOuter) fOuter = s.fOuter;
+      if (s.fColor) { fColor = s.fColor; frameColorInput.value = fColor; }
+      if (s.fAlpha != null) fAlpha = s.fAlpha;
+      document.getElementById('frame-opacity').value = Math.round(fAlpha * 100);
+      document.getElementById('frame-opacity-label').textContent = Math.round(fAlpha * 100) + '%';
+      document.querySelectorAll('.frame-color-dot').forEach(d =>
+        d.classList.toggle('active', d.dataset.color === fColor));
+      return true;
+    } catch(e) { return false; }
+  }
+
+  // 窓の移動（中央ドラッグ）
+  let fWinDragging = false, fWinDragStartX = 0, fWinDragStartY = 0;
+  let fWinStartX = 0, fWinStartY = 0;
+  let fWinOuterFixed = {};
+  frameWinDrag.addEventListener('pointerdown', e => {
+    fWinDragging = true;
+    fWinDragStartX = e.clientX; fWinDragStartY = e.clientY;
+    fWinStartX = fWin.x; fWinStartY = fWin.y;
+    // 外枠の外側座標をスナップショット
+    fWinOuterFixed = {
+      top:    fWin.y - fOuter.top,
+      left:   fWin.x - fOuter.left,
+      right:  fWin.x + fWin.w + fOuter.right,
+      bottom: fWin.y + fWin.h + fOuter.bottom,
+    };
+    frameWinDrag.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  frameWinDrag.addEventListener('pointermove', e => {
+    if (!fWinDragging) return;
+    const sw = window.innerWidth, sh = window.innerHeight;
+    const dx = e.clientX - fWinDragStartX;
+    const dy = e.clientY - fWinDragStartY;
+    // 外枠の外側座標を固定したまま窓だけ動く
+    // 窓が動ける範囲 = 外側座標 + F_OUTER_MIN <= fWin <= 外側座標 - F_OUTER_MIN
+    const minX = fWinOuterFixed.left   + F_OUTER_MIN;
+    const minY = fWinOuterFixed.top    + F_OUTER_MIN;
+    const maxX = fWinOuterFixed.right  - fWin.w - F_OUTER_MIN;
+    const maxY = fWinOuterFixed.bottom - fWin.h - F_OUTER_MIN;
+    fWin.x = Math.max(minX, Math.min(maxX, fWinStartX + dx));
+    fWin.y = Math.max(minY, Math.min(maxY, fWinStartY + dy));
+    // fOuter を外側座標から逆算（外枠の外側は動かない）
+    fOuter.top    = fWin.y - fWinOuterFixed.top;
+    fOuter.left   = fWin.x - fWinOuterFixed.left;
+    fOuter.right  = fWinOuterFixed.right  - (fWin.x + fWin.w);
+    fOuter.bottom = fWinOuterFixed.bottom - (fWin.y + fWin.h);
+    applyFrameOuterPos();
+    e.preventDefault();
+  });
+  frameWinDrag.addEventListener('pointerup',     () => { fWinDragging = false; saveFrameSettings(); });
+  frameWinDrag.addEventListener('pointercancel', () => { fWinDragging = false; });
+
+  // 窓の辺リサイズ（外枠の外側座標は固定）
+  document.querySelectorAll('.frame-win-edge').forEach(el => {
+    let dragging = false, startX = 0, startY = 0;
+    let sx = 0, sy = 0, sw2 = 0, sh2 = 0;
+    let outerFixed = {};
+    const side = el.dataset.we;
+    el.addEventListener('pointerdown', e => {
+      e.stopPropagation();
+      dragging = true;
+      startX = e.clientX; startY = e.clientY;
+      sx = fWin.x; sy = fWin.y; sw2 = fWin.w; sh2 = fWin.h;
+      // 外枠の外側座標をスナップショット（リサイズ中は固定）
+      outerFixed = {
+        top:    fWin.y - fOuter.top,
+        left:   fWin.x - fOuter.left,
+        right:  fWin.x + fWin.w + fOuter.right,
+        bottom: fWin.y + fWin.h + fOuter.bottom,
+      };
+      el.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    el.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const dx = e.clientX - startX, dy = e.clientY - startY;
+      if (side === 'top') {
+        const newY = Math.max(outerFixed.top + F_OUTER_MIN, Math.min(sy + sh2 - F_MIN, sy + dy));
+        fWin.h = sh2 - (newY - sy); fWin.y = newY;
+      } else if (side === 'bottom') {
+        const maxH = outerFixed.bottom - F_OUTER_MIN - fWin.y;
+        fWin.h = Math.max(F_MIN, Math.min(maxH, sh2 + dy));
+      } else if (side === 'left') {
+        const newX = Math.max(outerFixed.left + F_OUTER_MIN, Math.min(sx + sw2 - F_MIN, sx + dx));
+        fWin.w = sw2 - (newX - sx); fWin.x = newX;
+      } else if (side === 'right') {
+        const maxW = outerFixed.right - F_OUTER_MIN - fWin.x;
+        fWin.w = Math.max(F_MIN, Math.min(maxW, sw2 + dx));
+      }
+      // fOuter を外側座標から逆算して維持
+      fOuter.top    = fWin.y - outerFixed.top;
+      fOuter.left   = fWin.x - outerFixed.left;
+      fOuter.right  = outerFixed.right  - (fWin.x + fWin.w);
+      fOuter.bottom = outerFixed.bottom - (fWin.y + fWin.h);
+      applyFrameOuterPos();
+      e.preventDefault();
+    });
+    el.addEventListener('pointerup',     () => { dragging = false; saveFrameSettings(); });
+    el.addEventListener('pointercancel', () => { dragging = false; });
+  });
+
+  // 窓の四つ角リサイズ（外枠の外側座標は固定）
+  document.querySelectorAll('.frame-win-corner').forEach(el => {
+    let dragging = false, startX = 0, startY = 0;
+    let sx = 0, sy = 0, sw2 = 0, sh2 = 0;
+    let outerFixed = {};
+    const corner = el.dataset.wc;
+    el.addEventListener('pointerdown', e => {
+      e.stopPropagation();
+      dragging = true;
+      startX = e.clientX; startY = e.clientY;
+      sx = fWin.x; sy = fWin.y; sw2 = fWin.w; sh2 = fWin.h;
+      outerFixed = {
+        top:    fWin.y - fOuter.top,
+        left:   fWin.x - fOuter.left,
+        right:  fWin.x + fWin.w + fOuter.right,
+        bottom: fWin.y + fWin.h + fOuter.bottom,
+      };
+      el.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    el.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const dx = e.clientX - startX, dy = e.clientY - startY;
+      // 横
+      if (corner === 'tr' || corner === 'br') {
+        const maxW = outerFixed.right - F_OUTER_MIN - fWin.x;
+        fWin.w = Math.max(F_MIN, Math.min(maxW, sw2 + dx));
+      } else {
+        const newX = Math.max(outerFixed.left + F_OUTER_MIN, Math.min(sx + sw2 - F_MIN, sx + dx));
+        fWin.w = sw2 - (newX - sx); fWin.x = newX;
+      }
+      // 縦
+      if (corner === 'bl' || corner === 'br') {
+        const maxH = outerFixed.bottom - F_OUTER_MIN - fWin.y;
+        fWin.h = Math.max(F_MIN, Math.min(maxH, sh2 + dy));
+      } else {
+        const newY = Math.max(outerFixed.top + F_OUTER_MIN, Math.min(sy + sh2 - F_MIN, sy + dy));
+        fWin.h = sh2 - (newY - sy); fWin.y = newY;
+      }
+      // fOuter を外側座標から逆算して維持
+      fOuter.top    = fWin.y - outerFixed.top;
+      fOuter.left   = fWin.x - outerFixed.left;
+      fOuter.right  = outerFixed.right  - (fWin.x + fWin.w);
+      fOuter.bottom = outerFixed.bottom - (fWin.y + fWin.h);
+      applyFrameOuterPos();
+      e.preventDefault();
+    });
+    el.addEventListener('pointerup',     () => { dragging = false; saveFrameSettings(); });
+    el.addEventListener('pointercancel', () => { dragging = false; });
+  });
+
+  // 外枠パネル：掴んだら薄くなる＋外枠自体を動かす（fOuter を変える）
+  const LONG_PRESS_MS = 500;
+  let frameResizeMode = false;
+  let longPressTimer  = null;
+  const framePanelIds = ['frame-top','frame-bottom','frame-left','frame-right'];
+  const FRAME_SCREEN_MARGIN = 40; // 画面端に必ず残す余白（px）
+
+  function enterFrameResizeMode() {
+    frameResizeMode = true;
+    framePanelIds.forEach(id =>
+      document.getElementById(id).classList.add('resize-mode'));
+    if (navigator.vibrate) navigator.vibrate(30);
+  }
+  function exitFrameResizeMode() {
+    frameResizeMode = false;
+    framePanelIds.forEach(id =>
+      document.getElementById(id).classList.remove('resize-mode'));
+  }
+
+  // 外枠の各辺の最大値（画面端から FRAME_SCREEN_MARGIN 残す）
+  function maxOuter(side) {
+    const sw = window.innerWidth, sh = window.innerHeight;
+    if (side === 'top')    return Math.max(F_OUTER_MIN, fWin.y - FRAME_SCREEN_MARGIN);
+    if (side === 'bottom') return Math.max(F_OUTER_MIN, sh - (fWin.y + fWin.h) - FRAME_SCREEN_MARGIN);
+    if (side === 'left')   return Math.max(F_OUTER_MIN, fWin.x - FRAME_SCREEN_MARGIN);
+    if (side === 'right')  return Math.max(F_OUTER_MIN, sw - (fWin.x + fWin.w) - FRAME_SCREEN_MARGIN);
+    return 9999;
+  }
+
+  framePanelIds.forEach(id => {
+    const el = document.getElementById(id);
+    let dragging = false, moved = false;
+    let startX = 0, startY = 0;
+    let startWinX = 0, startWinY = 0;
+    let startOuter = { top: 0, left: 0, bottom: 0, right: 0 };
+
+    el.addEventListener('pointerdown', e => {
+      if (e.target.closest('.frame-outer-edge')) return;
+      moved = false;
+      startX = e.clientX; startY = e.clientY;
+      startOuter = { ...fOuter };
+      startWinX = fWin.x; startWinY = fWin.y;
+      el.setPointerCapture(e.pointerId);
+      dragging = true;
+
+      // 掴んだら薄くする
+      framePanelIds.forEach(pid =>
+        document.getElementById(pid).classList.add('dragging'));
+
+      if (!frameResizeMode) {
+        longPressTimer = setTimeout(() => {
+          if (!moved) enterFrameResizeMode();
+        }, LONG_PRESS_MS);
+      }
+      e.preventDefault();
+    });
+
+    el.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const dx = e.clientX - startX, dy = e.clientY - startY;
+      if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+        moved = true;
+        clearTimeout(longPressTimer);
+      }
+      if (frameResizeMode) return;
+
+      // 外枠ドラッグ：窓ごと全体を移動（fOuter は維持、fWin を動かす）
+      const scw = window.innerWidth, sch = window.innerHeight;
+      // 外枠の外側が FRAME_SCREEN_MARGIN 以内に入らないよう制限
+      const minX = FRAME_SCREEN_MARGIN + startOuter.left;   // 外枠左端 = fWin.x - fOuter.left >= FRAME_SCREEN_MARGIN
+      const minY = FRAME_SCREEN_MARGIN + startOuter.top;    // 外枠上端 = fWin.y - fOuter.top  >= FRAME_SCREEN_MARGIN
+      const maxX = scw - fWin.w - startOuter.right  - FRAME_SCREEN_MARGIN;
+      const maxY = sch - fWin.h - startOuter.bottom - FRAME_SCREEN_MARGIN;
+      fWin.x = Math.max(minX, Math.min(maxX, startWinX + dx));
+      fWin.y = Math.max(minY, Math.min(maxY, startWinY + dy));
+      applyFrameOuterPos();
+      e.preventDefault();
+    });
+
+    el.addEventListener('pointerup', () => {
+      clearTimeout(longPressTimer);
+      dragging = false;
+      framePanelIds.forEach(pid =>
+        document.getElementById(pid).classList.remove('dragging'));
+      if (frameResizeMode) exitFrameResizeMode();
+      saveFrameSettings();
+    });
+    el.addEventListener('pointercancel', () => {
+      clearTimeout(longPressTimer);
+      dragging = false;
+      framePanelIds.forEach(pid =>
+        document.getElementById(pid).classList.remove('dragging'));
+      exitFrameResizeMode();
+    });
+  });
+
+  // 外枠の外側辺リサイズ（各辺を個別に伸縮）
+  document.querySelectorAll('.frame-outer-edge').forEach(el => {
+    const side = el.dataset.outer;
+    let dragging = false, startX = 0, startY = 0;
+    let startOuter = 0;
+
+    el.addEventListener('pointerdown', e => {
+      e.stopPropagation();
+      dragging = true;
+      startX = e.clientX; startY = e.clientY;
+      startOuter = fOuter[side];
+      el.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    el.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const dx = e.clientX - startX, dy = e.clientY - startY;
+      const max = maxOuter(side);
+      if (side === 'top')    fOuter.top    = Math.max(F_OUTER_MIN, Math.min(max, startOuter - dy));
+      if (side === 'bottom') fOuter.bottom = Math.max(F_OUTER_MIN, Math.min(max, startOuter + dy));
+      if (side === 'left')   fOuter.left   = Math.max(F_OUTER_MIN, Math.min(max, startOuter - dx));
+      if (side === 'right')  fOuter.right  = Math.max(F_OUTER_MIN, Math.min(max, startOuter + dx));
+      applyFrameOuterPos();
+      e.preventDefault();
+    });
+    el.addEventListener('pointerup',     () => { dragging = false; saveFrameSettings(); });
+    el.addEventListener('pointercancel', () => { dragging = false; });
+  });
+
+  // 窓定規カラー・濃度
+  document.getElementById('frame-opacity').addEventListener('input', e => {
+    fAlpha = parseInt(e.target.value) / 100;
+    document.getElementById('frame-opacity-label').textContent = e.target.value + '%';
+    applyFrameStyle(); saveFrameSettings();
+  });
+  document.getElementById('frame-color-presets').addEventListener('click', e => {
+    const dot = e.target.closest('.frame-color-dot');
+    if (!dot) return;
+    fColor = dot.dataset.color;
+    frameColorInput.value = fColor;
+    document.querySelectorAll('.frame-color-dot').forEach(d => d.classList.remove('active'));
+    dot.classList.add('active');
+    applyFrameStyle(); saveFrameSettings();
+  });
+  frameColorInput.addEventListener('input', e => {
+    fColor = e.target.value;
+    document.querySelectorAll('.frame-color-dot').forEach(d => d.classList.remove('active'));
+    applyFrameStyle(); saveFrameSettings();
+  });
+
   /* ========== 初期化 ========== */
-  // canvas初期サイズ
   canvas.width  = window.innerWidth;
   canvas.height = window.innerHeight;
   loadSettings();
-  showRuler(); // ファイル選択前から定規を表示
+  const hadFrameData = loadFrameSettings();
+  if (!hadFrameData) initFramePos();
+  showRuler();
 </script>
 </body>
 </html>
