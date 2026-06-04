@@ -72,6 +72,7 @@
       user-select: none;
       -webkit-user-select: none;
     }
+
     #placeholder .ph-text {
       font-size: 14px;
       letter-spacing: .08em;
@@ -830,6 +831,28 @@
       padding: 6px 0;
       opacity: 0.7;
     }
+    .reset-default-btn {
+      display: block;
+      width: 100%;
+      margin: 10px 0 4px;
+      padding: 9px 0;
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+      letter-spacing: .06em;
+      cursor: pointer;
+      transition: background .18s, border-color .18s, color .18s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .reset-default-btn:hover {
+      background: #f0eef5;
+      border-color: #C3B4C8;
+      color: var(--text);
+    }
 
     /* ===== モーダル ===== */
     #preset-modal-overlay {
@@ -1060,24 +1083,24 @@
 
       <div class="ruler-control">
         <label for="ruler-width">横幅</label>
-        <input type="range" id="ruler-width" min="20" max="100" value="100" step="5">
-        <span id="ruler-width-label">100%</span>
+        <input type="range" id="ruler-width" min="20" max="100" value="80" step="5">
+        <span id="ruler-width-label">80%</span>
       </div>
       <div class="ruler-control">
         <label for="ruler-size">縦幅</label>
-        <input type="range" id="ruler-size" min="24" max="600" value="48" step="4">
-        <span id="ruler-size-label">48 px</span>
+        <input type="range" id="ruler-size" min="24" max="600" value="172" step="4">
+        <span id="ruler-size-label">172 px</span>
       </div>
       <div class="ruler-control">
         <label for="ruler-opacity">濃度</label>
-        <input type="range" id="ruler-opacity" min="5" max="90" value="50" step="5">
-        <span id="ruler-opacity-label">50%</span>
+        <input type="range" id="ruler-opacity" min="5" max="90" value="70" step="5">
+        <span id="ruler-opacity-label">70%</span>
       </div>
       <div class="ruler-control ruler-color-row">
         <label>色</label>
         <div class="color-presets" id="color-presets">
-          <button class="color-dot active" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
-          <button class="color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
+          <button class="color-dot" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
+          <button class="color-dot active" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
           <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="ラベンダー"></button>
           <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
           <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
@@ -1105,6 +1128,9 @@
         </div>
       </div>
 
+      <!-- 基本に戻す -->
+      <button class="reset-default-btn" id="band-reset-btn" onclick="resetBandDefault()">↺ 基本の定規に戻す</button>
+
       <!-- プリセット -->
       <div class="preset-section">
         <div class="preset-title">💾 お気に入り定規</div>
@@ -1122,25 +1148,24 @@
 
       <div class="ruler-control">
         <label for="frame-opacity">濃度</label>
-        <input type="range" id="frame-opacity" min="5" max="90" value="50" step="5">
-        <span id="frame-opacity-label">50%</span>
+        <input type="range" id="frame-opacity" min="5" max="90" value="70" step="5">
+        <span id="frame-opacity-label">70%</span>
       </div>
       <div class="ruler-control ruler-color-row">
         <label>色</label>
         <div class="color-presets" id="frame-color-presets">
-          <button class="frame-color-dot active" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
-          <button class="frame-color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
+          <button class="frame-color-dot" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
+          <button class="frame-color-dot active" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
           <button class="frame-color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="ラベンダー"></button>
           <button class="frame-color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
           <button class="frame-color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
           <button class="frame-color-dot" data-color="#FFFFFF" style="background:#FFFFFF;border:1.5px solid #ccc;" title="ホワイト"></button>
         </div>
-        <input type="color" id="frame-color" value="#F2D6D6" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
+        <input type="color" id="frame-color" value="#B8DCD4" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
         <label for="frame-color" class="color-custom-label">その他</label>
       </div>
+      <button class="reset-default-btn" id="frame-reset-btn" onclick="resetFrameDefault()">↺ 基本の定規に戻す</button>
     </div>
-
-    <div class="panel-divider"></div>
     <div style="display:flex;flex-direction:column;gap:5px;">
 
       <div class="data-note" id="howtoNote">
@@ -1235,15 +1260,15 @@
 
   let rulerTop    = 200;
   let rulerLeft   = 0;
-  let rulerHeight = 48;
+  let rulerHeight = 172;
   const MIN_RULER_H = 12;
-  let rulerColor  = '#F2D6D6';
-  let rulerAlpha  = 0.50;
-  let rulerWidth  = 100;  // 横幅 %（左端からの幅）
+  let rulerColor  = '#B8DCD4';
+  let rulerAlpha  = 0.70;
+  let rulerWidth  = 80;  // 横幅 %（左端からの幅）
   let showCounter = true;
   let showRuler3d = false;
   let rowCount    = 0;
-  let rulerAlpha100 = 50;
+  let rulerAlpha100 = 70;
 
   /* ========== localStorage ========== */
   const STORAGE_KEY = 'yucchi_ruler';
@@ -2098,12 +2123,17 @@
     setTimeout(clampPanel, 10);
   }
 
-  // 折りたたみ時はパネル全体タップで開く
+  // 折りたたみ時はパネル全体タップで開く、開いている時はヘッダークリックで閉じる
   floatPanel.addEventListener('click', e => {
-    if (!floatPanel.classList.contains('collapsed')) return;
     if (e.target.closest('.panel-hbtn')) return; // ボタンは除外
     if (pdDragged) return;
-    togglePanel();
+    if (floatPanel.classList.contains('collapsed')) {
+      // 折りたたみ中→開く
+      togglePanel();
+    } else if (e.target.closest('#panel-header')) {
+      // 開いている時はヘッダークリックで閉じる
+      togglePanel(true);
+    }
   });
 
   // viewerタップでパネルを閉じる
@@ -2155,17 +2185,21 @@
   let fOuter = { top: 60, left: 40, right: 40, bottom: 60 }; // 外枠の各辺の幅(px)
   // 状態：窓 (px, 画面座標)
   let fWin = { x: 0, y: 0, w: 0, h: 0 };
-  let fColor = '#F2D6D6';
-  let fAlpha = 0.50;
+  let fColor = '#B8DCD4';
+  let fAlpha = 0.70;
   const F_MIN = 20; // 窓・外枠の最小サイズ
 
   function initFramePos() {
     const sw = window.innerWidth, sh = window.innerHeight;
-    fOuter = { top: 60, left: 60, bottom: 60, right: 60 };
-    fWin.x = fOuter.left;
-    fWin.y = fOuter.top;
-    fWin.w = sw - fOuter.left - fOuter.right;
-    fWin.h = sh - fOuter.top  - fOuter.bottom;
+    // 窓サイズ固定
+    const winW = 650, winH = 250;
+    // 外枠の幅固定
+    fOuter = { top: 130, left: 125, bottom: 130, right: 125 };
+    // 画面中央（＝テキスト中央）が窓の中心になるよう配置
+    fWin.x = Math.round((sw - winW) / 2);
+    fWin.y = Math.round((sh - winH) / 2);
+    fWin.w = winW;
+    fWin.h = winH;
   }
 
   function applyFramePos() {
@@ -2216,6 +2250,7 @@
     frameWinWrap.style.width  = fWin.w + 'px';
     frameWinWrap.style.height = fWin.h + 'px';
     frameWinWrap.style.pointerEvents = 'none';
+
   }
 
   function applyFrameStyle() {
@@ -2227,6 +2262,65 @@
     ['frame-top','frame-bottom','frame-left','frame-right'].forEach(id => {
       document.getElementById(id).style.background = bg;
     });
+  }
+
+  // ===== 基本の定規に戻す =====
+  function resetBandDefault() {
+    const DEFAULT_WIDTH   = 80;
+    const DEFAULT_HEIGHT  = 172;
+    const DEFAULT_COLOR   = '#B8DCD4';
+    const DEFAULT_ALPHA   = 0.70;
+
+    rulerWidth  = DEFAULT_WIDTH;
+    rulerHeight = DEFAULT_HEIGHT;
+    rulerColor  = DEFAULT_COLOR;
+    rulerAlpha  = DEFAULT_ALPHA;
+    rulerLeft   = (100 - DEFAULT_WIDTH) / 2; // 中央配置
+
+    rulerWidthInput.value  = DEFAULT_WIDTH;
+    rulerWidthLabel.textContent = DEFAULT_WIDTH + '%';
+    rulerSizeInput.value   = DEFAULT_HEIGHT;
+    rulerSizeLabel.textContent  = DEFAULT_HEIGHT + ' px';
+    rulerOpacityInput.value = DEFAULT_ALPHA * 100;
+    rulerOpacityLabel.textContent = (DEFAULT_ALPHA * 100) + '%';
+    rulerColorInput.value  = DEFAULT_COLOR;
+    document.querySelectorAll('.color-dot').forEach(d =>
+      d.classList.toggle('active', d.dataset.color === DEFAULT_COLOR));
+
+    // テキスト2行の下端 + 35px の位置に定規を配置
+    const sh = window.innerHeight;
+    const textCenterY = sh / 2; // プレースホルダーはflex中央
+    // ph-text(line-height:2 font-size:14px)＋gap(16px)＋ph-tap(font-size:18px) の高さ概算
+    const textBlockH = 14 * 2 + 16 + 18;
+    const textBottom = textCenterY + textBlockH / 2;
+    rulerTop = Math.round(textBottom + 35);
+
+    applyRulerPos();
+    applyRulerStyle();
+    saveSettings();
+  }
+
+  function resetFrameDefault() {
+    const DEFAULT_COLOR = '#B8DCD4';
+    const DEFAULT_ALPHA = 0.70;
+    const sw = window.innerWidth, sh = window.innerHeight;
+
+    fColor = DEFAULT_COLOR;
+    fAlpha = DEFAULT_ALPHA;
+    fOuter = { top: 130, left: 125, bottom: 130, right: 125 };
+    fWin.w = 650; fWin.h = 250;
+    fWin.x = Math.round((sw - fWin.w) / 2);
+    fWin.y = Math.round((sh - fWin.h) / 2);
+
+    document.getElementById('frame-opacity').value = DEFAULT_ALPHA * 100;
+    document.getElementById('frame-opacity-label').textContent = (DEFAULT_ALPHA * 100) + '%';
+    frameColorInput.value = DEFAULT_COLOR;
+    document.querySelectorAll('.frame-color-dot').forEach(d =>
+      d.classList.toggle('active', d.dataset.color === DEFAULT_COLOR));
+
+    applyFrameOuterPos();
+    applyFrameStyle();
+    saveFrameSettings();
   }
 
   function saveFrameSettings() {
