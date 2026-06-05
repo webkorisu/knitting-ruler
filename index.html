@@ -473,7 +473,15 @@
       z-index: 100;
       display: none;
     }
-    /* 外枠の4枚パネル（上下左右） */
+    /* 立体枠（外枠全体を囲む枠線のみ、中は透明） */
+    #frame-3d-border {
+      position: absolute;
+      pointer-events: none;
+      z-index: 99;
+      border-radius: 10px;
+      background: transparent;
+    }
+    /* 外枠の4枚パネル（上下左右）- 背景は透明、リサイズ操作のみ担当 */
     .frame-panel {
       position: absolute;
       pointer-events: all;
@@ -989,6 +997,8 @@
 
 <!-- ===== 窓定規オーバーレイ ===== -->
 <div id="frame-overlay">
+  <!-- 立体枠（外枠全体を1要素で表現） -->
+  <div id="frame-3d-border"></div>
   <div class="frame-panel" id="frame-top">
     <div class="frame-outer-edge" data-outer="top"></div>
   </div>
@@ -1100,13 +1110,14 @@
         <label>色</label>
         <div class="color-presets" id="color-presets">
           <button class="color-dot" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
-          <button class="color-dot active" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
+          <button class="color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
           <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="ラベンダー"></button>
           <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
           <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
+          <button class="color-dot active" data-color="#909090" style="background:#909090;" title="グレー"></button>
           <button class="color-dot" data-color="#FFFFFF" style="background:#FFFFFF;border:1.5px solid #ccc;" title="ホワイト"></button>
         </div>
-        <input type="color" id="ruler-color" value="#F2D6D6">
+        <input type="color" id="ruler-color" value="#909090">
         <label for="ruler-color" class="color-custom-label">その他</label>
       </div>
 
@@ -1116,13 +1127,6 @@
           <span class="toggle-label">カウンター</span>
           <label class="toggle-switch">
             <input type="checkbox" id="toggle-counter" checked>
-            <span class="toggle-knob"></span>
-          </label>
-        </div>
-        <div class="toggle-item">
-          <span class="toggle-label">立体定規</span>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggle-ruler-3d">
             <span class="toggle-knob"></span>
           </label>
         </div>
@@ -1155,13 +1159,14 @@
         <label>色</label>
         <div class="color-presets" id="frame-color-presets">
           <button class="frame-color-dot" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
-          <button class="frame-color-dot active" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
+          <button class="frame-color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
           <button class="frame-color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="ラベンダー"></button>
           <button class="frame-color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
           <button class="frame-color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
+          <button class="frame-color-dot active" data-color="#909090" style="background:#909090;" title="グレー"></button>
           <button class="frame-color-dot" data-color="#FFFFFF" style="background:#FFFFFF;border:1.5px solid #ccc;" title="ホワイト"></button>
         </div>
-        <input type="color" id="frame-color" value="#B8DCD4" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
+        <input type="color" id="frame-color" value="#909090" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
         <label for="frame-color" class="color-custom-label">その他</label>
       </div>
       <button class="reset-default-btn" id="frame-reset-btn" onclick="resetFrameDefault()">↺ 基本の定規に戻す</button>
@@ -1244,7 +1249,7 @@
   const rulerWidthInput   = document.getElementById('ruler-width');
   const rulerWidthLabel   = document.getElementById('ruler-width-label');
   const toggleCounterEl   = document.getElementById('toggle-counter');
-  const toggleRuler3dEl   = document.getElementById('toggle-ruler-3d');
+  
   const counterPanel = document.getElementById('counter-panel');
   const zoomPanel    = document.getElementById('zoom-panel');
   const cpNum   = document.getElementById('cp-num');
@@ -1262,11 +1267,11 @@
   let rulerLeft   = 0;
   let rulerHeight = 172;
   const MIN_RULER_H = 12;
-  let rulerColor  = '#B8DCD4';
+  let rulerColor  = '#909090';
   let rulerAlpha  = 0.70;
   let rulerWidth  = 80;  // 横幅 %（左端からの幅）
   let showCounter = true;
-  let showRuler3d = false;
+
   let rowCount    = 0;
   let rulerAlpha100 = 70;
 
@@ -1278,7 +1283,7 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         color: rulerColor, alpha: rulerAlpha, height: rulerHeight,
         width: rulerWidth, left: rulerLeft,
-        showCounter, showRuler3d, count: rowCount
+        showCounter, count: rowCount
       }));
     } catch(e) {}
   }
@@ -1293,7 +1298,6 @@
       if (s.width  != null) rulerWidth  = s.width;
       if (s.left   != null) rulerLeft   = s.left;
       if (s.showCounter != null) showCounter = s.showCounter;
-      if (s.showRuler3d != null) showRuler3d = s.showRuler3d;
       if (s.count  != null) rowCount = s.count;
       rulerColorInput.value = rulerColor;
       rulerAlpha100 = Math.round(rulerAlpha * 100);
@@ -1304,7 +1308,6 @@
       rulerWidthInput.value = rulerWidth;
       rulerWidthLabel.textContent = rulerWidth + '%';
       toggleCounterEl.checked = showCounter;
-      toggleRuler3dEl.checked = showRuler3d;
       cpNum.textContent = rowCount;
       document.querySelectorAll('.color-dot').forEach(d => {
         d.classList.toggle('active', d.dataset.color === rulerColor);
@@ -1388,15 +1391,9 @@
     rulerHandle.style.background = `rgba(${r},${g},${b},${fa})`;
     rulerHandle.style.border = `2px solid rgba(${r},${g},${b},${la})`;
     rulerHandle.style.backgroundImage = 'none';
-    if (showRuler3d) {
-      rulerHandle.style.borderRadius = '10px';
-      rulerHandle.style.boxShadow = `inset 0 2px 6px rgba(255,255,255,0.5), inset 0 -2px 4px rgba(${r},${g},${b},0.25), 0 2px 8px rgba(${r},${g},${b},0.2)`;
-      rulerHandle.classList.add('ruler-3d');
-    } else {
-      rulerHandle.style.borderRadius = '0px';
-      rulerHandle.style.boxShadow = 'none';
-      rulerHandle.classList.remove('ruler-3d');
-    }
+    rulerHandle.style.borderRadius = '10px';
+    rulerHandle.style.boxShadow = `inset 0 2px 6px rgba(255,255,255,0.5), inset 0 -2px 4px rgba(${r},${g},${b},0.25), 0 2px 12px rgba(${r},${g},${b},0.25)`;
+    rulerHandle.classList.add('ruler-3d');
   }
 
   /* スライダー */
@@ -1436,11 +1433,6 @@
   toggleCounterEl.addEventListener('change', () => {
     showCounter = toggleCounterEl.checked;
     counterPanel.style.display = showCounter ? 'flex' : 'none';
-    saveSettings();
-  });
-  toggleRuler3dEl.addEventListener('change', () => {
-    showRuler3d = toggleRuler3dEl.checked;
-    applyRulerStyle();
     saveSettings();
   });
 
@@ -1886,8 +1878,7 @@
   function currentRulerSnapshot() {
     return {
       color: rulerColor, alpha: rulerAlpha,
-      width: rulerWidth, height: rulerHeight,
-      showRuler3d
+      width: rulerWidth, height: rulerHeight
     };
   }
 
@@ -1896,7 +1887,6 @@
     rulerAlpha   = p.alpha;
     rulerWidth   = p.width;
     rulerHeight  = p.height;
-    showRuler3d  = p.showRuler3d ?? false;
     // UI反映
     rulerColorInput.value = rulerColor;
     rulerOpacityInput.value = Math.round(rulerAlpha * 100);
@@ -1905,7 +1895,6 @@
     rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
     rulerSizeInput.value = Math.max(24, Math.min(600, rulerHeight));
     rulerSizeLabel.textContent = rulerHeight + ' px';
-    toggleRuler3dEl.checked = showRuler3d;
     document.querySelectorAll('.color-dot').forEach(d =>
       d.classList.toggle('active', d.dataset.color === rulerColor));
     applyRulerPos();
@@ -1925,8 +1914,7 @@
       rulerColor   !== s.color   ||
       rulerAlpha   !== s.alpha   ||
       rulerWidth   !== s.width   ||
-      rulerHeight  !== s.height  ||
-      showRuler3d  !== s.showRuler3d
+      rulerHeight  !== s.height
     );
   }
 
@@ -2185,7 +2173,7 @@
   let fOuter = { top: 60, left: 40, right: 40, bottom: 60 }; // 外枠の各辺の幅(px)
   // 状態：窓 (px, 画面座標)
   let fWin = { x: 0, y: 0, w: 0, h: 0 };
-  let fColor = '#B8DCD4';
+  let fColor = '#909090';
   let fAlpha = 0.70;
   const F_MIN = 20; // 窓・外枠の最小サイズ
 
@@ -2194,7 +2182,7 @@
     // 窓サイズ固定
     const winW = 650, winH = 250;
     // 外枠の幅固定
-    fOuter = { top: 130, left: 125, bottom: 130, right: 125 };
+    fOuter = { top: 130, left: 130, bottom: 130, right: 130 };
     // 画面中央（＝テキスト中央）が窓の中心になるよう配置
     fWin.x = Math.round((sw - winW) / 2);
     fWin.y = Math.round((sh - winH) / 2);
@@ -2251,6 +2239,8 @@
     frameWinWrap.style.height = fWin.h + 'px';
     frameWinWrap.style.pointerEvents = 'none';
 
+    // 位置が変わったら立体枠のclip-pathも更新
+    applyFrameStyle();
   }
 
   function applyFrameStyle() {
@@ -2258,17 +2248,89 @@
     const r = parseInt(hex.slice(1,3),16);
     const g = parseInt(hex.slice(3,5),16);
     const b = parseInt(hex.slice(5,7),16);
-    const bg = `rgba(${r},${g},${b},${fAlpha})`;
+
+    // 4辺パネルは完全に透明（操作用のみ）
     ['frame-top','frame-bottom','frame-left','frame-right'].forEach(id => {
-      document.getElementById(id).style.background = bg;
+      const el = document.getElementById(id);
+      el.style.background = 'transparent';
+      el.style.border     = 'none';
+      el.style.boxShadow  = 'none';
     });
+
+    // frame-3d-borderをSVGで額縁として描画
+    const sw = window.innerWidth, sh = window.innerHeight;
+    const outerLeft   = Math.max(0,  fWin.x - fOuter.left);
+    const outerTop    = Math.max(0,  fWin.y - fOuter.top);
+    const outerRight  = Math.min(sw, fWin.x + fWin.w + fOuter.right);
+    const outerBottom = Math.min(sh, fWin.y + fWin.h + fOuter.bottom);
+    const ow = outerRight - outerLeft;
+    const oh = outerBottom - outerTop;
+    // 窓の座標（frame-3d-border基準）
+    const wx  = fWin.x - outerLeft;
+    const wy  = fWin.y - outerTop;
+    const ww  = fWin.w;
+    const wh  = fWin.h;
+    const rad = 10;
+    const fa  = fAlpha;
+    const bc  = Math.min(1, fa * 1.5);
+
+    const svgId = 'frame-svg-' + Date.now();
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow}" height="${oh}">
+      <defs>
+        <linearGradient id="lg_hi" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.5)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </linearGradient>
+        <linearGradient id="lg_sh" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(${r},${g},${b},0)"/>
+          <stop offset="100%" stop-color="rgba(${r},${g},${b},0.25)"/>
+        </linearGradient>
+        <filter id="drop" x="-5%" y="-5%" width="115%" height="120%">
+          <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(${r},${g},${b},0.25)"/>
+        </filter>
+      </defs>
+      <!-- 額縁本体（外角丸・窓くり抜き） -->
+      <path fill="rgba(${r},${g},${b},${fa})" filter="url(#drop)"
+        d="M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad}
+           V${oh-rad} Q${ow},${oh} ${ow-rad},${oh}
+           H${rad} Q0,${oh} 0,${oh-rad}
+           V${rad} Q0,0 ${rad},0 Z
+           M${wx},${wy} H${wx+ww} V${wy+wh} H${wx} Z"
+        fill-rule="evenodd"/>
+      <!-- 上ハイライト（inset 0 2px 6px rgba(白,0.5) 相当） -->
+      <path fill="url(#lg_hi)"
+        d="M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad}
+           V${Math.min(8,oh/4)}
+           H0 V${rad} Q0,0 ${rad},0 Z"/>
+      <!-- 下シャドウ（inset 0 -2px 4px rgba(色,0.25) 相当） -->
+      <path fill="url(#lg_sh)"
+        d="M0,${oh-Math.min(8,oh/4)} H${ow}
+           V${oh-rad} Q${ow},${oh} ${ow-rad},${oh}
+           H${rad} Q0,${oh} 0,${oh-rad} Z"/>
+      <!-- 外枠border -->
+      <path fill="none" stroke="rgba(${r},${g},${b},${bc})" stroke-width="1"
+        d="M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad}
+           V${oh-rad} Q${ow},${oh} ${ow-rad},${oh}
+           H${rad} Q0,${oh} 0,${oh-rad}
+           V${rad} Q0,0 ${rad},0 Z"/>
+    </svg>`;
+
+    const border = document.getElementById('frame-3d-border');
+    border.style.left       = outerLeft + 'px';
+    border.style.top        = outerTop  + 'px';
+    border.style.width      = ow + 'px';
+    border.style.height     = oh + 'px';
+    border.style.background = 'none';
+    border.style.boxShadow  = 'none';
+    border.style.borderRadius = '0';
+    border.innerHTML = svg;
   }
 
   // ===== 基本の定規に戻す =====
   function resetBandDefault() {
     const DEFAULT_WIDTH   = 80;
     const DEFAULT_HEIGHT  = 172;
-    const DEFAULT_COLOR   = '#B8DCD4';
+    const DEFAULT_COLOR   = '#909090';
     const DEFAULT_ALPHA   = 0.70;
 
     rulerWidth  = DEFAULT_WIDTH;
@@ -2301,13 +2363,13 @@
   }
 
   function resetFrameDefault() {
-    const DEFAULT_COLOR = '#B8DCD4';
+    const DEFAULT_COLOR = '#909090';
     const DEFAULT_ALPHA = 0.70;
     const sw = window.innerWidth, sh = window.innerHeight;
 
     fColor = DEFAULT_COLOR;
     fAlpha = DEFAULT_ALPHA;
-    fOuter = { top: 130, left: 125, bottom: 130, right: 125 };
+    fOuter = { top: 130, left: 130, bottom: 130, right: 130 };
     fWin.w = 650; fWin.h = 250;
     fWin.x = Math.round((sw - fWin.w) / 2);
     fWin.y = Math.round((sh - fWin.h) / 2);
