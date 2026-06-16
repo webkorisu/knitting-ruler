@@ -18,16 +18,16 @@
       --bg:       #D4E9E2;
       --surface:  #FFFFFF;
       --primary:  #B8DCD4;
-      --text:     #4A6B63;
-      --text-sub: #7A9B93;
-      --border:   #C3D8D2;
+      --text:     #2D4A43;
+      --text-sub: #4F7169;
+      --border:   #A8C4BC;
       --radius:   14px;
       --radius-sm:8px;
       color-scheme: light only;
     }
     @media (prefers-color-scheme: dark) {
       html { background: #D4E9E2 !important; }
-      body { background-color: #D4E9E2 !important; color: #4A6B63 !important; }
+      body { background-color: #D4E9E2 !important; color: #2D4A43 !important; }
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -100,16 +100,17 @@
       top: 16px;
       left: 16px;
       width: 300px;
-      background: rgba(252,249,242,0.96);
+      background: #FCF9F2;
       border: 1.5px solid var(--border);
       border-radius: var(--radius);
       box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.1);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       user-select: none;
       touch-action: none;
       transition: box-shadow .15s;
       overflow: hidden;
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+      will-change: transform;
     }
     #float-panel.dragging {
       box-shadow: 0 16px 48px rgba(0,0,0,0.28), 0 4px 12px rgba(0,0,0,0.15);
@@ -283,12 +284,10 @@
       z-index: 200;
       bottom: 24px;
       left: 20px;
-      background: rgba(255,255,255,0.25);
-      border: 1.5px solid rgba(195,216,210,0.35);
+      background: rgba(255,255,255,0.92);
+      border: 1.5px solid rgba(195,216,210,0.6);
       border-radius: 40px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
       user-select: none;
       touch-action: none;
       display: none;
@@ -411,10 +410,10 @@
       background: #f8fdfc;
       border: 1.5px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 13px 12px 10px;
+      padding: 13px 12px 12px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 12px;
     }
     .ruler-card-title {
       font-size: 11px;
@@ -428,26 +427,30 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       overflow: hidden;
-      background: var(--surface);
+      background: #FFFFFF;
     }
     .card-accordion-btn {
       width: 100%;
-      background: none;
+      background: #FFFFFF;
       border: none;
       padding: 8px 12px;
       font-family: 'Zen Maru Gothic', sans-serif;
       font-size: 11px;
       font-weight: 700;
-      color: var(--text-sub);
+      color: var(--text);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: space-between;
       letter-spacing: .06em;
-      transition: background .15s;
+      transition: background .15s, color .15s;
       -webkit-tap-highlight-color: transparent;
     }
-    .card-accordion-btn:hover { background: #f0f8f5; }
+    .card-accordion-btn:hover { background: #cce8e2; }
+    .card-accordion-btn:active { background: #bcdeda; color: var(--text); }
+    .card-accordion.open .card-accordion-btn { background: #cce8e2; }
+    .card-accordion.open .card-accordion-btn:hover { background: #bcdeda; }
+    .card-accordion.open .card-accordion-btn:active { background: #acd4ce; }
     .card-accordion-arrow {
       font-size: 9px;
       transition: transform .25s ease;
@@ -472,6 +475,7 @@
       color: var(--text);
       letter-spacing: .04em;
       line-height: 1.5;
+      word-break: keep-all;
     }
     .ruler-op-pinch {
       font-size: 10px;
@@ -480,6 +484,11 @@
       opacity: 0.8;
       padding-left: 0;
       margin-top: -2px;
+      word-break: keep-all;
+    }
+    .ruler-control > div {
+      min-width: 0;
+      flex: 1;
     }
 
     /* スライダー行 */
@@ -850,12 +859,10 @@
       z-index: 200;
       bottom: 24px;
       right: 20px;
-      background: rgba(255,255,255,0.96);
+      background: #FFFFFF;
       border: 1.5px solid var(--border);
       border-radius: 40px;
       box-shadow: 0 8px 28px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.08);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       user-select: none;
       touch-action: none;
       display: none; /* 画像読み込み後に表示 */
@@ -864,6 +871,9 @@
       overflow: hidden;
       cursor: grab;
       -webkit-tap-highlight-color: transparent;
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+      will-change: transform;
     }
     #counter-panel:active { cursor: grabbing; }
     #counter-panel.dragging {
@@ -1368,12 +1378,12 @@
           <span>カスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:10px 12px 8px; gap:8px;">
+        <div class="card-accordion-body" style="padding:12px 12px 10px; gap:14px;">
           <div class="ruler-control">
             <label>リサイズ</label>
             <div>
               <span class="ruler-op-desc">辺・四隅をドラッグ</span>
-              <div class="ruler-op-pinch">※スマホはピンチ（2本指）でも</div>
+              <div class="ruler-op-pinch">🤏 ピンチでリサイズも可</div>
             </div>
           </div>
           <div class="ruler-control ruler-color-row">
@@ -1460,12 +1470,13 @@
           <span>カスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:10px 12px 8px; gap:8px;">
+        <div class="card-accordion-body" style="padding:12px 12px 10px; gap:14px;">
           <div class="ruler-control">
             <label>リサイズ</label>
             <div>
-              <span class="ruler-op-desc">外枠・窓それぞれ辺・四隅をドラッグ</span>
-              <div class="ruler-op-pinch">※スマホはピンチ（2本指）でも</div>
+              <span class="ruler-op-desc">辺・四隅をドラッグ</span>
+              <div class="ruler-op-pinch">外枠と窓それぞれ操作できます</div>
+              <div class="ruler-op-pinch">🤏 ピンチでリサイズも可</div>
             </div>
           </div>
           <div class="ruler-control ruler-color-row">
@@ -1552,12 +1563,12 @@
           <span>カスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:10px 12px 8px; gap:8px;">
+        <div class="card-accordion-body" style="padding:12px 12px 10px; gap:14px;">
           <div class="ruler-control">
             <label>リサイズ</label>
             <div>
               <span class="ruler-op-desc">外枠をドラッグ</span>
-              <div class="ruler-op-pinch">※スマホはピンチ（2本指）でも</div>
+              <div class="ruler-op-pinch">🤏 ピンチでリサイズも可</div>
             </div>
           </div>
           <div class="ruler-control ruler-color-row">
@@ -1686,11 +1697,12 @@
           <span class="data-note-arrow">▼</span>
         </button>
         <div class="data-note-body">
-          <p>① 「📂 編み図を開く」をタップして画像を選びます。</p>
-          <p>② ドラッグ（1本指）で移動、ピンチ（2本指）またはボタンで拡大・縮小。PCはマウスホイールでも可。</p>
-          <p>③ 半透明の定規を上下にドラッグして読みたい段に合わせてください。</p>
-          <p>④ 定規右端のカウンターで数を記録できます。＋／− で増減、↺ でリセット。</p>
-          <p>⑤ パネルはドラッグで好きな場所に移動できます。「−」で折りたためます。</p>
+          <p>① 「📂 編み図を開く」から画像を読み込みます。JPG・PNG・WebPなどの画像ファイルに対応しています（PDFは非対応）。</p>
+          <p>② 編み図はドラッグで移動、ピンチまたはボタンで拡大・縮小できます。PCはマウスホイールでも可。</p>
+          <p>③ タブで定規の種類を切り替えられます。Line（帯）/ Frame（窓）/ Circle（丸）。</p>
+          <p>④ 各定規は色・濃度などをカスタマイズできます。よく使う設定はお気に入りに保存できます。</p>
+          <p>⑤ 段数カウンターをオンにすると画面端にカウンターが表示されます。＋／− で段数を増減、− の長押しで素早くゼロに戻せます。段ガイドをオンにすると定規の移動に合わせて自動でカウントします。</p>
+          <p>⑥ パネルはドラッグで移動、「−」で折りたためます。</p>
         </div>
       </div>
 
@@ -1814,10 +1826,10 @@
       rulerAlpha100 = Math.round(rulerAlpha * 100);
       rulerOpacityInput.value  = rulerAlpha100;
       rulerOpacityLabel.textContent = rulerAlpha100 + '%';
-      rulerSizeInput.value  = rulerHeight;
-      rulerSizeLabel.textContent = rulerHeight + ' px';
-      rulerWidthInput.value = rulerWidth;
-      rulerWidthLabel.textContent = rulerWidth + '%';
+      if (rulerSizeInput)  rulerSizeInput.value  = rulerHeight;
+      if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
+      if (rulerWidthInput) rulerWidthInput.value = rulerWidth;
+      if (rulerWidthLabel) rulerWidthLabel.textContent = rulerWidth + '%';
       toggleCounterEl.checked = showCounter;
       cpNum.textContent = rowCount;
       // 自動スクロール行の初期表示
@@ -2110,10 +2122,10 @@
         rulerTop    = Math.round(rulerTop);
         rulerHeight = Math.round(bottomEdge - rulerTop);
       }
-      rulerWidthInput.value = Math.round(rulerWidth);
-      rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
-      rulerSizeInput.value = Math.max(24, Math.min(120, rulerHeight));
-      rulerSizeLabel.textContent = rulerHeight + ' px';
+      if (rulerWidthInput) rulerWidthInput.value = Math.round(rulerWidth);
+      if (rulerWidthLabel) rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
+      if (rulerSizeInput)  rulerSizeInput.value = Math.max(24, Math.min(120, rulerHeight));
+      if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
       applyRulerPos();
       e.preventDefault();
     });
@@ -2182,10 +2194,10 @@
         rulerHeight = Math.round(bottomEdge - rulerTop);
       }
 
-      rulerWidthInput.value = Math.round(rulerWidth);
-      rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
-      rulerSizeInput.value = Math.max(24, Math.min(120, rulerHeight));
-      rulerSizeLabel.textContent = rulerHeight + ' px';
+      if (rulerWidthInput) rulerWidthInput.value = Math.round(rulerWidth);
+      if (rulerWidthLabel) rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
+      if (rulerSizeInput)  rulerSizeInput.value = Math.max(24, Math.min(120, rulerHeight));
+      if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
       applyRulerPos();
       e.preventDefault();
     });
@@ -2267,10 +2279,10 @@
         rulerHeight = Math.round(bottomEdge - rulerTop);
       }
       // スライダーに反映
-      rulerWidthInput.value = Math.round(rulerWidth);
-      rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
-      rulerSizeInput.value = Math.max(24, Math.min(120, rulerHeight));
-      rulerSizeLabel.textContent = rulerHeight + ' px';
+      if (rulerWidthInput) rulerWidthInput.value = Math.round(rulerWidth);
+      if (rulerWidthLabel) rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
+      if (rulerSizeInput)  rulerSizeInput.value = Math.max(24, Math.min(120, rulerHeight));
+      if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
       applyRulerPos();
       e.preventDefault();
     } else if (rulerDragging) {
@@ -2321,10 +2333,10 @@
     // 縦幅（px）
     rulerHeight = Math.min(600, Math.max(24, Math.round(rulerPinchH0 * ratio / 4) * 4));
     // UI反映
-    rulerWidthInput.value = rulerWidth;
-    rulerWidthLabel.textContent = rulerWidth + '%';
-    rulerSizeInput.value = rulerHeight;
-    rulerSizeLabel.textContent = rulerHeight + ' px';
+    if (rulerWidthInput) rulerWidthInput.value = rulerWidth;
+    if (rulerWidthLabel) rulerWidthLabel.textContent = rulerWidth + '%';
+    if (rulerSizeInput)  rulerSizeInput.value = rulerHeight;
+    if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
     applyRulerPos();
     applyRulerStyle();
   }, { passive: false });
@@ -2540,13 +2552,13 @@
     rulerWidth   = p.width;
     rulerHeight  = p.height;
     // UI反映
-    rulerColorInput.value = rulerColor;
-    rulerOpacityInput.value = Math.round(rulerAlpha * 100);
-    rulerOpacityLabel.textContent = Math.round(rulerAlpha * 100) + '%';
-    rulerWidthInput.value = Math.round(rulerWidth);
-    rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
-    rulerSizeInput.value = Math.max(24, Math.min(600, rulerHeight));
-    rulerSizeLabel.textContent = rulerHeight + ' px';
+    if (rulerColorInput)   rulerColorInput.value = rulerColor;
+    if (rulerOpacityInput) rulerOpacityInput.value = Math.round(rulerAlpha * 100);
+    if (rulerOpacityLabel) rulerOpacityLabel.textContent = Math.round(rulerAlpha * 100) + '%';
+    if (rulerWidthInput)   rulerWidthInput.value = Math.round(rulerWidth);
+    if (rulerWidthLabel)   rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
+    if (rulerSizeInput)    rulerSizeInput.value = Math.max(24, Math.min(600, rulerHeight));
+    if (rulerSizeLabel)    rulerSizeLabel.textContent = rulerHeight + ' px';
     document.querySelectorAll('.color-dot').forEach(d =>
       d.classList.toggle('active', d.dataset.color === rulerColor));
     applyRulerPos();
@@ -2620,14 +2632,32 @@
             if (e.key === 'Escape') { renderPresets(); }
           });
         } else {
-          tapTimer = setTimeout(() => { tapTimer = null; }, 400);
+          // シングルタップ → プリセット切り替え（400ms後にダブルタップでなければ実行）
+          tapTimer = setTimeout(() => {
+            tapTimer = null;
+            const doSwitch = () => applyPreset(p, i);
+            if (isPresetDirty() && activePresetIndex !== -1) {
+              const ps = loadPresets();
+              showModal(
+                `「${ps[activePresetIndex].name}」を上書き保存しますか？`,
+                '上書き保存',
+                () => {
+                  ps[activePresetIndex] = { name: ps[activePresetIndex].name, ...currentRulerSnapshot() };
+                  savePresets(ps);
+                  doSwitch();
+                }
+              );
+              modalCancel.onclick = () => { closeModal(); doSwitch(); };
+            } else {
+              doSwitch();
+            }
+          }, 400);
         }
       });
 
       item.addEventListener('click', e => {
         if (e.target.closest('.preset-del-btn')) return;
-        if (e.target.classList.contains('preset-item-name') || e.target.classList.contains('preset-name-edit')) return;
-        if (i === activePresetIndex) return;
+        if (e.target.classList.contains('preset-name-edit')) return;
         const doSwitch = () => applyPreset(p, i);
         if (isPresetDirty()) {
           const ps = loadPresets();
