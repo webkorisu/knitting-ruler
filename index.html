@@ -80,6 +80,25 @@
       text-align: center;
       line-height: 2;
     }
+    #tap-hint {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 10px;
+      letter-spacing: .06em;
+      color: rgba(160,112,128,0.5);
+      pointer-events: none;
+      user-select: none;
+      z-index: 10;
+    }
+    #placeholder .ph-hint {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 11px;
+      letter-spacing: .06em;
+      color: rgba(160,112,128,0.45);
+      margin-top: 8px;
+    }
     #placeholder .ph-tap {
       font-family: 'Cormorant Garamond', serif;
       font-size: 18px;
@@ -667,6 +686,7 @@
       touch-action: none;
       cursor: grab;
     }
+    #circle-canvas { cursor: grab; }
     #circle-canvas:active { cursor: grabbing; }
     #circle-canvas.dragging { opacity: 0.6; transition: opacity .1s; }
     #circle-canvas.rim { cursor: nwse-resize !important; }
@@ -676,10 +696,10 @@
     .frame-panel.dragging { opacity: 0.6; transition: opacity .15s; }
     #frame-3d-border.dragging { opacity: 0.6; transition: opacity .15s; }
     #frame-3d-border:hover { filter: brightness(1.06); transition: filter .2s; }
-    #frame-top    { top: 0; left: 0; right: 0; cursor: ns-resize; }
-    #frame-bottom { bottom: 0; left: 0; right: 0; cursor: ns-resize; }
-    #frame-left   { cursor: ew-resize; }
-    #frame-right  { cursor: ew-resize; }
+    #frame-top    { top: 0; left: 0; right: 0; cursor: grab; }
+    #frame-bottom { bottom: 0; left: 0; right: 0; cursor: grab; }
+    #frame-left   { cursor: grab; }
+    #frame-right  { cursor: grab; }
     /* 窓のリサイズハンドル（透明） */
     .frame-win-edge {
       position: absolute;
@@ -717,7 +737,7 @@
     /* 外枠の4隅コーナー */
     .frame-outer-corner {
       position: fixed;
-      width: 28px; height: 28px;
+      width: 16px; height: 16px;
       z-index: 52;
       pointer-events: all;
       touch-action: none;
@@ -740,13 +760,13 @@
       z-index: 7;
     }
     /* top パネルの上辺 */
-    #frame-top    .frame-outer-edge { top: 0;    left: 0; right: 0;   height: 14px; cursor: ns-resize; }
+    #frame-top    .frame-outer-edge { top: 0;    left: 0; right: 0;   height: 12px; cursor: ns-resize; }
     /* bottom パネルの下辺 */
-    #frame-bottom .frame-outer-edge { bottom: 0; left: 0; right: 0;   height: 14px; cursor: ns-resize; }
+    #frame-bottom .frame-outer-edge { bottom: 0; left: 0; right: 0;   height: 12px; cursor: ns-resize; }
     /* left パネルの左辺 */
-    #frame-left   .frame-outer-edge { left: 0;   top: 0;  bottom: 0;  width:  14px; cursor: ew-resize; }
+    #frame-left   .frame-outer-edge { left: 0;   top: 0;  bottom: 0;  width:  12px; cursor: ew-resize; }
     /* right パネルの右辺 */
-    #frame-right  .frame-outer-edge { right: 0;  top: 0;  bottom: 0;  width:  14px; cursor: ew-resize; }
+    #frame-right  .frame-outer-edge { right: 0;  top: 0;  bottom: 0;  width:  12px; cursor: ew-resize; }
 
     /* ===== 帯定規オーバーレイ ===== */
     #ruler-overlay {
@@ -799,8 +819,8 @@
     /* ===== 四つ角リサイズハンドル ===== */
     .ruler-corner {
       position: absolute;
-      width: 28px;
-      height: 28px;
+      width: 18px;
+      height: 18px;
       background: transparent;
       border: none;
       pointer-events: all;
@@ -822,10 +842,10 @@
       z-index: 9;
       -webkit-tap-highlight-color: transparent;
     }
-    .ruler-edge.top    { top: 0;    left: 28px; right: 28px; height: 14px; cursor: ns-resize; }
-    .ruler-edge.bottom { bottom: 0; left: 28px; right: 28px; height: 14px; cursor: ns-resize; }
-    .ruler-edge.left   { left: 0;   top: 28px; bottom: 28px; width: 14px;  cursor: ew-resize; }
-    .ruler-edge.right  { right: 0;  top: 28px; bottom: 28px; width: 14px;  cursor: ew-resize; }
+    .ruler-edge.top    { top: 0;    left: 18px; right: 18px; height: 10px; cursor: ns-resize; }
+    .ruler-edge.bottom { bottom: 0; left: 18px; right: 18px; height: 10px; cursor: ns-resize; }
+    .ruler-edge.left   { left: 0;   top: 18px; bottom: 18px; width: 10px;  cursor: ew-resize; }
+    .ruler-edge.right  { right: 0;  top: 18px; bottom: 18px; width: 10px;  cursor: ew-resize; }
 
     /* 端ヒント（上下左右にうっすら光彩） */
     /* 立体定規オン時のみ光彩ヒント */
@@ -1219,16 +1239,18 @@
 
 <!-- ===== フルスクリーン Viewer ===== -->
 <div id="viewer">
+  <div id="tap-hint">編み図エリアをタップでメニューを閉じられます</div>
   <div id="placeholder">
     <div class="ph-text">ここに編み図が表示されます</div>
     <div class="ph-tap">Knitting Chart Ruler</div>
+
   </div>
   <canvas id="chart-canvas"></canvas>
 </div>
 <input type="file" id="file-input" accept="image/*">
 
 <!-- ===== 窓定規オーバーレイ ===== -->
-<div id="frame-overlay">
+<div id="frame-overlay" style="display:none;">
   <!-- 立体枠（外枠全体を1要素で表現） -->
   <div id="frame-3d-border"></div>
   <div class="frame-panel" id="frame-top">
@@ -1314,6 +1336,17 @@
 
   <!-- ③ canvasはイベント担当のみ（描画なし・透明） -->
   <canvas id="tri-canvas" style="position:absolute;top:0;left:0;pointer-events:all;touch-action:none;cursor:grab;"></canvas>
+</div>
+
+<!-- ===== 計測オーバーレイ ===== -->
+<div id="measure-overlay" style="display:none; position:fixed; inset:0; z-index:150; pointer-events:none;">
+  <canvas id="measure-canvas" style="position:absolute; inset:0; width:100%; height:100%;"></canvas>
+  <div id="measure-result" style="display:none; position:absolute; left:50%; transform:translateX(-50%); bottom:80px; background:#fff; border:1.5px solid var(--border); border-radius:12px; padding:12px 18px; box-shadow:0 4px 16px rgba(0,0,0,0.12); text-align:center; font-family:'Zen Maru Gothic',sans-serif; pointer-events:all; min-width:200px;">
+    <div id="measure-px" style="font-size:20px; font-weight:700; color:var(--text); letter-spacing:.06em; margin-bottom:8px;"></div>
+    <button id="measure-apply-btn" style="background:var(--primary); border:none; border-radius:20px; padding:7px 18px; font-family:'Zen Maru Gothic',sans-serif; font-size:12px; font-weight:700; color:var(--text); cursor:pointer; margin-right:6px;">ステップに設定</button>
+    <button id="measure-cancel-btn" style="background:none; border:1.5px solid var(--border); border-radius:20px; padding:7px 14px; font-family:'Zen Maru Gothic',sans-serif; font-size:12px; color:var(--text-sub); cursor:pointer;">キャンセル</button>
+  </div>
+  <div id="measure-hint" style="position:absolute; left:50%; transform:translateX(-50%); top:24px; font-family:'Zen Maru Gothic',sans-serif; font-size:12px; color:var(--text); background:rgba(255,255,255,0.9); border-radius:20px; padding:6px 16px; border:1px solid var(--border); pointer-events:none;">1段目の上端をタップ</div>
 </div>
 
 <!-- ===== カウンターフローティングパネル ===== -->
@@ -1449,10 +1482,11 @@
               </label>
             </div>
             <div id="band-step-row" style="display:none; padding-left:0.5em; padding-bottom:6px;">
-              <label for="ruler-step" class="toggle-label" style="display:block; margin-bottom:4px;">１段の幅</label>
-              <div class="ruler-control" style="padding-left:0;">
-                <input type="range" id="ruler-step" min="6" max="100" value="40" step="2">
-                <span id="ruler-step-label">40 px</span>
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <label class="toggle-label" style="min-width:4em;">１段の幅</label>
+                <span id="ruler-step-label" style="font-size:12px; color:var(--text); font-weight:700;">40 px</span>
+                <input type="hidden" id="ruler-step" value="40">
+                <button id="measure-start-btn" onclick="startMeasure()" style="background:var(--primary); border:none; border-radius:20px; padding:5px 12px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; color:var(--text); cursor:pointer; display:flex; align-items:center; gap:4px; -webkit-tap-highlight-color:transparent;">📏 計測して設定</button>
               </div>
             </div>
           </div>
@@ -1787,13 +1821,13 @@
   let rulerHeight = 172;
   const MIN_RULER_H = 12;
   let rulerColor  = '#b2aaaa';
-  let rulerAlpha  = 0.70;
+  let rulerAlpha  = 0.85;
   let rulerWidth  = 80;
   let showCounter = true;
   let rulerStep   = 40;  // 1段のスライド量（px）
 
   let rowCount    = 0;
-  let rulerAlpha100 = 70;
+  let rulerAlpha100 = 85;
 
   /* ========== localStorage ========== */
   const STORAGE_KEY = 'yucchi_ruler';
@@ -1802,7 +1836,7 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         color: rulerColor, alpha: rulerAlpha, height: rulerHeight,
-        width: rulerWidth, left: rulerLeft, step: rulerStep,
+        width: rulerWidth, left: rulerLeft, top: rulerTop, step: rulerStep,
         showCounter, count: rowCount
       }));
     } catch(e) {}
@@ -1817,6 +1851,7 @@
       if (s.height)      rulerHeight = s.height;
       if (s.width  != null) rulerWidth  = s.width;
       if (s.left   != null) rulerLeft   = s.left;
+      if (s.top    != null) rulerTop    = s.top;
       if (s.step   != null) rulerStep   = s.step;
       if (s.showCounter != null) showCounter = s.showCounter;
       document.getElementById('ruler-step').value = rulerStep;
@@ -1864,7 +1899,7 @@
         viewer.classList.add('has-image');
         fitImage();
         drawImage();
-        showRuler();
+        switchRulerTab(currentRulerTab);
       };
       image.src = ev.target.result;
     };
@@ -1894,7 +1929,7 @@
       counterPanel.style.display = 'flex';
     }
     zoomPanel.style.display = 'flex';
-    rulerTop  = Math.round(window.innerHeight * 0.45);
+    rulerTop  = Math.round(window.innerHeight * 0.75);
     rulerLeft = 0;
     applyRulerPos();
     applyRulerStyle();
@@ -1909,6 +1944,7 @@
     leftPx  = Math.max(Math.max(border, 10), leftPx);
     widthPx = Math.min(widthPx, sw - leftPx - Math.max(border, 10));
     const topPx = Math.max(10, Math.min(sh - rulerHeight - 10, rulerTop));
+    rulerTop = topPx; // クランプ後の値をrulerTopに反映して内部状態と表示を一致させる
     rulerHandle.style.top    = topPx  + 'px';
     rulerHandle.style.height = rulerHeight + 'px';
     rulerHandle.style.left   = leftPx  + 'px';
@@ -2214,13 +2250,13 @@
 
   // どの辺に当たったか判定
   function getEdgeSide(e) {
-    const rect = rulerHandle.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    if (x <= EDGE_HIT)              return 'left';
-    if (x >= rect.width - EDGE_HIT) return 'right';
-    if (y <= EDGE_HIT)              return 'top';
-    if (y >= rect.height - EDGE_HIT)return 'bottom';
+    // edgeクラスを持つ要素の上にいるときだけリサイズ
+    const el = e.target;
+    if (!el.classList.contains('ruler-edge')) return null;
+    if (el.classList.contains('top'))    return 'top';
+    if (el.classList.contains('bottom')) return 'bottom';
+    if (el.classList.contains('left'))   return 'left';
+    if (el.classList.contains('right'))  return 'right';
     return null;
   }
 
@@ -2293,6 +2329,19 @@
       rulerLeft = Math.max(0, Math.min(100 - rulerWidth, (leftPx / window.innerWidth) * 100));
       applyRulerPos();
       e.preventDefault();
+    } else {
+      // カーソルをターゲット要素に合わせて変更
+      const side = getEdgeSide(e);
+      if (side === 'top' || side === 'bottom') {
+        rulerHandle.style.cursor = 'ns-resize';
+      } else if (side === 'left' || side === 'right') {
+        rulerHandle.style.cursor = 'ew-resize';
+      } else if (e.target.classList.contains('ruler-corner')) {
+        // コーナーはCSS側のcursorで対応
+        rulerHandle.style.cursor = '';
+      } else {
+        rulerHandle.style.cursor = 'grab';
+      }
     }
   });
 
@@ -2450,23 +2499,27 @@
 
   /* ========== リサイズ・向き変更対応 ========== */
   function onResize() {
-    if (!img) {
-      canvas.width  = window.innerWidth;
-      canvas.height = window.innerHeight;
-      return;
-    }
     const pw = canvas.width, ph = canvas.height;
     canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
-    // 中心を維持してオフセット調整
-    offsetX += (canvas.width  - pw) / 2;
-    offsetY += (canvas.height - ph) / 2;
-    drawImage();
-    // 定規が画面外に出ないようにクランプ
+    if (img) {
+      // 中心を維持してオフセット調整
+      offsetX += (canvas.width  - pw) / 2;
+      offsetY += (canvas.height - ph) / 2;
+      drawImage();
+    }
+    // Line定規：位置だけ画面内に収まるようクランプ（サイズは変えない）
     rulerTop  = Math.max(10, Math.min(window.innerHeight - rulerHeight - 10, rulerTop));
-    rulerHeight = Math.max(MIN_RULER_H, Math.min(window.innerHeight - rulerTop, rulerHeight));
     rulerLeft = Math.max(0, Math.min(100 - rulerWidth, rulerLeft));
     applyRulerPos();
+    // Frame定規：再配置
+    if (typeof applyFrameOuterPos === 'function') applyFrameOuterPos();
+    // Circle定規：位置だけ画面内に収まるようクランプ（サイズは変えない）
+    if (typeof applyCircle === 'function') {
+      cX = Math.max(cR, Math.min(window.innerWidth  - cR, cX));
+      cY = Math.max(cR, Math.min(window.innerHeight - cR, cY));
+      resizeCircleCanvas();
+    }
     // パネルが画面外に出ないようにクランプ
     clampPanel();
   }
@@ -2598,7 +2651,7 @@
       item.innerHTML = `
         <div class="preset-swatch" style="background:${p.color};opacity:${Math.min(1, p.alpha + 0.3)};border:1.5px solid ${p.color}"></div>
         <span class="preset-item-name">${p.name}</span>
-        <span class="preset-item-meta" style="color:var(--text-sub);font-size:10px;">${Math.round(p.width)}×${p.height}px</span>
+
         <button class="preset-del-btn" data-i="${i}" title="削除" style="margin-left:auto">✕</button>
       `;
 
@@ -2903,6 +2956,9 @@
       frameOverlay.style.display  = 'none';
       circleOverlay.style.display = 'none';
       triOverlay.style.display    = 'none';
+      if (!rulerTop) rulerTop = Math.round(window.innerHeight * 0.75);
+      applyRulerPos();
+      applyRulerStyle();
     } else if (tab === 'frame') {
       rulerOverlay.style.display  = 'none';
       frameOverlay.style.display  = 'block';
@@ -3114,7 +3170,7 @@
     const DEFAULT_WIDTH   = 80;
     const DEFAULT_HEIGHT  = 172;
     const DEFAULT_COLOR   = '#b2aaaa';
-    const DEFAULT_ALPHA   = 0.70;
+    const DEFAULT_ALPHA   = 0.85;
 
     rulerWidth  = DEFAULT_WIDTH;
     rulerHeight = DEFAULT_HEIGHT;
@@ -3295,7 +3351,7 @@
         </svg>
         <div style="flex:1;min-width:0;">
           <div class="preset-item-name">${p.name}</div>
-          <div class="preset-item-meta">外枠 ${outerW}×${outerH} / 窓 ${winW}×${winH}</div>
+
         </div>
         <button class="preset-del-btn" data-i="${i}" title="削除" style="margin-left:4px">✕</button>
       `;
@@ -3550,6 +3606,7 @@
 
     el.addEventListener('pointerdown', e => {
       if (e.target.closest('.frame-outer-edge')) return;
+      if (e.target.closest('.frame-outer-corner')) return;
       moved = false;
       startX = e.clientX; startY = e.clientY;
       startOuter = { ...fOuter };
@@ -3801,6 +3858,11 @@
       if (s.cAlpha != null) cAlpha = s.cAlpha;
       if (s.cX)     cX     = s.cX;
       if (s.cY)     cY     = s.cY;
+      // 画面サイズに収まるようにクランプ
+      const maxR = Math.min(window.innerWidth, window.innerHeight) * 0.45;
+      cR = Math.min(cR, maxR);
+      cX = Math.max(cR, Math.min(window.innerWidth  - cR, cX));
+      cY = Math.max(cR, Math.min(window.innerHeight - cR, cY));
       if (s.circleStep  != null) circleStep  = s.circleStep;
       if (s.circleCount != null) circleCount = s.circleCount;
       if (s.showCircleCounter != null) showCircleCounter = s.showCircleCounter;
@@ -3949,7 +4011,7 @@
   }
   function isOnCircleRim(x, y) {
     const d = Math.sqrt((x - cX) ** 2 + (y - cY) ** 2);
-    return d >= cR - 16 && d <= cR + 8;
+    return d >= cR - 10 && d <= cR + 10;
   }
   let cResizeDist0 = 0, cResizeR0 = 0; // リサイズ開始時の値
 
@@ -4101,12 +4163,34 @@
     return { color: cColor, alpha: cAlpha, r: cR };
   }
   window.saveCirclePreset = function() {
-    const name = document.getElementById('circle-preset-name').value.trim() || '定規' + (circlePresets.length + 1);
+    const nameInput = document.getElementById('circle-preset-name');
+    const name = nameInput.value.trim();
+    // 名前なし → モーダル警告
+    if (!name) {
+      showModal('名前を入力してください。', 'OK', () => nameInput.focus(), false);
+      return;
+    }
+    // 同名チェック → 上書き確認
+    const dupIdx = circlePresets.findIndex(p => p.name === name);
+    if (dupIdx !== -1) {
+      showModal(`「${name}」はすでに保存されています。\n上書きしますか？`, '上書き保存', () => {
+        circlePresets[dupIdx] = { name, ...currentCircleSnapshot(), diameter: cR * 2 };
+        saveCirclePresets();
+        nameInput.value = '';
+        renderCirclePresets();
+      });
+      return;
+    }
+    // 上限チェック
+    if (circlePresets.length >= 5) {
+      showModal('保存できるのは5個までです。\n先に削除してから保存してください。', 'OK', () => {}, false);
+      return;
+    }
     circlePresets.push({ name, ...currentCircleSnapshot(), diameter: cR * 2 });
     activeCirclePresetIdx = circlePresets.length - 1;
     saveCirclePresets();
     renderCirclePresets();
-    document.getElementById('circle-preset-name').value = '';
+    nameInput.value = '';
   };
   function renderCirclePresets() {
     const list = document.getElementById('circle-preset-list');
@@ -4121,7 +4205,7 @@
         <div style="width:16px;height:16px;flex-shrink:0;border-radius:50%;background:${p.color};opacity:${Math.min(1,(p.alpha||0.7)+0.3)};border:1.5px solid ${p.color};"></div>
         <div style="flex:1;min-width:0;cursor:pointer;" onclick="applyCirclePreset(${i})">
           <div class="preset-item-name">${p.name}</div>
-          <div class="preset-item-meta">直径 ${p.diameter || (p.r ? p.r*2 : '?')}px</div>
+
         </div>
         <button class="preset-del-btn" onclick="deleteCirclePreset(${i})">✕</button>
       </div>`).join('');
@@ -4625,7 +4709,140 @@
   loadCircleSettings();
   syncCircleUI();
   loadCirclePresets();
-  showRuler();
+  // 初期タブをbandに統一（全定規の表示状態をリセット）
+  switchRulerTab('band');
+  /* ========== 計測モード ========== */
+  (function() {
+    const overlay   = document.getElementById('measure-overlay');
+    const cvs       = document.getElementById('measure-canvas');
+    const ctx       = cvs.getContext('2d');
+    const hint      = document.getElementById('measure-hint');
+    const result    = document.getElementById('measure-result');
+    const pxLabel   = document.getElementById('measure-px');
+    const applyBtn  = document.getElementById('measure-apply-btn');
+    const cancelBtn = document.getElementById('measure-cancel-btn');
+
+    let pt1 = null, pt2 = null;
+
+    function resizeCvs() {
+      cvs.width  = window.innerWidth;
+      cvs.height = window.innerHeight;
+    }
+    resizeCvs();
+    window.addEventListener('resize', resizeCvs);
+
+    function draw() {
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      if (!pt1) return;
+
+      const color = '#7A9B93';
+      // X座標は1点目に固定（垂直計測）
+      const x = pt1.x;
+
+      // 点1
+      ctx.beginPath();
+      ctx.arc(x, pt1.y, 6, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+
+      // 横の端線（pt1）
+      ctx.beginPath();
+      ctx.moveTo(x - 18, pt1.y);
+      ctx.lineTo(x + 18, pt1.y);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      if (!pt2) return;
+
+      // 点2
+      ctx.beginPath();
+      ctx.arc(x, pt2.y, 6, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+
+      // 横の端線（pt2）
+      ctx.beginPath();
+      ctx.moveTo(x - 18, pt2.y);
+      ctx.lineTo(x + 18, pt2.y);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // 垂直な点線
+      ctx.beginPath();
+      ctx.moveTo(x, pt1.y);
+      ctx.lineTo(x, pt2.y);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // px表示（線の右横・中間）
+      const midY = (pt1.y + pt2.y) / 2;
+      const dist = Math.round(Math.abs(pt2.y - pt1.y));
+      ctx.font = '700 13px "Zen Maru Gothic", sans-serif';
+      ctx.fillStyle = color;
+      ctx.fillText(dist + ' px', x + 24, midY + 5);
+    }
+
+    function onTap(e) {
+      e.stopPropagation();
+      const touch = e.touches ? e.touches[0] : e;
+      const x = touch.clientX;
+      const y = touch.clientY;
+
+      if (!pt1) {
+        pt1 = { x, y };
+        hint.textContent = '1段目の下端をタップ';
+        draw();
+      } else if (!pt2) {
+        pt2 = { x, y };
+        draw();
+        hint.style.display = 'none';
+        const dist = Math.round(Math.abs(pt2.y - pt1.y));
+        pxLabel.textContent = dist + ' px';
+        result.style.display = 'block';
+      }
+    }
+
+    window.startMeasure = function() {
+      pt1 = null; pt2 = null;
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      result.style.display = 'none';
+      hint.style.display = 'block';
+      hint.textContent = '1段目の上端をタップ';
+      overlay.style.display = 'block';
+      overlay.style.pointerEvents = 'all';
+    };
+
+    function stopMeasure() {
+      overlay.style.display = 'none';
+      overlay.style.pointerEvents = 'none';
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      pt1 = null; pt2 = null;
+      result.style.display = 'none';
+      hint.style.display = 'block';
+    }
+
+    applyBtn.addEventListener('click', () => {
+      if (!pt1 || !pt2) return;
+      const dist = Math.max(6, Math.round(Math.abs(pt2.y - pt1.y)));
+      rulerStep = dist;
+      document.getElementById('ruler-step').value = dist;
+      document.getElementById('ruler-step-label').textContent = dist + ' px';
+      saveSettings();
+      stopMeasure();
+    });
+
+    cancelBtn.addEventListener('click', stopMeasure);
+
+    // タップ（マウス・タッチ両対応）
+    overlay.addEventListener('click',     onTap);
+    overlay.addEventListener('touchstart', onTap, { passive: true });
+  })();
+
 </script>
 </body>
 </html>
