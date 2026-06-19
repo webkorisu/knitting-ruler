@@ -147,6 +147,7 @@
       cursor: grab;
       -webkit-tap-highlight-color: transparent;
       position: relative;
+      touch-action: none;
     }
     #panel-header:active { cursor: grabbing; }
     #panel-header-left {
@@ -367,6 +368,7 @@
       pointer-events: none;
       white-space: nowrap;
     }
+    .cp-caption { font-size: 12px; padding: 0 12px 0 16px; }
 
     /* ===== 定規タブ ===== */
     .ruler-tabs {
@@ -404,7 +406,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 1px;
+      gap: 0;
     }
     .tab-sub {
       font-size: 9px;
@@ -432,7 +434,7 @@
       padding: 13px 12px 12px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
     .ruler-card-title {
       font-size: 11px;
@@ -534,14 +536,14 @@
       font-size: 11px;
       color: var(--text-sub);
       white-space: nowrap;
-      min-width: 36px;
+      min-width: 0;
       text-align: right;
     }
 
     /* カラー行 */
     .ruler-color-row { flex-wrap: wrap; gap: 6px; }
-    .color-presets { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
-    .color-col { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; }
+    .color-presets { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; max-width: 160px; }
+    .color-col { display: flex; flex-direction: column; gap: 5px; align-items: stretch; }
     .color-dot {
       width: 22px; height: 22px;
       border-radius: 50%;
@@ -768,6 +770,31 @@
     /* right パネルの右辺 */
     #frame-right  .frame-outer-edge { right: 0;  top: 0;  bottom: 0;  width:  12px; cursor: ew-resize; }
 
+    /* ===== タッチデバイス：リサイズエリアを広げる ===== */
+    @media (pointer: coarse) {
+      /* 帯定規：四隅 */
+      .ruler-corner { width: 28px; height: 28px; }
+      /* 帯定規：四辺 */
+      .ruler-edge.top    { height: 18px; }
+      .ruler-edge.bottom { height: 18px; }
+      .ruler-edge.left   { width: 18px; }
+      .ruler-edge.right  { width: 18px; }
+      /* 窓定規：四辺 */
+      .frame-win-edge.top    { height: 22px; }
+      .frame-win-edge.bottom { height: 22px; }
+      .frame-win-edge.left   { width: 22px; }
+      .frame-win-edge.right  { width: 22px; }
+      /* 窓定規：四隅 */
+      .frame-win-corner { width: 32px; height: 32px; }
+      /* フレーム外枠：四辺 */
+      #frame-top    .frame-outer-edge { height: 20px; }
+      #frame-bottom .frame-outer-edge { height: 20px; }
+      #frame-left   .frame-outer-edge { width: 20px; }
+      #frame-right  .frame-outer-edge { width: 20px; }
+      /* フレーム外枠：四隅 */
+      .frame-outer-corner { width: 28px; height: 28px; }
+    }
+
     /* ===== 帯定規オーバーレイ ===== */
     #ruler-overlay {
       position: fixed;
@@ -873,7 +900,7 @@
     #ruler-handle.ruler-3d:active::before,
     #ruler-handle.ruler-3d:active::after { opacity: 1; }
 
-    /* ===== カウンターフローティングパネル ===== */
+    /* ===== カウンターフローティングパネル（段ガイド機能付き） ===== */
     #counter-panel {
       position: fixed;
       z-index: 200;
@@ -881,13 +908,12 @@
       right: 20px;
       background: #FFFFFF;
       border: 1.5px solid var(--border);
-      border-radius: 40px;
+      border-radius: 26px;
       box-shadow: 0 8px 28px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.08);
       user-select: none;
       touch-action: none;
       display: none; /* 画像読み込み後に表示 */
-      align-items: center;
-      gap: 0;
+      flex-direction: column;
       overflow: hidden;
       cursor: grab;
       -webkit-tap-highlight-color: transparent;
@@ -900,13 +926,69 @@
       box-shadow: 0 16px 40px rgba(0,0,0,0.22), 0 4px 12px rgba(0,0,0,0.12);
       opacity: 0.95;
     }
+    /* 上段：段ガイド行（Line定規のときのみ表示） */
+    #cp-guide-row {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px 8px 18px;
+      border-bottom: 1px solid var(--border);
+      background: #f8fdfc;
+    }
+    .gp-caption {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: .06em;
+      pointer-events: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    #gp-toggle-wrap {
+      flex-shrink: 0;
+      pointer-events: all;
+      transform: scale(0.82);
+      transform-origin: left center;
+    }
+    #gp-step-label {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 10px;
+      color: var(--text-sub);
+      white-space: nowrap;
+      pointer-events: none;
+      margin-left: auto;
+    }
+    #gp-measure-btn {
+      background: var(--primary);
+      border: none;
+      border-radius: 14px;
+      padding: 4px 11px;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      -webkit-tap-highlight-color: transparent;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    /* 下段：カウンター行 */
+    #cp-counter-row {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
     .cp-btn {
       background: none;
       border: none;
-      width: 44px;
-      height: 44px;
+      width: 58px;
+      height: 58px;
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 20px;
+      font-size: 26px;
       font-weight: 700;
       color: var(--text);
       cursor: pointer;
@@ -919,20 +1001,20 @@
     }
     .cp-btn:hover  { background: rgba(180,220,212,0.25); }
     .cp-btn:active { background: rgba(180,220,212,0.5); transform: scale(.9); }
-    .cp-btn.reset  { font-size: 15px; color: var(--text-sub); width: 36px; }
+    .cp-btn.reset  { font-size: 18px; color: var(--text-sub); width: 44px; }
     #cp-num {
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 20px;
+      font-size: 30px;
       font-weight: 700;
       color: var(--text);
-      min-width: 56px;
+      min-width: 70px;
       text-align: center;
       pointer-events: none;
       letter-spacing: .04em;
     }
     .cp-divider {
       width: 1px;
-      height: 24px;
+      height: 30px;
       background: var(--border);
       flex-shrink: 0;
     }
@@ -942,7 +1024,7 @@
       display: flex;
       flex-direction: column;
       gap: 7px;
-      padding-top: 16px;
+      padding-top: 20px;
       padding-bottom: 6px;
       border-top: 1px solid var(--border);
       margin-top: 10px;
@@ -1338,6 +1420,9 @@
   <canvas id="tri-canvas" style="position:absolute;top:0;left:0;pointer-events:all;touch-action:none;cursor:grab;"></canvas>
 </div>
 
+<!-- ===== 段ガイド計測フロートバナー（未使用） ===== -->
+<div id="measure-float-btn" style="display:none;"></div>
+
 <!-- ===== 計測オーバーレイ ===== -->
 <div id="measure-overlay" style="display:none; position:fixed; inset:0; z-index:150; pointer-events:none;">
   <canvas id="measure-canvas" style="position:absolute; inset:0; width:100%; height:100%;"></canvas>
@@ -1346,17 +1431,33 @@
     <button id="measure-apply-btn" style="background:var(--primary); border:none; border-radius:20px; padding:7px 18px; font-family:'Zen Maru Gothic',sans-serif; font-size:12px; font-weight:700; color:var(--text); cursor:pointer; margin-right:6px;">ステップに設定</button>
     <button id="measure-cancel-btn" style="background:none; border:1.5px solid var(--border); border-radius:20px; padding:7px 14px; font-family:'Zen Maru Gothic',sans-serif; font-size:12px; color:var(--text-sub); cursor:pointer;">キャンセル</button>
   </div>
-  <div id="measure-hint" style="position:absolute; left:50%; transform:translateX(-50%); top:24px; font-family:'Zen Maru Gothic',sans-serif; font-size:12px; color:var(--text); background:rgba(255,255,255,0.9); border-radius:20px; padding:6px 16px; border:1px solid var(--border); pointer-events:none;">1段目の上端をタップ</div>
+  <div id="measure-hint" style="position:absolute; left:50%; transform:translateX(-50%); top:70px; font-family:'Zen Maru Gothic',sans-serif; font-size:12px; color:var(--text); background:rgba(255,255,255,0.9); border-radius:20px; padding:6px 16px; border:1px solid var(--border); pointer-events:none; white-space:nowrap;">1段目の上端をタップ</div>
 </div>
 
 <!-- ===== カウンターフローティングパネル ===== -->
+<!-- ===== 段ガイドバー（フロート） ===== -->
+<!-- ===== カウンターバー（フロート・段ガイド機能付き） ===== -->
 <div id="counter-panel">
-  <span class="cp-caption">段</span>
-  <div class="cp-divider"></div>
-  <button class="cp-btn" id="cp-minus" title="−1">−</button>
-  <span id="cp-num">0</span>
-  <button class="cp-btn" id="cp-plus" title="＋1">＋</button>
+  <!-- 上段：段ガイド行 -->
+  <div id="cp-guide-row">
+    <span class="gp-caption">段ガイド</span>
+    <label class="toggle-switch" id="gp-toggle-wrap">
+      <input type="checkbox" id="gp-toggle-guide">
+      <span class="toggle-knob"></span>
+    </label>
+    <span id="gp-step-label">未計測</span>
+    <button id="gp-measure-btn">📏 計測</button>
+  </div>
+  <!-- 下段：カウンター行 -->
+  <div id="cp-counter-row">
+    <span class="cp-caption">段</span>
+    <div class="cp-divider"></div>
+    <button class="cp-btn" id="cp-minus" title="−1">−</button>
+    <span id="cp-num">0</span>
+    <button class="cp-btn" id="cp-plus" title="＋1">＋</button>
+  </div>
 </div>
+
 
 
 <!-- ===== ズームフローティングパネル ===== -->
@@ -1415,7 +1516,7 @@
           <div class="ruler-control">
             <label>リサイズ</label>
             <div>
-              <span class="ruler-op-desc">辺・四隅をドラッグ</span>
+              <span class="ruler-op-desc">四辺・四隅をドラッグ</span>
               <div class="ruler-op-pinch">🤏 ピンチでリサイズも可</div>
             </div>
           </div>
@@ -1433,7 +1534,7 @@
           </div>
           <div class="ruler-control">
             <label for="ruler-opacity">濃度</label>
-            <input type="range" id="ruler-opacity" min="10" max="90" value="70" step="5">
+            <input type="range" id="ruler-opacity" min="10" max="90" value="70" step="5" style="width:127px; flex:none;">
             <span id="ruler-opacity-label">70%</span>
           </div>
           <div class="ruler-control">
@@ -1450,7 +1551,7 @@
           <span>お気に入り定規　<span id="preset-count">0</span>/5</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:10px 12px 8px; gap:6px;">
+        <div class="card-accordion-body" style="padding:20px 12px 8px; gap:6px;">
           <div class="preset-save-row">
             <input type="text" id="preset-name-input" class="preset-name-input" placeholder="名前をつけて保存…" maxlength="10">
             <button class="preset-save-btn" id="preset-save-btn">保存</button>
@@ -1473,25 +1574,11 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <div id="band-auto-row" style="display:none; flex-direction:column; gap:6px;">
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span class="toggle-label" style="width:5.5em;">段ガイド</span>
-              <label class="toggle-switch">
-                <input type="checkbox" id="toggle-band-auto">
-                <span class="toggle-knob"></span>
-              </label>
-            </div>
-            <div id="band-step-row" style="display:none; padding-left:0.5em; padding-bottom:6px;">
-              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                <label class="toggle-label" style="min-width:4em;">１段の幅</label>
-                <span id="ruler-step-label" style="font-size:12px; color:var(--text); font-weight:700;">40 px</span>
-                <input type="hidden" id="ruler-step" value="40">
-                <button id="measure-start-btn" onclick="startMeasure()" style="background:var(--primary); border:none; border-radius:20px; padding:5px 12px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; color:var(--text); cursor:pointer; display:flex; align-items:center; gap:4px; -webkit-tap-highlight-color:transparent;">📏 計測して設定</button>
-              </div>
-            </div>
-          </div>
+          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">編み図エリアに表示される「カウンター」では、段数を数えながら<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">定規を1段ずつ自動で動かせます</span>（<strong style="font-weight:700; color:var(--text);">段ガイド機能</strong>）。ON/OFFや1段の高さの計測もここから行えます。</p>
         </div>
       </div>
+      <input type="hidden" id="ruler-step" value="40">
+      <span id="ruler-step-label" style="display:none;">40 px</span>
 
     </div><!-- /#ruler-card (帯定規) -->
 
@@ -1508,7 +1595,7 @@
           <div class="ruler-control">
             <label>リサイズ</label>
             <div>
-              <span class="ruler-op-desc">辺・四隅をドラッグ</span>
+              <span class="ruler-op-desc">四辺・四隅をドラッグ</span>
               <div class="ruler-op-pinch">外枠と窓それぞれ操作できます</div>
               <div class="ruler-op-pinch">🤏 ピンチでリサイズも可</div>
             </div>
@@ -1527,7 +1614,7 @@
           </div>
           <div class="ruler-control">
             <label for="frame-opacity">濃度</label>
-            <input type="range" id="frame-opacity" min="10" max="90" value="70" step="5">
+            <input type="range" id="frame-opacity" min="10" max="90" value="70" step="5" style="width:127px; flex:none;">
             <span id="frame-opacity-label">70%</span>
           </div>
           <div class="ruler-control">
@@ -1544,7 +1631,7 @@
           <span>お気に入り定規　<span id="frame-preset-count">0</span>/5</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:10px 12px 8px; gap:6px;">
+        <div class="card-accordion-body" style="padding:20px 12px 8px; gap:6px;">
           <div class="preset-save-row">
             <input type="text" id="frame-preset-name" class="preset-name-input" placeholder="名前をつけて保存…" maxlength="10">
             <button class="preset-save-btn" onclick="saveFramePreset()">保存</button>
@@ -1619,7 +1706,7 @@
           </div>
           <div class="ruler-control">
             <label for="circle-opacity">濃度</label>
-            <input type="range" id="circle-opacity" min="10" max="90" value="70" step="5">
+            <input type="range" id="circle-opacity" min="10" max="90" value="70" step="5" style="width:127px; flex:none;">
             <span id="circle-opacity-label">70%</span>
           </div>
           <div class="ruler-control">
@@ -1636,7 +1723,7 @@
           <span>お気に入り定規　<span id="circle-preset-count">0</span>/5</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:10px 12px 8px; gap:6px;">
+        <div class="card-accordion-body" style="padding:20px 12px 8px; gap:6px;">
           <div class="preset-save-row">
             <input type="text" id="circle-preset-name" class="preset-name-input" placeholder="名前をつけて保存…" maxlength="10">
             <button class="preset-save-btn" onclick="saveCirclePreset()">保存</button>
@@ -1804,6 +1891,7 @@
   const toggleCounterEl   = document.getElementById('toggle-counter');
   
   const counterPanel = document.getElementById('counter-panel');
+  const cpGuideRow = document.getElementById('cp-guide-row');
   const zoomPanel    = document.getElementById('zoom-panel');
   const cpNum   = document.getElementById('cp-num');
   const cpPlus  = document.getElementById('cp-plus');
@@ -1825,6 +1913,7 @@
   let rulerWidth  = 80;
   let showCounter = true;
   let rulerStep   = 40;  // 1段のスライド量（px）
+  let rulerBaseStep = 0; // 実寸ステップ（scale補正用）
 
   let rowCount    = 0;
   let rulerAlpha100 = 85;
@@ -1837,6 +1926,7 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         color: rulerColor, alpha: rulerAlpha, height: rulerHeight,
         width: rulerWidth, left: rulerLeft, top: rulerTop, step: rulerStep,
+        baseStep: rulerBaseStep, guideOn: document.getElementById('gp-toggle-guide').checked,
         showCounter, count: rowCount
       }));
     } catch(e) {}
@@ -1853,6 +1943,7 @@
       if (s.left   != null) rulerLeft   = s.left;
       if (s.top    != null) rulerTop    = s.top;
       if (s.step   != null) rulerStep   = s.step;
+      if (s.baseStep != null) rulerBaseStep = s.baseStep;
       if (s.showCounter != null) showCounter = s.showCounter;
       document.getElementById('ruler-step').value = rulerStep;
       document.getElementById('ruler-step-label').textContent = rulerStep + ' px';
@@ -1867,17 +1958,15 @@
       if (rulerWidthLabel) rulerWidthLabel.textContent = rulerWidth + '%';
       toggleCounterEl.checked = showCounter;
       cpNum.textContent = rowCount;
-      // 自動スクロール行の初期表示
-      const bandAutoRow = document.getElementById('band-auto-row');
-      const bandStepRow = document.getElementById('band-step-row');
-      const toggleBandAuto = document.getElementById('toggle-band-auto');
-      if (showCounter) {
-        bandAutoRow.style.display = 'flex';
-        if (rulerStep > 0) {
-          toggleBandAuto.checked = true;
-          bandStepRow.style.display = '';
-        }
+      // 段ガイドの初期表示
+      const guideOn = !!s.guideOn;
+      document.getElementById('gp-toggle-guide').checked = guideOn;
+      if (rulerBaseStep > 0) {
+        document.getElementById('gp-step-label').textContent = '1段：' + rulerStep + ' px';
+      } else {
+        document.getElementById('gp-step-label').textContent = '未計測';
       }
+      if (!guideOn) rulerStep = 0;
       document.querySelectorAll('.color-dot').forEach(d => {
         d.classList.toggle('active', d.dataset.color === rulerColor);
       });
@@ -1927,6 +2016,7 @@
     rulerOverlay.style.display = 'block';
     if (showCounter) {
       counterPanel.style.display = 'flex';
+      cpGuideRow.style.display = 'flex';
     }
     zoomPanel.style.display = 'flex';
     rulerTop  = Math.round(window.innerHeight * 0.75);
@@ -1971,6 +2061,7 @@
   /* スライダー */
   document.getElementById('ruler-step').addEventListener('input', e => {
     rulerStep = parseInt(e.target.value);
+    rulerBaseStep = scale > 0 ? rulerStep / scale : rulerStep;
     document.getElementById('ruler-step-label').textContent = rulerStep + ' px';
     saveSettings();
   });
@@ -1997,25 +2088,64 @@
   toggleCounterEl.addEventListener('change', () => {
     showCounter = toggleCounterEl.checked;
     counterPanel.style.display = showCounter ? 'flex' : 'none';
-    document.getElementById('band-auto-row').style.display = showCounter ? 'flex' : 'none';
+    cpGuideRow.style.display = showCounter ? 'flex' : 'none';
     if (!showCounter) {
-      document.getElementById('toggle-band-auto').checked = false;
-      document.getElementById('band-step-row').style.display = 'none';
+      document.getElementById('gp-toggle-guide').checked = false;
+      rulerStep = 0;
+      rulerBaseStep = 0;
+    }
+    saveSettings();
+  });
+
+  // フロートカウンターの段ガイドトグル
+  // ===== 段ガイドバー =====
+  const gpToggleGuide = document.getElementById('gp-toggle-guide');
+  const gpStepLabel   = document.getElementById('gp-step-label');
+  const gpMeasureBtn  = document.getElementById('gp-measure-btn');
+
+  gpToggleGuide.addEventListener('change', function() {
+    const isOn = this.checked;
+    if (isOn) {
+      // 既に計測済みの実寸があればそれを使う。なければ未計測のまま（ステップ移動はしない）
+      if (rulerBaseStep > 0) {
+        rulerStep = Math.max(1, Math.round(rulerBaseStep * scale));
+        gpStepLabel.textContent = '1段：' + rulerStep + ' px';
+      } else {
+        rulerStep = 0;
+        gpStepLabel.textContent = '未計測';
+      }
+    } else {
       rulerStep = 0;
     }
     saveSettings();
   });
 
-  // 自動スクロールトグル
-  document.getElementById('toggle-band-auto').addEventListener('change', function() {
-    const isAuto = this.checked;
-    document.getElementById('band-step-row').style.display = isAuto ? '' : 'none';
-    rulerStep = isAuto ? parseInt(document.getElementById('ruler-step').value) : 0;
-    saveSettings();
-  });
+  // 📏計測ボタン：押したときだけ計測モードを起動
+  let measureBtnTouched = false;
+  function triggerMeasure(e) {
+    e.stopPropagation();
+    if (e.type === 'touchend') {
+      measureBtnTouched = true;
+      if (e.cancelable) e.preventDefault();
+      if (window.startMeasure) window.startMeasure();
+      setTimeout(() => { measureBtnTouched = false; }, 400);
+    } else {
+      if (measureBtnTouched) return;
+      if (window.startMeasure) window.startMeasure();
+    }
+  }
+  gpMeasureBtn.addEventListener('click', triggerMeasure);
+  gpMeasureBtn.addEventListener('touchend', triggerMeasure);
 
   /* ========== カウンター ========== */
   function updateCounter() { cpNum.textContent = rowCount; saveSettings(); }
+
+  // 段ガイドONかつ計測済みのときだけステップ移動。OFFや未計測なら0（移動なし）
+  function getEffectiveStep() {
+    if (!gpToggleGuide.checked) return 0;
+    if (rulerBaseStep > 0) return Math.round(rulerBaseStep * scale);
+    return 0;
+  }
 
   cpPlus.addEventListener('click', e => {
     e.stopPropagation();
@@ -2039,7 +2169,8 @@
     } else {
       if (rowCount < 999) {
         rowCount++;
-        rulerTop = Math.max(-rulerHeight + 20, rulerTop - rulerStep);
+        const effectiveStep = getEffectiveStep();
+        rulerTop = Math.max(-rulerHeight + 20, rulerTop - effectiveStep);
         applyRulerPos();
         updateCounter();
       }
@@ -2072,7 +2203,8 @@
     } else {
       if (rowCount > 0) {
         rowCount--;
-        rulerTop = Math.min(window.innerHeight - 20, rulerTop + rulerStep);
+        const effectiveStep = getEffectiveStep();
+        rulerTop = Math.min(window.innerHeight - 20, rulerTop + effectiveStep);
         applyRulerPos();
       }
       updateCounter();
@@ -2088,7 +2220,8 @@
       minusHoldInterval = setInterval(() => {
         if (rowCount > 0) {
           rowCount--;
-          rulerTop = Math.min(window.innerHeight - 20, rulerTop + rulerStep);
+          const effectiveStep = getEffectiveStep();
+          rulerTop = Math.min(window.innerHeight - 20, rulerTop + effectiveStep);
           applyRulerPos();
           updateCounter();
         } else {
@@ -2441,6 +2574,18 @@
     offsetX = cx - ratio * (cx - offsetX);
     offsetY = cy - ratio * (cy - offsetY);
     scale = ns;
+    // ステップをscaleに合わせて補正
+    if (rulerBaseStep > 0) {
+      rulerStep = Math.max(1, Math.round(rulerBaseStep * scale));
+      const stepEl = document.getElementById('ruler-step');
+      const stepLabelEl = document.getElementById('ruler-step-label');
+      const gpStep = document.getElementById('gp-step-label');
+      if (stepEl) stepEl.value = rulerStep;
+      if (stepLabelEl) stepLabelEl.textContent = rulerStep + ' px';
+      if (gpStep && document.getElementById('gp-toggle-guide').checked) {
+        gpStep.textContent = '1段：' + rulerStep + ' px';
+      }
+    }
     updateZoomLabel();
     drawImage();
   }
@@ -2450,6 +2595,7 @@
   viewer.addEventListener('touchstart', e => {
     if (!img) return;
     if (e.target.closest('#float-panel') || e.target.closest('#ruler-handle')) return;
+    if (e.target.closest('#frame-win-wrap') || e.target.closest('#circle-wrap')) return;
     touches = Array.from(e.touches);
     if (touches.length === 1) { lastTouchX = touches[0].clientX; lastTouchY = touches[0].clientY; }
     else if (touches.length === 2) { lastPinchDist = pinchDist(touches); }
@@ -2458,6 +2604,7 @@
   viewer.addEventListener('touchmove', e => {
     if (!img) return;
     if (e.target.closest('#float-panel') || e.target.closest('#ruler-handle')) return;
+    if (e.target.closest('#frame-win-wrap') || e.target.closest('#circle-wrap')) return;
     const now = Array.from(e.touches);
     if (now.length === 1 && touches.length === 1) {
       offsetX += now[0].clientX - lastTouchX;
@@ -2797,6 +2944,8 @@
 
   counterPanel.addEventListener('pointerdown', e => {
     if (e.target.closest('.cp-btn')) return;
+    if (e.target.closest('#gp-toggle-wrap')) return;
+    if (e.target.closest('#gp-measure-btn')) return;
     cpDragging = true;
     const pos = getCpPos();
     cpDragStartX = e.clientX; cpDragStartY = e.clientY;
@@ -2908,6 +3057,9 @@
     if (e.target.closest('#float-panel')) return;
     if (e.target.closest('#counter-panel')) return;
     if (e.target.closest('#zoom-panel')) return;
+    if (e.target.closest('#ruler-handle')) return;
+    if (e.target.closest('#frame-win-wrap')) return;
+    if (e.target.closest('#circle-wrap')) return;
     if (!floatPanel.classList.contains('collapsed')) {
       togglePanel(true);
     }
@@ -2941,15 +3093,19 @@
     const counterWrap = document.getElementById('counter-panel');
     if (tab === 'band') {
       counterWrap.style.display = showCounter ? 'flex' : 'none';
+      cpGuideRow.style.display = showCounter ? 'flex' : 'none';
       cpNum.textContent = rowCount;
     } else if (tab === 'circle') {
       counterWrap.style.display = showCircleCounter ? 'flex' : 'none';
+      cpGuideRow.style.display = 'none';
       cpNum.textContent = circleCount;
     } else if (tab === 'frame') {
       counterWrap.style.display = showFrameCounter ? 'flex' : 'none';
+      cpGuideRow.style.display = 'none';
       cpNum.textContent = frameCount;
     } else {
       counterWrap.style.display = 'none';
+      cpGuideRow.style.display = 'none';
     }
     if (tab === 'band') {
       rulerOverlay.style.display  = 'block';
@@ -4808,11 +4964,12 @@
     }
 
     window.startMeasure = function() {
+      document.getElementById('measure-float-btn').style.display = 'none';
       pt1 = null; pt2 = null;
       ctx.clearRect(0, 0, cvs.width, cvs.height);
       result.style.display = 'none';
       hint.style.display = 'block';
-      hint.textContent = '1段目の上端をタップ';
+      hint.textContent = '編み図を拡大して1段の上辺をタップ';
       overlay.style.display = 'block';
       overlay.style.pointerEvents = 'all';
     };
@@ -4830,8 +4987,15 @@
       if (!pt1 || !pt2) return;
       const dist = Math.max(6, Math.round(Math.abs(pt2.y - pt1.y)));
       rulerStep = dist;
+      rulerBaseStep = scale > 0 ? dist / scale : dist;
       document.getElementById('ruler-step').value = dist;
       document.getElementById('ruler-step-label').textContent = dist + ' px';
+      document.getElementById('measure-float-btn').style.display = 'none';
+      // 段ガイドバーの表示を更新（ONにして高さを表示）
+      const gpToggle = document.getElementById('gp-toggle-guide');
+      const gpStep = document.getElementById('gp-step-label');
+      if (gpToggle) gpToggle.checked = true;
+      if (gpStep) gpStep.textContent = '1段：' + dist + ' px';
       saveSettings();
       stopMeasure();
     });
@@ -4840,7 +5004,7 @@
 
     // タップ（マウス・タッチ両対応）
     overlay.addEventListener('click',     onTap);
-    overlay.addEventListener('touchstart', onTap, { passive: true });
+    overlay.addEventListener('touchstart', onTap, { passive: false });
   })();
 
 </script>
