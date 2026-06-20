@@ -920,6 +920,7 @@
       transform: translateZ(0);
       -webkit-transform: translateZ(0);
       will-change: transform;
+      min-width: 230px;
     }
     #counter-panel:active { cursor: grabbing; }
     #counter-panel.dragging {
@@ -930,8 +931,10 @@
     #cp-guide-row {
       display: none;
       align-items: center;
-      gap: 8px;
+      gap: 5px;
       padding: 8px 14px 8px 18px;
+      min-height: 28px;
+      box-sizing: content-box;
       border-bottom: 1px solid var(--border);
       background: #f8fdfc;
     }
@@ -950,14 +953,18 @@
       pointer-events: all;
       transform: scale(0.82);
       transform-origin: left center;
+      margin-right: -6px;
     }
     #gp-step-label {
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 10px;
-      color: var(--text-sub);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
       white-space: nowrap;
       pointer-events: none;
-      margin-left: auto;
+      margin-left: 8px;
+      min-width: 78px;
+      transition: opacity .15s;
     }
     #gp-measure-btn {
       background: var(--primary);
@@ -975,6 +982,17 @@
       -webkit-tap-highlight-color: transparent;
       white-space: nowrap;
       flex-shrink: 0;
+      box-shadow: 0 0 6px rgba(0,0,0,0.18);
+      transition: opacity .15s, box-shadow .1s, transform .1s;
+      margin-left: -8px;
+    }
+    #gp-measure-btn:active {
+      box-shadow: 0 0 3px rgba(0,0,0,0.14);
+      transform: scale(.96);
+    }
+    .measure-apply-btn:active {
+      box-shadow: 0 0 3px rgba(0,0,0,0.14);
+      transform: scale(.96);
     }
     /* 下段：カウンター行 */
     #cp-counter-row {
@@ -982,6 +1000,9 @@
       align-items: center;
       gap: 0;
     }
+    #cp-counter-row .cp-divider { margin-left: 0; }
+    #cp-counter-row #cp-minus { margin-left: 20px; }
+    #cp-counter-row #cp-plus { margin-right: 14px; }
     .cp-btn {
       background: none;
       border: none;
@@ -1426,12 +1447,25 @@
 <!-- ===== 計測オーバーレイ ===== -->
 <div id="measure-overlay" style="display:none; position:fixed; inset:0; z-index:150; pointer-events:none;">
   <canvas id="measure-canvas" style="position:absolute; inset:0; width:100%; height:100%;"></canvas>
-  <div id="measure-result" style="display:none; position:absolute; left:50%; transform:translateX(-50%); bottom:80px; background:#fff; border:1.5px solid var(--border); border-radius:12px; padding:12px 18px; box-shadow:0 4px 16px rgba(0,0,0,0.12); text-align:center; font-family:'Zen Maru Gothic',sans-serif; pointer-events:all; min-width:200px;">
-    <div id="measure-px" style="font-size:20px; font-weight:700; color:var(--text); letter-spacing:.06em; margin-bottom:8px;"></div>
-    <button id="measure-apply-btn" style="background:var(--primary); border:none; border-radius:20px; padding:7px 18px; font-family:'Zen Maru Gothic',sans-serif; font-size:12px; font-weight:700; color:var(--text); cursor:pointer; margin-right:6px;">ステップに設定</button>
-    <button id="measure-cancel-btn" style="background:none; border:1.5px solid var(--border); border-radius:20px; padding:7px 14px; font-family:'Zen Maru Gothic',sans-serif; font-size:12px; color:var(--text-sub); cursor:pointer;">キャンセル</button>
+
+  <!-- 計測バー：状況に応じて中身が切り替わる単一バー -->
+  <div id="measure-bar" style="position:absolute; left:50%; transform:translateX(-50%); top:70px; background:#fff; border:1.5px solid var(--border); border-radius:20px; padding:8px 10px 8px 16px; box-shadow:0 4px 16px rgba(0,0,0,0.12); font-family:'Zen Maru Gothic',sans-serif; pointer-events:all; width:max-content; max-width:calc(100vw - 24px); display:flex; align-items:center; gap:10px; flex-wrap:nowrap;">
+
+    <!-- ヒント表示（タップ案内） -->
+    <span id="measure-hint" style="font-size:12px; color:var(--text); white-space:nowrap; flex-shrink:0;">編み図を拡大して1点目をタップ</span>
+
+    <!-- 結果表示（計測完了後）：上段px数値・下段設定ボタンの2段 -->
+    <div id="measure-result-col" style="display:none; flex-direction:column; align-items:center; gap:6px; flex-shrink:0;">
+      <span id="measure-px" style="font-size:16px; font-weight:700; color:var(--text); letter-spacing:.04em; white-space:nowrap; padding-bottom:6px; border-bottom:1px solid var(--border); text-align:center; width:100%;"></span>
+      <button id="measure-apply-btn" class="measure-apply-btn" style="background:var(--primary); border:none; border-radius:16px; padding:6px 14px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; color:var(--text); cursor:pointer; white-space:nowrap; box-shadow:0 0 6px rgba(0,0,0,0.18); transition:box-shadow .1s, transform .1s;">1段の高さに設定</button>
+    </div>
+
+    <!-- 常設：やり直す・閉じる -->
+    <div id="measure-action-col" style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+      <button id="measure-redo-btn" title="やり直す" style="display:none; width:28px; height:28px; border-radius:50%; font-size:14px; color:var(--text-sub); background:#f8fdfc; border:1.5px solid var(--border); cursor:pointer; align-items:center; justify-content:center;">↺</button>
+      <button id="measure-close-btn" title="計測を中止する" style="width:28px; height:28px; border-radius:50%; background:#f8fdfc; border:1.5px solid var(--border); color:var(--text-sub); font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+    </div>
   </div>
-  <div id="measure-hint" style="position:absolute; left:50%; transform:translateX(-50%); top:70px; font-family:'Zen Maru Gothic',sans-serif; font-size:12px; color:var(--text); background:rgba(255,255,255,0.9); border-radius:20px; padding:6px 16px; border:1px solid var(--border); pointer-events:none; white-space:nowrap;">1段目の上端をタップ</div>
 </div>
 
 <!-- ===== カウンターフローティングパネル ===== -->
@@ -1445,8 +1479,8 @@
       <input type="checkbox" id="gp-toggle-guide">
       <span class="toggle-knob"></span>
     </label>
-    <span id="gp-step-label">未計測</span>
-    <button id="gp-measure-btn">📏 計測</button>
+    <span id="gp-step-label" style="opacity:0;">未計測</span>
+    <button id="gp-measure-btn" style="opacity:0; pointer-events:none;">📏 計測</button>
   </div>
   <!-- 下段：カウンター行 -->
   <div id="cp-counter-row">
@@ -1574,7 +1608,7 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">編み図エリアに表示される「カウンター」では、段数を数えながら<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">定規を1段ずつ自動で動かせます</span>（<strong style="font-weight:700; color:var(--text);">段ガイド機能</strong>）。ON/OFFや1段の高さの計測もここから行えます。</p>
+          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">編み図エリアに表示される「カウンター」では、段数を数えながら<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">定規を1段ずつ自動で動かせます</span>（<strong style="font-weight:700; color:var(--text);">段ガイド機能</strong>）。段ガイド機能のON/OFFや1段の高さの計測もここから行えます。</p>
         </div>
       </div>
       <input type="hidden" id="ruler-step" value="40">
@@ -1961,6 +1995,10 @@
       // 段ガイドの初期表示
       const guideOn = !!s.guideOn;
       document.getElementById('gp-toggle-guide').checked = guideOn;
+      document.getElementById('gp-step-label').style.opacity = guideOn ? '1' : '0';
+      const gpMBtn = document.getElementById('gp-measure-btn');
+      gpMBtn.style.opacity = guideOn ? '1' : '0';
+      gpMBtn.style.pointerEvents = guideOn ? 'auto' : 'none';
       if (rulerBaseStep > 0) {
         document.getElementById('gp-step-label').textContent = '1段：' + rulerStep + ' px';
       } else {
@@ -2105,6 +2143,9 @@
 
   gpToggleGuide.addEventListener('change', function() {
     const isOn = this.checked;
+    gpStepLabel.style.opacity = isOn ? '1' : '0';
+    gpMeasureBtn.style.opacity = isOn ? '1' : '0';
+    gpMeasureBtn.style.pointerEvents = isOn ? 'auto' : 'none';
     if (isOn) {
       // 既に計測済みの実寸があればそれを使う。なければ未計測のまま（ステップ移動はしない）
       if (rulerBaseStep > 0) {
@@ -4872,13 +4913,44 @@
     const overlay   = document.getElementById('measure-overlay');
     const cvs       = document.getElementById('measure-canvas');
     const ctx       = cvs.getContext('2d');
+    const bar       = document.getElementById('measure-bar');
     const hint      = document.getElementById('measure-hint');
-    const result    = document.getElementById('measure-result');
     const pxLabel   = document.getElementById('measure-px');
     const applyBtn  = document.getElementById('measure-apply-btn');
-    const cancelBtn = document.getElementById('measure-cancel-btn');
+    const redoBtn   = document.getElementById('measure-redo-btn');
+    const closeBtn  = document.getElementById('measure-close-btn');
+    const resultCol = document.getElementById('measure-result-col');
 
     let pt1 = null, pt2 = null;
+
+    // バーをタップ位置の近くに表示（画面端では自動調整）
+    // preferBelow: trueなら下側優先（2点目タップ後、計測線と被らないように）
+    function positionBar(x, y, preferBelow) {
+      bar.style.left = '0px';
+      bar.style.transform = 'none';
+      const barWidth  = bar.offsetWidth || 220;
+      const barHeight = bar.offsetHeight || 36;
+      let barLeft = x - barWidth / 2;
+      barLeft = Math.max(8, Math.min(window.innerWidth - barWidth - 8, barLeft));
+      let barTop;
+      if (preferBelow) {
+        barTop = y + 24;
+        if (barTop + barHeight > window.innerHeight - 8) {
+          barTop = Math.max(8, y - barHeight - 24);
+        }
+      } else {
+        barTop = y - barHeight - 20;
+        if (barTop < 8) barTop = y + 20;
+      }
+      bar.style.left = barLeft + 'px';
+      bar.style.top  = barTop + 'px';
+    }
+
+    function resetBarToCenter() {
+      bar.style.left = '50%';
+      bar.style.top = '70px';
+      bar.style.transform = 'translateX(-50%)';
+    }
 
     function resizeCvs() {
       cvs.width  = window.innerWidth;
@@ -4892,16 +4964,13 @@
       if (!pt1) return;
 
       const color = '#7A9B93';
-      // X座標は1点目に固定（垂直計測）
       const x = pt1.x;
 
-      // 点1
       ctx.beginPath();
       ctx.arc(x, pt1.y, 6, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
 
-      // 横の端線（pt1）
       ctx.beginPath();
       ctx.moveTo(x - 18, pt1.y);
       ctx.lineTo(x + 18, pt1.y);
@@ -4911,13 +4980,11 @@
 
       if (!pt2) return;
 
-      // 点2
       ctx.beginPath();
       ctx.arc(x, pt2.y, 6, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
 
-      // 横の端線（pt2）
       ctx.beginPath();
       ctx.moveTo(x - 18, pt2.y);
       ctx.lineTo(x + 18, pt2.y);
@@ -4925,7 +4992,6 @@
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // 垂直な点線
       ctx.beginPath();
       ctx.moveTo(x, pt1.y);
       ctx.lineTo(x, pt2.y);
@@ -4935,7 +5001,6 @@
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // px表示（線の右横・中間）
       const midY = (pt1.y + pt2.y) / 2;
       const dist = Math.round(Math.abs(pt2.y - pt1.y));
       ctx.font = '700 13px "Zen Maru Gothic", sans-serif';
@@ -4943,7 +5008,22 @@
       ctx.fillText(dist + ' px', x + 24, midY + 5);
     }
 
+    // バーの中身をヒート表示に切り替え
+    function showHintMode(text) {
+      hint.textContent = text;
+      hint.style.display = 'inline';
+      resultCol.style.display = 'none';
+    }
+
+    // バーの中身を結果表示に切り替え
+    function showResultMode(dist) {
+      hint.style.display = 'none';
+      pxLabel.textContent = dist + ' px';
+      resultCol.style.display = 'flex';
+    }
+
     function onTap(e) {
+      if (e.target.closest('#measure-redo-btn') || e.target.closest('#measure-close-btn')) return;
       e.stopPropagation();
       const touch = e.touches ? e.touches[0] : e;
       const x = touch.clientX;
@@ -4951,15 +5031,16 @@
 
       if (!pt1) {
         pt1 = { x, y };
-        hint.textContent = '1段目の下端をタップ';
         draw();
+        redoBtn.style.display = 'flex';
+        showHintMode('2点目をタップ');
+        positionBar(x, y);
       } else if (!pt2) {
         pt2 = { x, y };
         draw();
-        hint.style.display = 'none';
         const dist = Math.round(Math.abs(pt2.y - pt1.y));
-        pxLabel.textContent = dist + ' px';
-        result.style.display = 'block';
+        showResultMode(dist);
+        positionBar(pt1.x, pt2.y, true);
       }
     }
 
@@ -4967,9 +5048,9 @@
       document.getElementById('measure-float-btn').style.display = 'none';
       pt1 = null; pt2 = null;
       ctx.clearRect(0, 0, cvs.width, cvs.height);
-      result.style.display = 'none';
-      hint.style.display = 'block';
-      hint.textContent = '編み図を拡大して1段の上辺をタップ';
+      redoBtn.style.display = 'none';
+      resetBarToCenter();
+      showHintMode('編み図を拡大して1点目をタップ');
       overlay.style.display = 'block';
       overlay.style.pointerEvents = 'all';
     };
@@ -4979,11 +5060,30 @@
       overlay.style.pointerEvents = 'none';
       ctx.clearRect(0, 0, cvs.width, cvs.height);
       pt1 = null; pt2 = null;
-      result.style.display = 'none';
-      hint.style.display = 'block';
+      redoBtn.style.display = 'none';
     }
 
-    applyBtn.addEventListener('click', () => {
+    // やり直す：2点目があれば2点目だけリセット、なければ1点目からやり直す
+    function redoMeasure() {
+      if (pt2) {
+        pt2 = null;
+        draw();
+        showHintMode('2点目をタップ');
+        positionBar(pt1.x, pt1.y);
+      } else {
+        pt1 = null; pt2 = null;
+        ctx.clearRect(0, 0, cvs.width, cvs.height);
+        showHintMode('1点目をタップ');
+      }
+    }
+
+    redoBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      redoMeasure();
+    });
+
+    applyBtn.addEventListener('click', e => {
+      e.stopPropagation();
       if (!pt1 || !pt2) return;
       const dist = Math.max(6, Math.round(Math.abs(pt2.y - pt1.y)));
       rulerStep = dist;
@@ -5000,7 +5100,10 @@
       stopMeasure();
     });
 
-    cancelBtn.addEventListener('click', stopMeasure);
+    closeBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      stopMeasure();
+    });
 
     // タップ（マウス・タッチ両対応）
     overlay.addEventListener('click',     onTap);
