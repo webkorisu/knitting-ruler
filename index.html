@@ -92,13 +92,40 @@
       user-select: none;
       z-index: 10;
     }
-    #placeholder .ph-hint {
+    #save-hint-center {
+      position: absolute;
+      left: 50%;
+      top: calc(50% + 46px);
+      transform: translateX(-50%);
       font-family: 'Zen Maru Gothic', sans-serif;
       font-size: 11px;
-      letter-spacing: .06em;
+      letter-spacing: .04em;
       color: rgba(160,112,128,0.45);
-      margin-top: 8px;
+      text-align: center;
+      line-height: 1.7;
+      padding: 0 12px;
+      max-width: 400px;
+      pointer-events: none;
+      user-select: none;
     }
+    #save-hint-center span { white-space: nowrap; }
+    #save-hint-corner {
+      display: none;
+      position: absolute;
+      left: 14px;
+      bottom: 14px;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 10px;
+      letter-spacing: .04em;
+      color: rgba(160,112,128,0.45);
+      pointer-events: none;
+      user-select: none;
+      white-space: nowrap;
+      z-index: 5;
+    }
+    /* 画像読み込み後：中央の説明を消し、左下に控えめな1行を常時表示 */
+    #viewer.has-image #save-hint-center { display: none; }
+    #viewer.has-image #save-hint-corner { display: block; }
     #placeholder .ph-tap {
       font-family: 'Cormorant Garamond', serif;
       font-size: 18px;
@@ -233,7 +260,7 @@
 
     /* パネルボディ */
     #panel-body {
-      padding: 12px 14px;
+      padding: 22px 14px;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -248,11 +275,12 @@
       background: var(--surface);
       border: 1.5px dashed var(--border);
       border-radius: var(--radius-sm);
-      padding: 10px 14px;
+      padding: 14px 14px;
       display: flex;
       align-items: center;
       gap: 10px;
       cursor: pointer;
+      margin-bottom: 8px;
       transition: border-color .2s, background .2s;
       -webkit-tap-highlight-color: transparent;
     }
@@ -434,7 +462,7 @@
       padding: 13px 12px 12px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 14px;
     }
     .ruler-card-title {
       font-size: 11px;
@@ -957,7 +985,7 @@
     }
     #gp-step-label {
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
       color: var(--text);
       white-space: nowrap;
@@ -982,23 +1010,24 @@
       -webkit-tap-highlight-color: transparent;
       white-space: nowrap;
       flex-shrink: 0;
-      box-shadow: 0 0 6px rgba(0,0,0,0.18);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.10);
       transition: opacity .15s, box-shadow .1s, transform .1s;
-      margin-left: -8px;
+      margin-left: 4px;
     }
     #gp-measure-btn:active {
-      box-shadow: 0 0 3px rgba(0,0,0,0.14);
-      transform: scale(.96);
+      box-shadow: 0 1px 1px rgba(0,0,0,0.10);
+      transform: scale(.95);
     }
     .measure-apply-btn:active {
-      box-shadow: 0 0 3px rgba(0,0,0,0.14);
-      transform: scale(.96);
+      box-shadow: 0 1px 1px rgba(0,0,0,0.10);
+      transform: scale(.95);
     }
     /* 下段：カウンター行 */
     #cp-counter-row {
       display: flex;
       align-items: center;
       gap: 0;
+      transform: translateY(-3px);
     }
     #cp-counter-row .cp-divider { margin-left: 0; }
     #cp-counter-row #cp-minus { margin-left: 20px; }
@@ -1060,6 +1089,7 @@
       display: flex;
       gap: 6px;
       align-items: center;
+      margin-bottom: 8px;
     }
     .preset-name-input {
       flex: 1;
@@ -1088,11 +1118,15 @@
       cursor: pointer;
       white-space: nowrap;
       flex-shrink: 0;
-      transition: background .15s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.10);
+      transition: background .15s, box-shadow .1s, transform .1s;
       -webkit-tap-highlight-color: transparent;
     }
     .preset-save-btn:hover { background: #a8d4cb; }
-    .preset-save-btn:active { transform: scale(.95); }
+    .preset-save-btn:active {
+      box-shadow: 0 1px 1px rgba(0,0,0,0.10);
+      transform: scale(.95);
+    }
     #preset-list,
     .preset-list {
       display: flex;
@@ -1197,24 +1231,27 @@
       display: inline-block;
       width: auto;
       align-self: center;
-      margin: 8px 0 1px;
-      padding: 4px 12px;
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 20px;
+      margin: 8px 0;
+      padding: 5px 12px;
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
-      color: var(--text-sub);
+      color: #3a5c55;
+      background: var(--primary);
+      border: none;
+      border-radius: 20px;
       letter-spacing: .06em;
       cursor: pointer;
-      transition: background .18s, border-color .18s, color .18s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.10);
+      transition: background .15s, box-shadow .1s, transform .1s;
       -webkit-tap-highlight-color: transparent;
     }
     .reset-default-btn:hover {
-      background: #f0eef5;
-      border-color: #C3B4C8;
-      color: var(--text);
+      background: #a8d4cb;
+    }
+    .reset-default-btn:active {
+      box-shadow: 0 1px 1px rgba(0,0,0,0.10);
+      transform: scale(.95);
     }
 
     /* ===== モーダル ===== */
@@ -1346,8 +1383,9 @@
   <div id="placeholder">
     <div class="ph-text">ここに編み図が表示されます</div>
     <div class="ph-tap">Knitting Chart Ruler</div>
-
   </div>
+  <div id="save-hint-center"><span>※読み込んだ画像は保存されません</span><br><span>ブラウザを開き直した場合は</span><br><span>再度画像を読み込んでください</span></div>
+  <div id="save-hint-corner">※画像は保存されません</div>
   <canvas id="chart-canvas"></canvas>
 </div>
 <input type="file" id="file-input" accept="image/*">
@@ -1457,7 +1495,7 @@
     <!-- 結果表示（計測完了後）：上段px数値・下段設定ボタンの2段 -->
     <div id="measure-result-col" style="display:none; flex-direction:column; align-items:center; gap:6px; flex-shrink:0;">
       <span id="measure-px" style="font-size:16px; font-weight:700; color:var(--text); letter-spacing:.04em; white-space:nowrap; padding-bottom:6px; border-bottom:1px solid var(--border); text-align:center; width:100%;"></span>
-      <button id="measure-apply-btn" class="measure-apply-btn" style="background:var(--primary); border:none; border-radius:16px; padding:6px 14px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; color:var(--text); cursor:pointer; white-space:nowrap; box-shadow:0 0 6px rgba(0,0,0,0.18); transition:box-shadow .1s, transform .1s;">1段の高さに設定</button>
+      <button id="measure-apply-btn" class="measure-apply-btn" style="background:var(--primary); border:none; border-radius:16px; padding:6px 14px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; color:var(--text); cursor:pointer; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.10); transition:box-shadow .1s, transform .1s;">1段の高さに設定</button>
     </div>
 
     <!-- 常設：やり直す・閉じる -->
@@ -1480,7 +1518,7 @@
       <span class="toggle-knob"></span>
     </label>
     <span id="gp-step-label" style="opacity:0;">未計測</span>
-    <button id="gp-measure-btn" style="opacity:0; pointer-events:none;">📏 計測</button>
+    <button id="gp-measure-btn" style="opacity:0; pointer-events:none;">計測</button>
   </div>
   <!-- 下段：カウンター行 -->
   <div id="cp-counter-row">
@@ -1543,7 +1581,7 @@
       <!-- アコーディオン①カスタマイズ -->
       <div class="card-accordion open" id="band-acc-custom">
         <button class="card-accordion-btn" onclick="toggleCardAcc('band-acc-custom')">
-          <span>カスタマイズ</span>
+          <span>定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:12px 12px 10px; gap:14px;">
@@ -1585,7 +1623,7 @@
           <span>お気に入り定規　<span id="preset-count">0</span>/5</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:20px 12px 8px; gap:6px;">
+        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
           <div class="preset-save-row">
             <input type="text" id="preset-name-input" class="preset-name-input" placeholder="名前をつけて保存…" maxlength="10">
             <button class="preset-save-btn" id="preset-save-btn">保存</button>
@@ -1600,7 +1638,7 @@
           <span>段数カウンター</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:10px 12px 8px; gap:6px;">
+        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
           <div style="display:flex; align-items:center; gap:6px;">
             <span class="toggle-label" style="width:5.5em;">カウンター</span>
             <label class="toggle-switch">
@@ -1622,7 +1660,7 @@
       <!-- アコーディオン①カスタマイズ -->
       <div class="card-accordion open" id="frame-acc-custom">
         <button class="card-accordion-btn" onclick="toggleCardAcc('frame-acc-custom')">
-          <span>カスタマイズ</span>
+          <span>定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:12px 12px 10px; gap:14px;">
@@ -1665,7 +1703,7 @@
           <span>お気に入り定規　<span id="frame-preset-count">0</span>/5</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:20px 12px 8px; gap:6px;">
+        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
           <div class="preset-save-row">
             <input type="text" id="frame-preset-name" class="preset-name-input" placeholder="名前をつけて保存…" maxlength="10">
             <button class="preset-save-btn" onclick="saveFramePreset()">保存</button>
@@ -1680,7 +1718,7 @@
           <span>段数カウンター</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:10px 12px 8px; gap:6px;">
+        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
           <div style="display:flex; align-items:center; gap:6px;">
             <span class="toggle-label" style="width:5.5em;">カウンター</span>
             <label class="toggle-switch">
@@ -1688,24 +1726,11 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <div id="frame-auto-row" style="display:flex; flex-direction:column; gap:6px;">
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span class="toggle-label" style="width:5.5em;">段ガイド</span>
-              <label class="toggle-switch">
-                <input type="checkbox" id="toggle-frame-auto" checked>
-                <span class="toggle-knob"></span>
-              </label>
-            </div>
-            <div id="frame-step-row" style="padding-left:0.5em; padding-bottom:6px;">
-              <label for="frame-step" class="toggle-label" style="display:block; margin-bottom:4px;">１段の幅</label>
-              <div class="ruler-control" style="padding-left:0;">
-                <input type="range" id="frame-step" min="6" max="100" value="40" step="2">
-                <span id="frame-step-label">40 px</span>
-              </div>
-            </div>
-          </div>
+          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">編み図エリアに表示される「カウンター」では、段数を数えながら<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">枠を1段ずつ自動で動かせます</span>（<strong style="font-weight:700; color:var(--text);">段ガイド機能</strong>）。段ガイド機能のON/OFFや1段の高さの計測もここから行えます。</p>
         </div>
       </div>
+      <input type="hidden" id="frame-step" value="40">
+      <span id="frame-step-label" style="display:none;">40 px</span>
 
     </div>
 
@@ -1715,7 +1740,7 @@
       <!-- アコーディオン①カスタマイズ -->
       <div class="card-accordion open" id="circle-acc-custom">
         <button class="card-accordion-btn" onclick="toggleCardAcc('circle-acc-custom')">
-          <span>カスタマイズ</span>
+          <span>定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:12px 12px 10px; gap:14px;">
@@ -1757,7 +1782,7 @@
           <span>お気に入り定規　<span id="circle-preset-count">0</span>/5</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:20px 12px 8px; gap:6px;">
+        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
           <div class="preset-save-row">
             <input type="text" id="circle-preset-name" class="preset-name-input" placeholder="名前をつけて保存…" maxlength="10">
             <button class="preset-save-btn" onclick="saveCirclePreset()">保存</button>
@@ -1772,7 +1797,7 @@
           <span>段数カウンター</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:10px 12px 8px; gap:6px;">
+        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
           <div style="display:flex; align-items:center; gap:6px;">
             <span class="toggle-label" style="width:5.5em;">カウンター</span>
             <label class="toggle-switch">
@@ -1780,24 +1805,11 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <div id="circle-auto-row" style="display:flex; flex-direction:column; gap:6px;">
-            <div style="display:flex; align-items:center; gap:6px;">
-              <span class="toggle-label" style="width:5.5em;">段ガイド</span>
-              <label class="toggle-switch">
-                <input type="checkbox" id="toggle-circle-auto" checked>
-                <span class="toggle-knob"></span>
-              </label>
-            </div>
-            <div id="circle-step-row" style="padding-left:0.5em; padding-bottom:6px;">
-              <label for="circle-step" class="toggle-label" style="display:block; margin-bottom:4px;">１段の幅</label>
-              <div class="ruler-control" style="padding-left:0;">
-                <input type="range" id="circle-step" min="6" max="100" value="20" step="2">
-                <span id="circle-step-label">20 px</span>
-              </div>
-            </div>
-          </div>
+          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">編み図エリアに表示される「カウンター」では、段数を数えながら<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">円を1段ずつ自動で広げ縮めできます</span>（<strong style="font-weight:700; color:var(--text);">段ガイド機能</strong>）。段ガイド機能のON/OFFや1段の幅の計測もここから行えます。</p>
         </div>
       </div>
+      <input type="hidden" id="circle-step" value="20">
+      <span id="circle-step-label" style="display:none;">20 px</span>
 
     </div>
 
@@ -1844,7 +1856,7 @@
       </div>
     </div>
     </div><!-- /定規タブ＋カードラッパー -->
-    <div style="display:flex;flex-direction:column;gap:5px;">
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
 
       <div class="data-note" id="howtoNote">
         <button class="data-note-btn" onclick="toggleNote('howtoNote')">
@@ -1892,7 +1904,7 @@
           <span class="data-note-arrow">▼</span>
         </button>
         <div class="data-note-body">
-          <p>定規の設定（色・太さ・濃度）はこの端末のブラウザに保存されます。次回開いたときも同じ設定で使えます。</p>
+          <p>定規の設定（色・太さ・濃度・カウンター・段ガイド）はこの端末のブラウザに保存されます。次回開いたときも同じ設定で使えます。</p>
           <p>読み込んだ編み図画像はブラウザに保存されません。ページを閉じると消えます。</p>
           <p>外部サーバーへの通信は一切行っておらず、すべての処理はこの端末内で完結します。</p>
         </div>
@@ -1948,6 +1960,7 @@
   let showCounter = true;
   let rulerStep   = 40;  // 1段のスライド量（px）
   let rulerBaseStep = 0; // 実寸ステップ（scale補正用）
+  let rulerGuideOn = false; // Line定規の段ガイドON/OFF状態（タブ切替時もこの値が真実の源）
 
   let rowCount    = 0;
   let rulerAlpha100 = 85;
@@ -1960,7 +1973,7 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         color: rulerColor, alpha: rulerAlpha, height: rulerHeight,
         width: rulerWidth, left: rulerLeft, top: rulerTop, step: rulerStep,
-        baseStep: rulerBaseStep, guideOn: document.getElementById('gp-toggle-guide').checked,
+        baseStep: rulerBaseStep, guideOn: rulerGuideOn,
         showCounter, count: rowCount
       }));
     } catch(e) {}
@@ -1992,19 +2005,9 @@
       if (rulerWidthLabel) rulerWidthLabel.textContent = rulerWidth + '%';
       toggleCounterEl.checked = showCounter;
       cpNum.textContent = rowCount;
-      // 段ガイドの初期表示
-      const guideOn = !!s.guideOn;
-      document.getElementById('gp-toggle-guide').checked = guideOn;
-      document.getElementById('gp-step-label').style.opacity = guideOn ? '1' : '0';
-      const gpMBtn = document.getElementById('gp-measure-btn');
-      gpMBtn.style.opacity = guideOn ? '1' : '0';
-      gpMBtn.style.pointerEvents = guideOn ? 'auto' : 'none';
-      if (rulerBaseStep > 0) {
-        document.getElementById('gp-step-label').textContent = '1段：' + rulerStep + ' px';
-      } else {
-        document.getElementById('gp-step-label').textContent = '未計測';
-      }
-      if (!guideOn) rulerStep = 0;
+      // 段ガイドの状態（Line専用変数に保持。DOM反映はsyncGuideRowUIに一本化）
+      rulerGuideOn = !!s.guideOn;
+      if (!rulerGuideOn) rulerStep = 0;
       document.querySelectorAll('.color-dot').forEach(d => {
         d.classList.toggle('active', d.dataset.color === rulerColor);
       });
@@ -2128,9 +2131,9 @@
     counterPanel.style.display = showCounter ? 'flex' : 'none';
     cpGuideRow.style.display = showCounter ? 'flex' : 'none';
     if (!showCounter) {
-      document.getElementById('gp-toggle-guide').checked = false;
+      rulerGuideOn = false;
       rulerStep = 0;
-      rulerBaseStep = 0;
+      syncGuideRowUI('band');
     }
     saveSettings();
   });
@@ -2141,24 +2144,80 @@
   const gpStepLabel   = document.getElementById('gp-step-label');
   const gpMeasureBtn  = document.getElementById('gp-measure-btn');
 
+  // タブ切替時や設定読込時に、段ガイド行（トグル・ラベル・計測ボタン）の表示をそのタブの状態に同期する
+  function syncGuideRowUI(tab) {
+    let isOn, baseStep, effStep;
+    if (tab === 'frame') {
+      isOn = frameStep > 0;
+      baseStep = frameStepBase;
+      effStep = frameStep;
+    } else if (tab === 'circle') {
+      isOn = circleStep > 0;
+      baseStep = circleStepBase;
+      effStep = circleStep;
+    } else {
+      isOn = rulerGuideOn;
+      baseStep = rulerBaseStep;
+      effStep = rulerStep;
+    }
+    gpToggleGuide.checked = isOn;
+    gpStepLabel.style.opacity = isOn ? '1' : '0';
+    gpMeasureBtn.style.opacity = isOn ? '1' : '0';
+    gpMeasureBtn.style.pointerEvents = isOn ? 'auto' : 'none';
+    if (baseStep > 0) {
+      gpStepLabel.textContent = '1段：' + (isOn ? effStep : baseStep) + ' px';
+    } else {
+      gpStepLabel.textContent = '未計測';
+    }
+  }
+
   gpToggleGuide.addEventListener('change', function() {
     const isOn = this.checked;
     gpStepLabel.style.opacity = isOn ? '1' : '0';
     gpMeasureBtn.style.opacity = isOn ? '1' : '0';
     gpMeasureBtn.style.pointerEvents = isOn ? 'auto' : 'none';
-    if (isOn) {
+    if (currentRulerTab === 'frame') {
+      if (isOn) {
+        if (frameStepBase > 0) {
+          frameStep = frameStepBase;
+          gpStepLabel.textContent = '1段：' + frameStep + ' px';
+        } else {
+          frameStep = 0;
+          gpStepLabel.textContent = '未計測';
+        }
+      } else {
+        frameStep = 0;
+      }
+      saveFrameSettings();
+    } else if (currentRulerTab === 'circle') {
+      if (isOn) {
+        if (circleStepBase > 0) {
+          circleStep = circleStepBase;
+          gpStepLabel.textContent = '1段：' + circleStep + ' px';
+        } else {
+          circleStep = 0;
+          gpStepLabel.textContent = '未計測';
+        }
+      } else {
+        circleStep = 0;
+      }
+      saveCircleSettings();
+    } else {
       // 既に計測済みの実寸があればそれを使う。なければ未計測のまま（ステップ移動はしない）
-      if (rulerBaseStep > 0) {
-        rulerStep = Math.max(1, Math.round(rulerBaseStep * scale));
-        gpStepLabel.textContent = '1段：' + rulerStep + ' px';
+      rulerGuideOn = isOn;
+      if (isOn) {
+        if (rulerBaseStep > 0) {
+          rulerStep = Math.max(1, Math.round(rulerBaseStep * scale));
+          gpStepLabel.textContent = '1段：' + rulerStep + ' px';
+        } else {
+          rulerStep = 0;
+          gpStepLabel.textContent = '未計測';
+        }
       } else {
         rulerStep = 0;
-        gpStepLabel.textContent = '未計測';
       }
-    } else {
-      rulerStep = 0;
+      saveSettings();
     }
-    saveSettings();
   });
 
   // 📏計測ボタン：押したときだけ計測モードを起動
@@ -2183,7 +2242,7 @@
 
   // 段ガイドONかつ計測済みのときだけステップ移動。OFFや未計測なら0（移動なし）
   function getEffectiveStep() {
-    if (!gpToggleGuide.checked) return 0;
+    if (!rulerGuideOn) return 0;
     if (rulerBaseStep > 0) return Math.round(rulerBaseStep * scale);
     return 0;
   }
@@ -2623,7 +2682,7 @@
       const gpStep = document.getElementById('gp-step-label');
       if (stepEl) stepEl.value = rulerStep;
       if (stepLabelEl) stepLabelEl.textContent = rulerStep + ' px';
-      if (gpStep && document.getElementById('gp-toggle-guide').checked) {
+      if (gpStep && rulerGuideOn && currentRulerTab === 'band') {
         gpStep.textContent = '1段：' + rulerStep + ' px';
       }
     }
@@ -2966,7 +3025,6 @@
   /* ========== カウンターパネル ドラッグ ========== */
   let cpDragging = false, cpDragStartX = 0, cpDragStartY = 0;
   let cpPanelX = 0, cpPanelY = 0;
-  let pdDragged = false; // ドラッグ判定フラグ
 
   function getCpPos() {
     const r = counterPanel.getBoundingClientRect();
@@ -3003,11 +3061,13 @@
   counterPanel.addEventListener('pointerup', () => { cpDragging = false; counterPanel.classList.remove('dragging'); });
   counterPanel.addEventListener('pointercancel', () => { cpDragging = false; counterPanel.classList.remove('dragging'); });
 
+
   /* ========== フローティングパネル ドラッグ ========== */
   const panelHeader = document.getElementById('panel-header');
   let panelDragging = false;
   let pdStartX = 0, pdStartY = 0;
   let pdPanelX = 0, pdPanelY = 0;
+  let pdDragged = false;
 
   function getPanelPos() {
     const r = floatPanel.getBoundingClientRect();
@@ -3138,16 +3198,17 @@
       cpNum.textContent = rowCount;
     } else if (tab === 'circle') {
       counterWrap.style.display = showCircleCounter ? 'flex' : 'none';
-      cpGuideRow.style.display = 'none';
+      cpGuideRow.style.display = showCircleCounter ? 'flex' : 'none';
       cpNum.textContent = circleCount;
     } else if (tab === 'frame') {
       counterWrap.style.display = showFrameCounter ? 'flex' : 'none';
-      cpGuideRow.style.display = 'none';
+      cpGuideRow.style.display = showFrameCounter ? 'flex' : 'none';
       cpNum.textContent = frameCount;
     } else {
       counterWrap.style.display = 'none';
       cpGuideRow.style.display = 'none';
     }
+    syncGuideRowUI(tab);
     if (tab === 'band') {
       rulerOverlay.style.display  = 'block';
       frameOverlay.style.display  = 'none';
@@ -3188,7 +3249,8 @@
   let fOuter = { top: 60, left: 40, right: 40, bottom: 60 }; // 外枠の各辺の幅(px)
   // 状態：窓 (px, 画面座標)
   let fWin = { x: 0, y: 0, w: 0, h: 0 };
-  let frameStep  = 40;
+  let frameStep  = 0;      // 段ガイドON時に有効な1段の幅（OFF時は0）
+  let frameStepBase = 0;   // 計測した実寸（段ガイドOFFでも保持、未計測なら0）
   let frameCount = 0;
   let showFrameCounter = true;
   let fColor = '#b2aaaa';
@@ -3381,12 +3443,14 @@
     document.querySelectorAll('.color-dot').forEach(d =>
       d.classList.toggle('active', d.dataset.color === DEFAULT_COLOR));
 
-    // テキスト2行の下端 + 35px の位置に定規を配置
+    // テキスト2行＋注意文3行の下端 + 35px の位置に定規を配置
     const sh = window.innerHeight;
     const textCenterY = sh / 2; // プレースホルダーはflex中央
     // ph-text(line-height:2 font-size:14px)＋gap(16px)＋ph-tap(font-size:18px) の高さ概算
     const textBlockH = 14 * 2 + 16 + 18;
-    const textBottom = textCenterY + textBlockH / 2;
+    // save-hint-center: top:50%+46px の位置から、行間1.7・font-size11px×3行分の高さを加算
+    const hintBlockH = 46 + (11 * 1.7 * 3) + 10;
+    const textBottom = textCenterY + Math.max(textBlockH / 2, hintBlockH);
     rulerTop = Math.round(textBottom + 35);
 
     applyRulerPos();
@@ -3395,14 +3459,9 @@
   }
 
   function resetFrameDefault() {
-    frameStep = 40; frameCount = 0; showFrameCounter = true;
-    document.getElementById('frame-step').value = frameStep;
-    document.getElementById('frame-step-label').textContent = frameStep + ' px';
+    frameStep = 0; frameStepBase = 0; frameCount = 0; showFrameCounter = true;
     document.getElementById('toggle-frame-counter').checked = true;
-    // 段ガイドをON状態にリセット
-    document.getElementById('toggle-frame-auto').checked = true;
-    document.getElementById('frame-auto-row').style.display = 'flex';
-    document.getElementById('frame-step-row').style.display = '';
+    syncGuideRowUI('frame');
     const DEFAULT_COLOR = '#b2aaaa';
     const DEFAULT_ALPHA = 0.70;
     const sw = window.innerWidth, sh = window.innerHeight;
@@ -3428,7 +3487,7 @@
   function saveFrameSettings() {
     try {
       localStorage.setItem('yucchi_ruler_frame', JSON.stringify({
-        fWin, fOuter, fColor, fAlpha, frameStep, frameCount, showFrameCounter
+        fWin, fOuter, fColor, fAlpha, frameStep, frameStepBase, frameCount, showFrameCounter
       }));
     } catch(e) {}
   }
@@ -3441,29 +3500,14 @@
       if (s.fColor) { fColor = s.fColor; frameColorInput.value = fColor; }
       if (s.fAlpha != null) fAlpha = s.fAlpha;
       if (s.frameStep  != null) frameStep  = s.frameStep;
+      // frameStepBaseが未保存の旧データの場合、旧frameStepの値を引き継ぐ
+      if (s.frameStepBase != null) frameStepBase = s.frameStepBase;
+      else if (s.frameStep != null) frameStepBase = s.frameStep;
       if (s.frameCount != null) frameCount = s.frameCount;
       if (s.showFrameCounter != null) showFrameCounter = s.showFrameCounter;
       document.getElementById('frame-opacity').value = Math.round(fAlpha * 100);
       document.getElementById('frame-opacity-label').textContent = Math.round(fAlpha * 100) + '%';
-      document.getElementById('frame-step').value = frameStep;
-      document.getElementById('frame-step-label').textContent = frameStep + ' px';
       document.getElementById('toggle-frame-counter').checked = showFrameCounter;
-      // 段ガイドの初期表示
-      const frameAutoRow = document.getElementById('frame-auto-row');
-      const frameStepRow = document.getElementById('frame-step-row');
-      const toggleFrameAuto = document.getElementById('toggle-frame-auto');
-      if (showFrameCounter) {
-        frameAutoRow.style.display = 'flex';
-        if (frameStep > 0) {
-          toggleFrameAuto.checked = true;
-          frameStepRow.style.display = '';
-        } else {
-          toggleFrameAuto.checked = false;
-          frameStepRow.style.display = 'none';
-        }
-      } else {
-        frameAutoRow.style.display = 'none';
-      }
       document.querySelectorAll('.frame-color-dot').forEach(d =>
         d.classList.toggle('active', d.dataset.color === fColor));
       return true;
@@ -3898,32 +3942,15 @@
     document.getElementById('frame-opacity-label').textContent = e.target.value + '%';
     applyFrameStyle(); saveFrameSettings();
   });
-  document.getElementById('frame-step').addEventListener('input', e => {
-    frameStep = parseInt(e.target.value);
-    document.getElementById('frame-step-label').textContent = frameStep + ' px';
-    saveFrameSettings();
-  });
   document.getElementById('toggle-frame-counter').addEventListener('change', e => {
     showFrameCounter = e.target.checked;
     if (currentRulerTab === 'frame') {
       counterPanel.style.display = showFrameCounter ? 'flex' : 'none';
-    }
-    document.getElementById('frame-auto-row').style.display = showFrameCounter ? 'flex' : 'none';
-    if (!showFrameCounter) {
-      document.getElementById('toggle-frame-auto').checked = false;
-      document.getElementById('frame-step-row').style.display = 'none';
-      frameStep = 0;
+      cpGuideRow.style.display = showFrameCounter ? 'flex' : 'none';
     }
     saveFrameSettings();
   });
 
-  // 段ガイドトグル（Frame定規）
-  document.getElementById('toggle-frame-auto').addEventListener('change', function() {
-    const isAuto = this.checked;
-    document.getElementById('frame-step-row').style.display = isAuto ? '' : 'none';
-    frameStep = isAuto ? parseInt(document.getElementById('frame-step').value) : 0;
-    saveFrameSettings();
-  });
   document.getElementById('frame-color-presets').addEventListener('click', e => {
     const dot = e.target.closest('.frame-color-dot');
     if (!dot) return;
@@ -3988,7 +4015,8 @@
   let cR = 50;                 // 半径（直径100px）
   let cColor = '#b2aaaa';
   let cAlpha = 0.70;
-  let circleStep  = 20;
+  let circleStep  = 0;       // 段ガイドON時に有効な1段の幅（OFF時は0）
+  let circleStepBase = 0;    // 計測した実寸（段ガイドOFFでも保持、未計測なら0）
   let circleCount = 0;
   let showCircleCounter = true;
   let cDragging = false;
@@ -4044,7 +4072,7 @@
   }
 
   function saveCircleSettings() {
-    try { localStorage.setItem(CIRCLE_KEY, JSON.stringify({ cX, cY, cR, cColor, cAlpha, circleStep, circleCount, showCircleCounter })); } catch(e) {}
+    try { localStorage.setItem(CIRCLE_KEY, JSON.stringify({ cX, cY, cR, cColor, cAlpha, circleStep, circleStepBase, circleCount, showCircleCounter })); } catch(e) {}
   }
   function loadCircleSettings() {
     try {
@@ -4061,6 +4089,9 @@
       cX = Math.max(cR, Math.min(window.innerWidth  - cR, cX));
       cY = Math.max(cR, Math.min(window.innerHeight - cR, cY));
       if (s.circleStep  != null) circleStep  = s.circleStep;
+      // circleStepBaseが未保存の旧データの場合、旧circleStepの値を引き継ぐ
+      if (s.circleStepBase != null) circleStepBase = s.circleStepBase;
+      else if (s.circleStep != null) circleStepBase = s.circleStep;
       if (s.circleCount != null) circleCount = s.circleCount;
       if (s.showCircleCounter != null) showCircleCounter = s.showCircleCounter;
       return true;
@@ -4072,26 +4103,8 @@
     document.getElementById('circle-opacity').value      = Math.round(cAlpha * 100);
     document.getElementById('circle-opacity-label').textContent = Math.round(cAlpha * 100) + '%';
     document.getElementById('circle-color').value        = cColor;
-    document.getElementById('circle-step').value         = circleStep;
-    document.getElementById('circle-step-label').textContent = circleStep + ' px';
     document.getElementById('toggle-circle-counter').checked = showCircleCounter;
     cpNum.textContent = circleCount;
-    // 段ガイドの初期表示
-    const circleAutoRow  = document.getElementById('circle-auto-row');
-    const circleStepRow  = document.getElementById('circle-step-row');
-    const toggleCircleAuto = document.getElementById('toggle-circle-auto');
-    if (showCircleCounter) {
-      circleAutoRow.style.display = 'flex';
-      if (circleStep > 0) {
-        toggleCircleAuto.checked = true;
-        circleStepRow.style.display = '';
-      } else {
-        toggleCircleAuto.checked = false;
-        circleStepRow.style.display = 'none';
-      }
-    } else {
-      circleAutoRow.style.display = 'none';
-    }
     document.querySelectorAll('#circle-card .color-dot').forEach(d =>
       d.classList.toggle('active', d.dataset.color === cColor));
   }
@@ -4102,32 +4115,15 @@
     document.getElementById('circle-opacity-label').textContent = e.target.value + '%';
     applyCircle(); saveCircleSettings();
   });
-  document.getElementById('circle-step').addEventListener('input', e => {
-    circleStep = parseInt(e.target.value);
-    document.getElementById('circle-step-label').textContent = circleStep + ' px';
-    saveCircleSettings();
-  });
   document.getElementById('toggle-circle-counter').addEventListener('change', e => {
     showCircleCounter = e.target.checked;
     if (currentRulerTab === 'circle') {
       counterPanel.style.display = showCircleCounter ? 'flex' : 'none';
-    }
-    document.getElementById('circle-auto-row').style.display = showCircleCounter ? 'flex' : 'none';
-    if (!showCircleCounter) {
-      document.getElementById('toggle-circle-auto').checked = false;
-      document.getElementById('circle-step-row').style.display = 'none';
-      circleStep = 0;
+      cpGuideRow.style.display = showCircleCounter ? 'flex' : 'none';
     }
     saveCircleSettings();
   });
 
-  // 段ガイドトグル（Circle定規）
-  document.getElementById('toggle-circle-auto').addEventListener('change', function() {
-    const isAuto = this.checked;
-    document.getElementById('circle-step-row').style.display = isAuto ? '' : 'none';
-    circleStep = isAuto ? parseInt(document.getElementById('circle-step').value) : 0;
-    saveCircleSettings();
-  });
 
   // カラードット
   document.querySelectorAll('#circle-card .color-dot').forEach(dot => {
@@ -4147,14 +4143,18 @@
 
   // リセット
   window.resetCircleDefault = function() {
-    cR = 25; cColor = '#b2aaaa'; cAlpha = 0.70;
-    circleStep = 20; circleCount = 0; showCircleCounter = true;
+    cR = 50; cColor = '#b2aaaa'; cAlpha = 0.70;
+    circleStep = 0; circleStepBase = 0; circleCount = 0; showCircleCounter = true;
     cX = Math.round(window.innerWidth  / 2);
-    cY = Math.round(window.innerHeight / 2);
-    document.getElementById('toggle-circle-auto').checked = true;
-    document.getElementById('circle-auto-row').style.display = 'flex';
-    document.getElementById('circle-step-row').style.display = '';
+    // テキスト2行＋注意文3行の下端 + 35px + 半径 の位置に円の中心を配置（テキストと重ならないように）
+    const sh = window.innerHeight;
+    const textCenterY = sh / 2; // プレースホルダーはflex中央
+    const textBlockH = 14 * 2 + 16 + 18;
+    const hintBlockH = 46 + (11 * 1.7 * 3) + 10;
+    const textBottom = textCenterY + Math.max(textBlockH / 2, hintBlockH);
+    cY = Math.round(textBottom + 35 + cR);
     syncCircleUI();
+    syncGuideRowUI('circle');
     applyCircle(); saveCircleSettings();
   };
 
@@ -4964,48 +4964,90 @@
       if (!pt1) return;
 
       const color = '#7A9B93';
-      const x = pt1.x;
+      const isDiagonal = (currentRulerTab === 'circle');
 
+      // 1点目のマーカー
       ctx.beginPath();
-      ctx.arc(x, pt1.y, 6, 0, Math.PI * 2);
+      ctx.arc(pt1.x, pt1.y, 6, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
 
-      ctx.beginPath();
-      ctx.moveTo(x - 18, pt1.y);
-      ctx.lineTo(x + 18, pt1.y);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      if (isDiagonal) {
+        // 斜め計測：点の周りに十字マーカー
+        ctx.beginPath();
+        ctx.moveTo(pt1.x - 14, pt1.y);
+        ctx.lineTo(pt1.x + 14, pt1.y);
+        ctx.moveTo(pt1.x, pt1.y - 14);
+        ctx.lineTo(pt1.x, pt1.y + 14);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(pt1.x - 18, pt1.y);
+        ctx.lineTo(pt1.x + 18, pt1.y);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
 
       if (!pt2) return;
 
+      // 2点目のマーカー
       ctx.beginPath();
-      ctx.arc(x, pt2.y, 6, 0, Math.PI * 2);
+      ctx.arc(pt2.x, pt2.y, 6, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
 
-      ctx.beginPath();
-      ctx.moveTo(x - 18, pt2.y);
-      ctx.lineTo(x + 18, pt2.y);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      if (isDiagonal) {
+        ctx.beginPath();
+        ctx.moveTo(pt2.x - 14, pt2.y);
+        ctx.lineTo(pt2.x + 14, pt2.y);
+        ctx.moveTo(pt2.x, pt2.y - 14);
+        ctx.lineTo(pt2.x, pt2.y + 14);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
 
-      ctx.beginPath();
-      ctx.moveTo(x, pt1.y);
-      ctx.lineTo(x, pt2.y);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.setLineDash([6, 4]);
-      ctx.stroke();
-      ctx.setLineDash([]);
+        // 2点を結ぶ斜め線（実際の角度のまま）
+        ctx.beginPath();
+        ctx.moveTo(pt1.x, pt1.y);
+        ctx.lineTo(pt2.x, pt2.y);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
 
-      const midY = (pt1.y + pt2.y) / 2;
-      const dist = Math.round(Math.abs(pt2.y - pt1.y));
-      ctx.font = '700 13px "Zen Maru Gothic", sans-serif';
-      ctx.fillStyle = color;
-      ctx.fillText(dist + ' px', x + 24, midY + 5);
+        const midX = (pt1.x + pt2.x) / 2;
+        const midY = (pt1.y + pt2.y) / 2;
+        const dist = Math.round(Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y));
+        ctx.font = '700 13px "Zen Maru Gothic", sans-serif';
+        ctx.fillStyle = color;
+        ctx.fillText(dist + ' px', midX + 14, midY - 10);
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(pt2.x - 18, pt2.y);
+        ctx.lineTo(pt2.x + 18, pt2.y);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(pt1.x, pt1.y);
+        ctx.lineTo(pt1.x, pt2.y);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const midY = (pt1.y + pt2.y) / 2;
+        const dist = Math.round(Math.abs(pt2.y - pt1.y));
+        ctx.font = '700 13px "Zen Maru Gothic", sans-serif';
+        ctx.fillStyle = color;
+        ctx.fillText(dist + ' px', pt1.x + 24, midY + 5);
+      }
     }
 
     // バーの中身をヒート表示に切り替え
@@ -5033,12 +5075,14 @@
         pt1 = { x, y };
         draw();
         redoBtn.style.display = 'flex';
-        showHintMode('2点目をタップ');
+        showHintMode(currentRulerTab === 'circle' ? '円周（端）をタップ' : '2点目をタップ');
         positionBar(x, y);
       } else if (!pt2) {
         pt2 = { x, y };
         draw();
-        const dist = Math.round(Math.abs(pt2.y - pt1.y));
+        const dist = (currentRulerTab === 'circle')
+          ? Math.round(Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y))
+          : Math.round(Math.abs(pt2.y - pt1.y));
         showResultMode(dist);
         positionBar(pt1.x, pt2.y, true);
       }
@@ -5050,7 +5094,11 @@
       ctx.clearRect(0, 0, cvs.width, cvs.height);
       redoBtn.style.display = 'none';
       resetBarToCenter();
-      showHintMode('編み図を拡大して1点目をタップ');
+      if (currentRulerTab === 'circle') {
+        showHintMode('編み図を拡大して中心をタップ');
+      } else {
+        showHintMode('編み図を拡大して1点目をタップ');
+      }
       overlay.style.display = 'block';
       overlay.style.pointerEvents = 'all';
     };
@@ -5068,12 +5116,12 @@
       if (pt2) {
         pt2 = null;
         draw();
-        showHintMode('2点目をタップ');
+        showHintMode(currentRulerTab === 'circle' ? '円周（端）をタップ' : '2点目をタップ');
         positionBar(pt1.x, pt1.y);
       } else {
         pt1 = null; pt2 = null;
         ctx.clearRect(0, 0, cvs.width, cvs.height);
-        showHintMode('1点目をタップ');
+        showHintMode(currentRulerTab === 'circle' ? '中心をタップ' : '1点目をタップ');
       }
     }
 
@@ -5085,18 +5133,30 @@
     applyBtn.addEventListener('click', e => {
       e.stopPropagation();
       if (!pt1 || !pt2) return;
-      const dist = Math.max(6, Math.round(Math.abs(pt2.y - pt1.y)));
-      rulerStep = dist;
-      rulerBaseStep = scale > 0 ? dist / scale : dist;
-      document.getElementById('ruler-step').value = dist;
-      document.getElementById('ruler-step-label').textContent = dist + ' px';
+      const rawDist = (currentRulerTab === 'circle')
+        ? Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y)
+        : Math.abs(pt2.y - pt1.y);
+      const dist = Math.max(6, Math.round(rawDist));
       document.getElementById('measure-float-btn').style.display = 'none';
-      // 段ガイドバーの表示を更新（ONにして高さを表示）
       const gpToggle = document.getElementById('gp-toggle-guide');
       const gpStep = document.getElementById('gp-step-label');
+      if (currentRulerTab === 'frame') {
+        frameStep = dist;
+        frameStepBase = dist;
+        saveFrameSettings();
+      } else if (currentRulerTab === 'circle') {
+        circleStep = dist;
+        circleStepBase = dist;
+        saveCircleSettings();
+      } else {
+        rulerStep = dist;
+        rulerBaseStep = scale > 0 ? dist / scale : dist;
+        rulerGuideOn = true;
+        saveSettings();
+      }
+      // 段ガイドバーの表示を更新（ONにして高さを表示）
       if (gpToggle) gpToggle.checked = true;
       if (gpStep) gpStep.textContent = '1段：' + dist + ' px';
-      saveSettings();
       stopMeasure();
     });
 
@@ -5109,6 +5169,8 @@
     overlay.addEventListener('click',     onTap);
     overlay.addEventListener('touchstart', onTap, { passive: false });
   })();
+
+
 
 </script>
 </body>
