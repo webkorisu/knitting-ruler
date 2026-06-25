@@ -123,8 +123,7 @@
       white-space: nowrap;
       z-index: 5;
     }
-    /* 画像読み込み後：中央の説明を消し、左下に控えめな1行を常時表示 */
-    #viewer.has-image #save-hint-center { display: none; }
+    /* 画像読み込み後：中央の説明はそのまま残し、左下にも控えめな1行を表示 */
     #viewer.has-image #save-hint-corner { display: block; }
     #placeholder .ph-tap {
       font-family: 'Cormorant Garamond', serif;
@@ -157,6 +156,17 @@
       transform: translateZ(0);
       -webkit-transform: translateZ(0);
       will-change: transform;
+    }
+    /* スマホ幅：「編み図エリアをタップでメニューを閉じられます」のヒントがパネルに隠れないよう下にずらす */
+    @media (max-width: 679px) {
+      #float-panel { top: 40px; }
+    }
+    /* 計測バー（編み図を拡大して1点目をタップ 等）の表示位置。
+       スマホ幅ではパネルを折りたたんだ高さ（top:40px + 約53px）より下に、余白を持たせて配置する */
+    :root { --measure-bar-top: 70px; }
+    .measure-bar-pos { top: var(--measure-bar-top); }
+    @media (max-width: 679px) {
+      :root { --measure-bar-top: 118px; }
     }
     #float-panel.dragging {
       box-shadow: 0 16px 48px rgba(0,0,0,0.28), 0 4px 12px rgba(0,0,0,0.15);
@@ -267,6 +277,11 @@
       max-height: calc(100vh - 80px);
       overflow-y: auto;
       overscroll-behavior: contain;
+    }
+    /* スマホ幅：パネルのtopを40pxに下げた分（+24px）に加え、
+       パネルを開いた直後に一時表示されるサブテキスト分（最大+36px）も確保しておく */
+    @media (max-width: 679px) {
+      #panel-body { max-height: calc(100vh - 140px); }
     }
 
     /* ファイル選択ボタン（パネル内） */
@@ -720,9 +735,11 @@
     #circle-canvas:active { cursor: grabbing; }
     #circle-canvas.dragging { opacity: 0.6; transition: opacity .1s; }
     #circle-canvas.rim { cursor: nwse-resize !important; }
-    #tri-canvas.dragging { opacity: 0; } /* canvasは透明なのでtri-visualで制御 */
-    #tri-visual.dragging { opacity: 0.6; transition: opacity .1s; }
-    #tri-canvas.rim { /* cursor is controlled by JS */ }
+    #circle-3d-layer.dragging { opacity: 0.6; transition: opacity .1s; }
+    #square-canvas { cursor: grab; }
+    #square-canvas:active { cursor: grabbing; }
+    #square-canvas.dragging { opacity: 0.6; transition: opacity .1s; }
+    #square-3d-layer.dragging { opacity: 0.6; transition: opacity .1s; }
     .frame-panel.dragging { opacity: 0.6; transition: opacity .15s; }
     #frame-3d-border.dragging { opacity: 0.6; transition: opacity .15s; }
     #frame-3d-border:hover { filter: brightness(1.06); transition: filter .2s; }
@@ -1022,6 +1039,15 @@
       box-shadow: 0 1px 1px rgba(0,0,0,0.10);
       transform: scale(.95);
     }
+    .measure-axis-btn {
+      background: transparent;
+      color: var(--text-sub);
+      transition: background .15s, color .15s;
+    }
+    .measure-axis-btn.active {
+      background: var(--primary);
+      color: var(--text);
+    }
     /* 下段：カウンター行 */
     #cp-counter-row {
       display: flex;
@@ -1218,8 +1244,53 @@
       flex-shrink: 0;
       -webkit-tap-highlight-color: transparent;
       line-height: 1;
+      position: relative;
     }
     .preset-del-btn:hover { opacity: 1; }
+    .preset-overwrite-item-btn {
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      font-size: 12px;
+      cursor: pointer;
+      padding: 0 3px;
+      opacity: 0.5;
+      transition: opacity .15s;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      line-height: 1;
+      position: relative;
+    }
+    .preset-overwrite-item-btn:hover { opacity: 1; }
+    /* PCでカーソルを近づけた時だけふわっと出る小さいラベル（スマホはhoverが無いので出ない） */
+    .preset-del-btn[data-tip]::after,
+    .preset-overwrite-item-btn[data-tip]::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%) translateY(2px);
+      background: var(--text);
+      color: #fff;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: .02em;
+      white-space: nowrap;
+      padding: 4px 9px;
+      border-radius: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .15s, transform .15s;
+      z-index: 20;
+    }
+    @media (hover: hover) {
+      .preset-del-btn[data-tip]:hover::after,
+      .preset-overwrite-item-btn[data-tip]:hover::after {
+        opacity: 0.92;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
     .preset-empty {
       font-size: 11px;
       color: var(--text-sub);
@@ -1428,6 +1499,8 @@
 <!-- ===== 定規オーバーレイ ===== -->
 <div id="ruler-overlay">
   <div id="ruler-handle">
+    <!-- 立体枠（Frame定規のframe-3d-borderと同じ仕組みでSVGを描画） -->
+    <div id="ruler-3d-border" style="position:absolute; inset:0; pointer-events:none; z-index:1;"></div>
     <div class="ruler-corner tl" data-corner="tl"></div>
     <div class="ruler-corner tr" data-corner="tr"></div>
     <div class="ruler-corner bl" data-corner="bl"></div>
@@ -1441,42 +1514,16 @@
 
 <!-- ===== 丸定規オーバーレイ ===== -->
 <div id="circle-overlay" style="position:fixed;inset:0;pointer-events:none;z-index:100;display:none;">
+  <!-- 見た目専用（SVG）。操作判定は下のcanvasが担当 -->
+  <div id="circle-3d-layer" style="position:absolute;top:0;left:0;pointer-events:none;"></div>
   <canvas id="circle-canvas" style="position:absolute;top:0;left:0;pointer-events:all;touch-action:none;cursor:grab;"></canvas>
 </div>
 
-<div id="tri-overlay" style="position:fixed;inset:0;pointer-events:none;z-index:100;display:none;">
-
-  <!-- tri-visual：プレス中の色薄化をこのラッパーで制御 -->
-  <div id="tri-visual" style="position:absolute;inset:0;pointer-events:none;">
-
-    <!-- ① フロストガラス本体（backdrop-filter＋clip-path） -->
-    <div id="tri-clip-wrap" style="position:absolute;inset:0;">
-      <div id="tri-frosted" style="position:absolute;inset:0;
-        backdrop-filter:blur(10px) saturate(1.1);
-        -webkit-backdrop-filter:blur(10px) saturate(1.1);"></div>
-    </div>
-
-    <!-- ② SVG：シャドウ・内側グロウ・外側ボーダー -->
-    <svg id="tri-svg" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;">
-      <defs>
-        <clipPath id="tri-inner-clip"><path id="tri-clip-path"/></clipPath>
-      </defs>
-      <!-- ドロップシャドウ -->
-      <path id="tri-drop-shadow"/>
-      <!-- 内側グロウ：クリップ内ストローク方式（確実に動作） -->
-      <g id="tri-glow-group" clip-path="url(#tri-inner-clip)">
-        <path id="tri-glow-path" fill="none" stroke-width="8"
-              style="filter:blur(4px);-webkit-filter:blur(4px);"/>
-      </g>
-      <!-- 外側ボーダー -->
-      <path id="tri-outer-border" fill="none"
-            stroke-linejoin="round" stroke-linecap="round"/>
-    </svg>
-
-  </div><!-- /tri-visual -->
-
-  <!-- ③ canvasはイベント担当のみ（描画なし・透明） -->
-  <canvas id="tri-canvas" style="position:absolute;top:0;left:0;pointer-events:all;touch-action:none;cursor:grab;"></canvas>
+<!-- ===== Square定規オーバーレイ ===== -->
+<div id="square-overlay" style="position:fixed;inset:0;pointer-events:none;z-index:100;display:none;">
+  <!-- 見た目専用（SVG）。操作判定は下のcanvasが担当 -->
+  <div id="square-3d-layer" style="position:absolute;top:0;left:0;pointer-events:none;"></div>
+  <canvas id="square-canvas" style="position:absolute;top:0;left:0;pointer-events:all;touch-action:none;cursor:grab;"></canvas>
 </div>
 
 <!-- ===== 段ガイド計測フロートバナー（未使用） ===== -->
@@ -1487,10 +1534,16 @@
   <canvas id="measure-canvas" style="position:absolute; inset:0; width:100%; height:100%;"></canvas>
 
   <!-- 計測バー：状況に応じて中身が切り替わる単一バー -->
-  <div id="measure-bar" style="position:absolute; left:50%; transform:translateX(-50%); top:70px; background:#fff; border:1.5px solid var(--border); border-radius:20px; padding:8px 10px 8px 16px; box-shadow:0 4px 16px rgba(0,0,0,0.12); font-family:'Zen Maru Gothic',sans-serif; pointer-events:all; width:max-content; max-width:calc(100vw - 24px); display:flex; align-items:center; gap:10px; flex-wrap:nowrap;">
+  <div id="measure-bar" class="measure-bar-pos" style="position:absolute; left:50%; transform:translateX(-50%); background:#fff; border:1.5px solid var(--border); border-radius:20px; padding:8px 10px 8px 16px; box-shadow:0 4px 16px rgba(0,0,0,0.12); font-family:'Zen Maru Gothic',sans-serif; pointer-events:all; width:max-content; max-width:calc(100vw - 24px); display:flex; align-items:center; gap:10px; flex-wrap:nowrap;">
 
     <!-- ヒント表示（タップ案内） -->
     <span id="measure-hint" style="font-size:12px; color:var(--text); white-space:nowrap; flex-shrink:0;">編み図を拡大して1点目をタップ</span>
+
+    <!-- Square定規専用：計測前に縦/横を選ぶトグル -->
+    <div id="measure-axis-toggle" style="display:none; align-items:center; gap:4px; flex-shrink:0; background:var(--bg); border-radius:14px; padding:3px;">
+      <button id="measure-axis-v" class="measure-axis-btn active" data-axis="v" style="border:none; border-radius:11px; padding:5px 10px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap;">↕ 縦</button>
+      <button id="measure-axis-h" class="measure-axis-btn" data-axis="h" style="border:none; border-radius:11px; padding:5px 10px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap;">↔ 横</button>
+    </div>
 
     <!-- 結果表示（計測完了後）：上段px数値・下段設定ボタンの2段 -->
     <div id="measure-result-col" style="display:none; flex-direction:column; align-items:center; gap:6px; flex-shrink:0;">
@@ -1572,7 +1625,7 @@
       <button class="ruler-tab active" id="tab-band"   onclick="switchRulerTab('band')"><span class="tab-main">Line<span class="tab-sub">定規</span></span></button>
       <button class="ruler-tab"        id="tab-frame"  onclick="switchRulerTab('frame')"><span class="tab-main">Frame<span class="tab-sub">定規</span></span></button>
       <button class="ruler-tab"        id="tab-circle" onclick="switchRulerTab('circle')"><span class="tab-main">Circle<span class="tab-sub">定規</span></span></button>
-      <button class="ruler-tab" id="tab-tri" onclick="switchRulerTab('tri')" style="display:none;">🔺 三角定規</button>
+      <button class="ruler-tab"        id="tab-square" onclick="switchRulerTab('square')"><span class="tab-main">Square<span class="tab-sub">定規</span></span></button>
     </div>
 
     <!-- 定規カスタマイズ -->
@@ -1813,47 +1866,83 @@
 
     </div>
 
-    <!-- 三角定規カード -->
-    <div class="ruler-card" id="tri-card" style="display:none;">
-      <div class="ruler-card-title">🔺 三角定規 TRIANGLE RULER</div>
-      <div class="ruler-control">
-        <label for="tri-size">一辺</label>
-        <input type="range" id="tri-size" min="50" max="800" value="150" step="10">
-        <span id="tri-size-label">150 px</span>
-      </div>
-      <div class="ruler-control">
-        <label for="tri-opacity">濃度</label>
-        <input type="range" id="tri-opacity" min="10" max="90" value="70" step="5">
-        <span id="tri-opacity-label">70%</span>
-      </div>
-      <div class="ruler-control">
-        <label>色</label>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
-          <button class="color-dot" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
-          <button class="color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
-          <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="ラベンダー"></button>
-          <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
-          <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
-          <button class="color-dot tri-dot active" data-color="#b2aaaa" style="background:#b2aaaa;" title="グレー"></button>
-          <input type="color" id="tri-color" value="#b2aaaa" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
-          <label for="tri-color" class="color-custom-label" title="カラーを選ぶ"></label>
+    <!-- Square定規カード -->
+    <div class="ruler-card" id="square-card" style="display:none;">
+
+      <!-- アコーディオン①カスタマイズ -->
+      <div class="card-accordion open" id="square-acc-custom">
+        <button class="card-accordion-btn" onclick="toggleCardAcc('square-acc-custom')">
+          <span>定規のカスタマイズ</span>
+          <span class="card-accordion-arrow">▼</span>
+        </button>
+        <div class="card-accordion-body" style="padding:12px 12px 10px; gap:14px;">
+          <div class="ruler-control">
+            <label>リサイズ</label>
+            <div>
+              <span class="ruler-op-desc">角をドラッグで正方形に拡大縮小</span>
+              <div class="ruler-op-pinch">🤏 辺の中央をドラッグで一辺だけ調整</div>
+            </div>
+          </div>
+          <div class="ruler-control ruler-color-row">
+            <label>色</label>
+            <div class="color-presets" id="square-color-presets">
+              <button class="color-dot" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
+              <button class="color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
+              <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="ラベンダー"></button>
+              <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
+              <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
+              <input type="color" id="square-color" value="#b2aaaa" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
+              <label for="square-color" class="color-custom-label" title="カラーを選ぶ"></label>
+            </div>
+          </div>
+          <div class="ruler-control">
+            <label for="square-opacity">濃度</label>
+            <input type="range" id="square-opacity" min="10" max="90" value="70" step="5" style="width:127px; flex:none;">
+            <span id="square-opacity-label">70%</span>
+          </div>
+          <div class="ruler-control">
+            <label>移動</label>
+            <span class="ruler-op-desc">長押し＆ドラッグ</span>
+          </div>
+          <button class="reset-default-btn" id="square-reset-btn" onclick="resetSquareDefault()">リセット</button>
         </div>
       </div>
-      <div class="ruler-control">
-        <label for="tri-rotation">回転</label>
-        <input type="range" id="tri-rotation" min="0" max="355" value="0" step="5">
-        <span id="tri-rotation-label">0°</span>
-      </div>
-      <button class="reset-default-btn" id="tri-reset-btn" onclick="resetTriDefault()">リセット</button>
-      <!-- プリセット -->
-      <div class="preset-section" id="tri-preset-section">
-        <div class="preset-title">💾 お気に入り三角定規</div>
-        <div class="preset-save-row">
-          <input type="text" id="tri-preset-name" class="preset-name-input" placeholder="名前をつけて保存…" maxlength="10">
-          <button class="preset-save-btn" onclick="saveTriPreset()">保存</button>
+
+      <!-- アコーディオン②お気に入り -->
+      <div class="card-accordion open" id="square-acc-preset">
+        <button class="card-accordion-btn" onclick="toggleCardAcc('square-acc-preset')">
+          <span>お気に入り定規　<span id="square-preset-count">0</span>/5</span>
+          <span class="card-accordion-arrow">▼</span>
+        </button>
+        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
+          <div class="preset-save-row">
+            <input type="text" id="square-preset-name" class="preset-name-input" placeholder="名前をつけて保存…" maxlength="10">
+            <button class="preset-save-btn" onclick="saveSquarePreset()">保存</button>
+          </div>
+          <div id="square-preset-list" class="preset-list"></div>
         </div>
-        <div id="tri-preset-list" class="preset-list"></div>
       </div>
+
+      <!-- アコーディオン③段数カウンター -->
+      <div class="card-accordion open" id="square-acc-counter">
+        <button class="card-accordion-btn" onclick="toggleCardAcc('square-acc-counter')">
+          <span>段数カウンター</span>
+          <span class="card-accordion-arrow">▼</span>
+        </button>
+        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="toggle-label" style="width:5.5em;">カウンター</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-square-counter" checked>
+              <span class="toggle-knob"></span>
+            </label>
+          </div>
+          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">編み図エリアに表示される「カウンター」では、段数を数えながら<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">正方形を1段ずつ自動で広げ縮めできます</span>（<strong style="font-weight:700; color:var(--text);">段ガイド機能</strong>）。段ガイド機能のON/OFFや1段の幅の計測もここから行えます。</p>
+        </div>
+      </div>
+      <input type="hidden" id="square-step" value="20">
+      <span id="square-step-label" style="display:none;">20 px</span>
+
     </div>
     </div><!-- /定規タブ＋カードラッパー -->
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
@@ -2024,7 +2113,6 @@
       const image = new Image();
       image.onload = () => {
         img = image;
-        placeholder.style.display = 'none';
         canvas.style.display = 'block';
         viewer.classList.add('has-image');
         fitImage();
@@ -2090,12 +2178,62 @@
     const b = parseInt(hex.slice(5,7),16);
     const fa = rulerAlpha;
     const la = Math.min(1, rulerAlpha * 1.6);
-    const ta = rulerAlpha * 0.55;
-    rulerHandle.style.background = `rgba(${r},${g},${b},${fa})`;
-    rulerHandle.style.border = `1.5px solid rgba(${r},${g},${b},${la})`;
+
+    // 実際の表示サイズ（pxベース）。applyRulerPos()で設定済みのDOM実測値を使う
+    const ow = rulerHandle.offsetWidth  || (rulerWidth / 100) * window.innerWidth;
+    const oh = rulerHandle.offsetHeight || rulerHeight;
+    const rad = 10;
+
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow}" height="${oh}">
+      <defs>
+        <linearGradient id="rlg_t" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </linearGradient>
+        <linearGradient id="rlg_b" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </linearGradient>
+        <linearGradient id="rlg_l" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </linearGradient>
+        <linearGradient id="rlg_r" x1="1" y1="0" x2="0" y2="0">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </linearGradient>
+        <filter id="rdrop" x="-5%" y="-5%" width="115%" height="120%">
+          <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(${r},${g},${b},0.25)"/>
+        </filter>
+      </defs>
+      <!-- 本体 -->
+      <rect x="0" y="0" width="${ow}" height="${oh}" rx="${rad}" ry="${rad}"
+        fill="rgba(${r},${g},${b},${fa})" filter="url(#rdrop)"/>
+      <!-- 上ハイライト -->
+      <path fill="url(#rlg_t)"
+        d="M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${Math.min(12,oh/3)} H0 V${rad} Q0,0 ${rad},0 Z"/>
+      <!-- 下ハイライト -->
+      <path fill="url(#rlg_b)"
+        d="M0,${oh-Math.min(12,oh/3)} H${ow} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
+      <!-- 左ハイライト -->
+      <path fill="url(#rlg_l)"
+        d="M0,${rad} Q0,0 ${rad},0 H${Math.min(12,ow/3)} V${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
+      <!-- 右ハイライト -->
+      <path fill="url(#rlg_r)"
+        d="M${ow-Math.min(12,ow/3)},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${ow-Math.min(12,ow/3)} Z"/>
+    </svg>`;
+
+    const border = document.getElementById('ruler-3d-border');
+    border.style.borderRadius = `${rad}px`;
+    border.style.border       = `1.5px solid rgba(${r},${g},${b},${la})`;
+    border.style.overflow     = 'hidden';
+    border.innerHTML = svg;
+
+    rulerHandle.style.background = 'transparent';
+    rulerHandle.style.border = 'none';
     rulerHandle.style.backgroundImage = 'none';
     rulerHandle.style.borderRadius = '10px';
-    rulerHandle.style.boxShadow = `inset 0 8px 10px rgba(255,255,255,0.18), inset 0 -8px 10px rgba(255,255,255,0.18), inset 8px 0 10px rgba(255,255,255,0.18), inset -8px 0 10px rgba(255,255,255,0.18), 0 2px 12px rgba(${r},${g},${b},0.25)`;
+    rulerHandle.style.boxShadow = 'none';
     rulerHandle.classList.add('ruler-3d');
   }
 
@@ -2146,26 +2284,35 @@
 
   // タブ切替時や設定読込時に、段ガイド行（トグル・ラベル・計測ボタン）の表示をそのタブの状態に同期する
   function syncGuideRowUI(tab) {
-    let isOn, baseStep, effStep;
+    let isOn, baseStep, effStep, scaledBase;
     if (tab === 'frame') {
       isOn = frameStep > 0;
       baseStep = frameStepBase;
       effStep = frameStep;
+      scaledBase = baseStep > 0 ? Math.max(1, Math.round(baseStep * scale)) : 0;
     } else if (tab === 'circle') {
       isOn = circleStep > 0;
       baseStep = circleStepBase;
       effStep = circleStep;
+      scaledBase = baseStep > 0 ? Math.max(1, Math.round(baseStep * scale)) : 0;
+    } else if (tab === 'square') {
+      isOn = squareStep > 0;
+      baseStep = squareStepBase;
+      effStep = squareStep;
+      scaledBase = baseStep > 0 ? Math.max(1, Math.round(baseStep * scale)) : 0;
     } else {
       isOn = rulerGuideOn;
       baseStep = rulerBaseStep;
       effStep = rulerStep;
+      scaledBase = baseStep > 0 ? Math.max(1, Math.round(baseStep * scale)) : 0;
     }
     gpToggleGuide.checked = isOn;
     gpStepLabel.style.opacity = isOn ? '1' : '0';
     gpMeasureBtn.style.opacity = isOn ? '1' : '0';
     gpMeasureBtn.style.pointerEvents = isOn ? 'auto' : 'none';
     if (baseStep > 0) {
-      gpStepLabel.textContent = '1段：' + (isOn ? effStep : baseStep) + ' px';
+      // ONなら現在有効なステップ、OFFでも常に現在のズーム倍率に合わせた値を表示する
+      gpStepLabel.textContent = '1段：' + (isOn ? effStep : scaledBase) + ' px';
     } else {
       gpStepLabel.textContent = '未計測';
     }
@@ -2179,7 +2326,7 @@
     if (currentRulerTab === 'frame') {
       if (isOn) {
         if (frameStepBase > 0) {
-          frameStep = frameStepBase;
+          frameStep = Math.max(1, Math.round(frameStepBase * scale));
           gpStepLabel.textContent = '1段：' + frameStep + ' px';
         } else {
           frameStep = 0;
@@ -2192,7 +2339,7 @@
     } else if (currentRulerTab === 'circle') {
       if (isOn) {
         if (circleStepBase > 0) {
-          circleStep = circleStepBase;
+          circleStep = Math.max(1, Math.round(circleStepBase * scale));
           gpStepLabel.textContent = '1段：' + circleStep + ' px';
         } else {
           circleStep = 0;
@@ -2202,6 +2349,19 @@
         circleStep = 0;
       }
       saveCircleSettings();
+    } else if (currentRulerTab === 'square') {
+      if (isOn) {
+        if (squareStepBase > 0) {
+          squareStep = Math.max(1, Math.round(squareStepBase * scale));
+          gpStepLabel.textContent = '1段：' + squareStep + ' px';
+        } else {
+          squareStep = 0;
+          gpStepLabel.textContent = '未計測';
+        }
+      } else {
+        squareStep = 0;
+      }
+      saveSquareSettings();
     } else {
       // 既に計測済みの実寸があればそれを使う。なければ未計測のまま（ステップ移動はしない）
       rulerGuideOn = isOn;
@@ -2257,6 +2417,34 @@
       }
       cpNum.textContent = circleCount;
       saveCircleSettings();
+    } else if (currentRulerTab === 'square') {
+      squareCount++;
+      if (squareStep > 0) {
+        // 画面の壁（中心位置基準）に収まる最大の半幅・半高
+        const margin = 5;
+        const wallHalfW = Math.min(sqX, window.innerWidth  - sqX) - margin;
+        const wallHalfH = Math.min(sqY, window.innerHeight - sqY) - margin;
+        let newW, newH;
+        if (sqHalfW <= sqHalfH) {
+          // 横が短いか同じ：横を基準に+stepし、縦は比率を保って追従
+          const ratio = sqHalfH / sqHalfW;
+          newW = sqHalfW + squareStep;
+          newH = newW * ratio;
+        } else {
+          // 縦が短い：縦を基準に+stepし、横は比率を保って追従
+          const ratio = sqHalfW / sqHalfH;
+          newH = sqHalfH + squareStep;
+          newW = newH * ratio;
+        }
+        // 比率を保ったまま画面の壁に収まる場合だけ実際に拡大する（収まらなければ見た目はそのまま、カウントだけ進む）
+        if (newW <= wallHalfW && newH <= wallHalfH) {
+          sqHalfW = newW;
+          sqHalfH = newH;
+          applySquare();
+        }
+      }
+      cpNum.textContent = squareCount;
+      saveSquareSettings();
     } else if (currentRulerTab === 'frame') {
       frameCount++;
       if (frameStep > 0 && fWin.h - frameStep >= 20) {
@@ -2288,6 +2476,29 @@
         }
         cpNum.textContent = circleCount;
         saveCircleSettings();
+      }
+    } else if (currentRulerTab === 'square') {
+      if (squareCount > 0) {
+        squareCount--;
+        if (squareStep > 0) {
+          const MIN_HALF = 25;
+          if (sqHalfW <= sqHalfH) {
+            // 横が短いか同じ：横を基準に-stepし、縦は比率を保って追従
+            const ratio = sqHalfH / sqHalfW;
+            const newW = Math.max(MIN_HALF, sqHalfW - squareStep);
+            sqHalfW = newW;
+            sqHalfH = Math.max(MIN_HALF, newW * ratio);
+          } else {
+            // 縦が短い：縦を基準に-stepし、横は比率を保って追従
+            const ratio = sqHalfW / sqHalfH;
+            const newH = Math.max(MIN_HALF, sqHalfH - squareStep);
+            sqHalfH = newH;
+            sqHalfW = Math.max(MIN_HALF, newH * ratio);
+          }
+          applySquare();
+        }
+        cpNum.textContent = squareCount;
+        saveSquareSettings();
       }
     } else if (currentRulerTab === 'frame') {
       if (frameCount > 0) {
@@ -2632,14 +2843,17 @@
 
   /* ========== パン（マウス） ========== */
   let panning = false, panStartX = 0, panStartY = 0, panOffsetX = 0, panOffsetY = 0;
-  viewer.addEventListener('mousedown', e => {
+  function viewerMouseDown(e) {
     if (!img) return;
     // パネル上のマウス操作は無視
     if (e.target.closest('#float-panel')) return;
     panning = true;
     panStartX = e.clientX; panStartY = e.clientY;
     panOffsetX = offsetX;  panOffsetY = offsetY;
-    e.preventDefault();
+  }
+  viewer.addEventListener('mousedown', e => {
+    viewerMouseDown(e);
+    if (panning) e.preventDefault();
   });
   window.addEventListener('mousemove', e => {
     if (!panning) return;
@@ -2650,7 +2864,7 @@
   window.addEventListener('mouseup', () => { panning = false; });
 
   /* ========== ホイールズーム（感度調整） ========== */
-  viewer.addEventListener('wheel', e => {
+  function viewerWheel(e) {
     if (!img) return;
     e.preventDefault();
     const rect = viewer.getBoundingClientRect();
@@ -2666,7 +2880,8 @@
     const factor = Math.exp(-clamped * sensitivity);
 
     zoomAt(e.clientX - rect.left, e.clientY - rect.top, factor);
-  }, { passive: false });
+  }
+  viewer.addEventListener('wheel', viewerWheel, { passive: false });
 
   function zoomAt(cx, cy, factor) {
     const ns = Math.min(maxScale, Math.max(minScale, scale * factor));
@@ -2674,16 +2889,47 @@
     offsetX = cx - ratio * (cx - offsetX);
     offsetY = cy - ratio * (cy - offsetY);
     scale = ns;
-    // ステップをscaleに合わせて補正
-    if (rulerBaseStep > 0) {
-      rulerStep = Math.max(1, Math.round(rulerBaseStep * scale));
+    // ステップをscaleに合わせて補正（Line/Frame/Circle定規共通。編み図の拡大縮小に1段の高さを追従させる）
+    if (currentRulerTab === 'band' && rulerBaseStep > 0) {
+      const scaledStep = Math.max(1, Math.round(rulerBaseStep * scale));
       const stepEl = document.getElementById('ruler-step');
       const stepLabelEl = document.getElementById('ruler-step-label');
       const gpStep = document.getElementById('gp-step-label');
-      if (stepEl) stepEl.value = rulerStep;
-      if (stepLabelEl) stepLabelEl.textContent = rulerStep + ' px';
-      if (gpStep && rulerGuideOn && currentRulerTab === 'band') {
-        gpStep.textContent = '1段：' + rulerStep + ' px';
+      if (rulerGuideOn) {
+        rulerStep = scaledStep;
+        if (stepEl) stepEl.value = rulerStep;
+        if (stepLabelEl) stepLabelEl.textContent = rulerStep + ' px';
+        if (gpStep) gpStep.textContent = '1段：' + rulerStep + ' px';
+      } else if (gpStep) {
+        // OFF中もカウンター表示は現在のズームに合わせた値を見せる（実際のステップ移動には使わない）
+        gpStep.textContent = '1段：' + scaledStep + ' px';
+      }
+    } else if (currentRulerTab === 'frame' && frameStepBase > 0) {
+      const scaledStep = Math.max(1, Math.round(frameStepBase * scale));
+      const gpStep = document.getElementById('gp-step-label');
+      if (frameStep > 0) {
+        frameStep = scaledStep;
+        if (gpStep) gpStep.textContent = '1段：' + frameStep + ' px';
+      } else if (gpStep) {
+        gpStep.textContent = '1段：' + scaledStep + ' px';
+      }
+    } else if (currentRulerTab === 'circle' && circleStepBase > 0) {
+      const scaledStep = Math.max(1, Math.round(circleStepBase * scale));
+      const gpStep = document.getElementById('gp-step-label');
+      if (circleStep > 0) {
+        circleStep = scaledStep;
+        if (gpStep) gpStep.textContent = '1段：' + circleStep + ' px';
+      } else if (gpStep) {
+        gpStep.textContent = '1段：' + scaledStep + ' px';
+      }
+    } else if (currentRulerTab === 'square' && squareStepBase > 0) {
+      const scaledStep = Math.max(1, Math.round(squareStepBase * scale));
+      const gpStep = document.getElementById('gp-step-label');
+      if (squareStep > 0) {
+        squareStep = scaledStep;
+        if (gpStep) gpStep.textContent = '1段：' + squareStep + ' px';
+      } else if (gpStep) {
+        gpStep.textContent = '1段：' + scaledStep + ' px';
       }
     }
     updateZoomLabel();
@@ -2692,19 +2938,20 @@
 
   /* ========== タッチ：パン＋ピンチ（感度調整） ========== */
   let touches = [], lastPinchDist = 0, lastTouchX = 0, lastTouchY = 0;
-  viewer.addEventListener('touchstart', e => {
+
+  // 編み図のパン・ピンチ処理本体。Circle定規の円の外側タッチからも呼ばれる（共通化）。
+  function viewerTouchStart(e) {
     if (!img) return;
     if (e.target.closest('#float-panel') || e.target.closest('#ruler-handle')) return;
-    if (e.target.closest('#frame-win-wrap') || e.target.closest('#circle-wrap')) return;
+    if (e.target.closest('#frame-win-wrap')) return;
     touches = Array.from(e.touches);
     if (touches.length === 1) { lastTouchX = touches[0].clientX; lastTouchY = touches[0].clientY; }
     else if (touches.length === 2) { lastPinchDist = pinchDist(touches); }
-    e.preventDefault();
-  }, { passive: false });
-  viewer.addEventListener('touchmove', e => {
+  }
+  function viewerTouchMove(e) {
     if (!img) return;
     if (e.target.closest('#float-panel') || e.target.closest('#ruler-handle')) return;
-    if (e.target.closest('#frame-win-wrap') || e.target.closest('#circle-wrap')) return;
+    if (e.target.closest('#frame-win-wrap')) return;
     const now = Array.from(e.touches);
     if (now.length === 1 && touches.length === 1) {
       offsetX += now[0].clientX - lastTouchX;
@@ -2725,11 +2972,22 @@
       lastPinchDist = d;
     }
     touches = now;
+  }
+  function viewerTouchEnd(e) {
+    touches = Array.from(e.touches);
+    if (touches.length < 2) lastPinchDist = 0;
+  }
+
+  viewer.addEventListener('touchstart', e => {
+    viewerTouchStart(e);
+    e.preventDefault();
+  }, { passive: false });
+  viewer.addEventListener('touchmove', e => {
+    viewerTouchMove(e);
     e.preventDefault();
   }, { passive: false });
   viewer.addEventListener('touchend', e => {
-    touches = Array.from(e.touches);
-    if (touches.length < 2) lastPinchDist = 0;
+    viewerTouchEnd(e);
   }, { passive: false });
   function pinchDist(ts) {
     const dx = ts[0].clientX - ts[1].clientX, dy = ts[0].clientY - ts[1].clientY;
@@ -2766,6 +3024,12 @@
       cX = Math.max(cR, Math.min(window.innerWidth  - cR, cX));
       cY = Math.max(cR, Math.min(window.innerHeight - cR, cY));
       resizeCircleCanvas();
+    }
+    // Square定規：位置だけ画面内に収まるようクランプ（サイズは変えない）
+    if (typeof applySquare === 'function') {
+      sqX = Math.max(sqHalfW, Math.min(window.innerWidth  - sqHalfW, sqX));
+      sqY = Math.max(sqHalfH, Math.min(window.innerHeight - sqHalfH, sqY));
+      resizeSquareCanvas();
     }
     // パネルが画面外に出ないようにクランプ
     clampPanel();
@@ -2898,8 +3162,8 @@
       item.innerHTML = `
         <div class="preset-swatch" style="background:${p.color};opacity:${Math.min(1, p.alpha + 0.3)};border:1.5px solid ${p.color}"></div>
         <span class="preset-item-name">${p.name}</span>
-
-        <button class="preset-del-btn" data-i="${i}" title="削除" style="margin-left:auto">✕</button>
+        <button class="preset-overwrite-item-btn" data-i="${i}" data-tip="上書き" style="margin-left:auto">✎</button>
+        <button class="preset-del-btn" data-i="${i}" data-tip="削除">✕</button>
       `;
 
       // 名前ダブルタップで編集
@@ -2974,6 +3238,22 @@
         } else {
           doSwitch();
         }
+      });
+      item.querySelector('.preset-overwrite-item-btn').addEventListener('click', e => {
+        e.stopPropagation();
+        if (activePresetIndex !== i) {
+          // 選んでいない項目 → まずその項目に切り替えるだけ（値はそのプリセットのものになるので保存は不要）
+          applyPreset(p, i);
+          return;
+        }
+        // 選択中の項目 → 今の設定で上書き保存
+        showModal(`「${p.name}」を今の設定で上書き保存しますか？`, '上書き保存', () => {
+          const ps = loadPresets();
+          ps[i] = { name: p.name, ...currentRulerSnapshot() };
+          savePresets(ps);
+          activePresetSnapshot = { ...currentRulerSnapshot() };
+          renderPresets();
+        });
       });
       item.querySelector('.preset-del-btn').addEventListener('click', e => {
         e.stopPropagation();
@@ -3087,9 +3367,20 @@
     floatPanel.style.bottom = 'auto';
   }
 
+  // 画面外に出ている場合だけ位置を補正する。収まっている場合はCSS側の初期位置
+  // （メディアクエリ含む）に任せ、インラインスタイルを書き込まない。
+  // （高さが変わるだけのケース＝パネル折りたたみ等で不要にクランプされるのを防ぐ）
   function clampPanel() {
     const pos = getPanelPos();
-    setPanelPos(pos.x, pos.y);
+    const pw = floatPanel.offsetWidth;
+    const ph = floatPanel.offsetHeight;
+    const maxX = window.innerWidth  - pw;
+    const maxY = window.innerHeight - ph;
+    const cx = Math.max(0, Math.min(maxX, pos.x));
+    const cy = Math.max(0, Math.min(maxY, pos.y));
+    if (cx !== pos.x || cy !== pos.y) {
+      setPanelPos(cx, cy);
+    }
   }
 
   // Pointer Events でパネルドラッグ（マウス・タッチ両対応）
@@ -3160,7 +3451,6 @@
     if (e.target.closest('#zoom-panel')) return;
     if (e.target.closest('#ruler-handle')) return;
     if (e.target.closest('#frame-win-wrap')) return;
-    if (e.target.closest('#circle-wrap')) return;
     if (!floatPanel.classList.contains('collapsed')) {
       togglePanel(true);
     }
@@ -3179,17 +3469,76 @@
   /* ========== 定規タブ切り替え ========== */
   let currentRulerTab = 'band'; // 'band' | 'frame'
 
+  // タブごとに独立した編み図（画像・拡大縮小・位置・ファイル名）を保持する
+  function makeEmptyChartState() {
+    return { img: null, scale: 1.0, offsetX: 0, offsetY: 0, filename: 'ファイルを選んでください' };
+  }
+  const chartTabStates = {
+    band:   makeEmptyChartState(),
+    frame:  makeEmptyChartState(),
+    circle: makeEmptyChartState(),
+    square: makeEmptyChartState(),
+  };
+
+  // 現在の img/scale/offsetX/offsetY をそのタブの保存領域へ書き戻す
+  function saveChartStateForTab(tab) {
+    if (!chartTabStates[tab]) return;
+    chartTabStates[tab].img = img;
+    chartTabStates[tab].scale = scale;
+    chartTabStates[tab].offsetX = offsetX;
+    chartTabStates[tab].offsetY = offsetY;
+    chartTabStates[tab].filename = filenameLabel.textContent;
+  }
+
+  // 保存領域から img/scale/offsetX/offsetY を読み出して反映し、表示を更新する
+  function loadChartStateForTab(tab) {
+    const s = chartTabStates[tab] || makeEmptyChartState();
+    img = s.img;
+    scale = s.scale;
+    offsetX = s.offsetX;
+    offsetY = s.offsetY;
+    filenameLabel.textContent = s.filename;
+    if (img) {
+      canvas.style.display = 'block';
+      viewer.classList.add('has-image');
+    } else {
+      canvas.style.display = 'none';
+      viewer.classList.remove('has-image');
+    }
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    // Line/Frame/Circle定規：このタブ自身のscaleに合わせて段ガイドのステップを再計算する
+    if (tab === 'band' && rulerBaseStep > 0) {
+      rulerStep = Math.max(1, Math.round(rulerBaseStep * scale));
+      const stepEl = document.getElementById('ruler-step');
+      const stepLabelEl = document.getElementById('ruler-step-label');
+      if (stepEl) stepEl.value = rulerStep;
+      if (stepLabelEl) stepLabelEl.textContent = rulerStep + ' px';
+    } else if (tab === 'frame' && frameStepBase > 0 && frameStep > 0) {
+      frameStep = Math.max(1, Math.round(frameStepBase * scale));
+    } else if (tab === 'circle' && circleStepBase > 0 && circleStep > 0) {
+      circleStep = Math.max(1, Math.round(circleStepBase * scale));
+    } else if (tab === 'square' && squareStepBase > 0 && squareStep > 0) {
+      squareStep = Math.max(1, Math.round(squareStepBase * scale));
+    }
+    drawImage();
+    updateZoomLabel();
+  }
+
   window.switchRulerTab = function(tab) {
+    if (currentRulerTab !== tab) {
+      saveChartStateForTab(currentRulerTab);
+      loadChartStateForTab(tab);
+    }
     currentRulerTab = tab;
     document.getElementById('tab-band').classList.toggle('active',   tab === 'band');
     document.getElementById('tab-frame').classList.toggle('active',  tab === 'frame');
     document.getElementById('tab-circle').classList.toggle('active', tab === 'circle');
-    document.getElementById('tab-tri').classList.toggle('active',    tab === 'tri');
+    document.getElementById('tab-square').classList.toggle('active', tab === 'square');
     document.getElementById('ruler-card').style.display    = tab === 'band'   ? '' : 'none';
     document.getElementById('frame-card').style.display    = tab === 'frame'  ? '' : 'none';
     document.getElementById('circle-card').style.display   = tab === 'circle' ? '' : 'none';
-    document.getElementById('tri-card').style.display      = tab === 'tri'    ? '' : 'none';
-    document.querySelector('.preset-section').style.display = tab === 'band'  ? '' : 'none';
+    document.getElementById('square-card').style.display   = tab === 'square' ? '' : 'none';
     // カウンターエリアをタブに合わせて切り替え
     const counterWrap = document.getElementById('counter-panel');
     if (tab === 'band') {
@@ -3204,6 +3553,10 @@
       counterWrap.style.display = showFrameCounter ? 'flex' : 'none';
       cpGuideRow.style.display = showFrameCounter ? 'flex' : 'none';
       cpNum.textContent = frameCount;
+    } else if (tab === 'square') {
+      counterWrap.style.display = showSquareCounter ? 'flex' : 'none';
+      cpGuideRow.style.display = showSquareCounter ? 'flex' : 'none';
+      cpNum.textContent = squareCount;
     } else {
       counterWrap.style.display = 'none';
       cpGuideRow.style.display = 'none';
@@ -3213,7 +3566,7 @@
       rulerOverlay.style.display  = 'block';
       frameOverlay.style.display  = 'none';
       circleOverlay.style.display = 'none';
-      triOverlay.style.display    = 'none';
+      squareOverlay.style.display = 'none';
       if (!rulerTop) rulerTop = Math.round(window.innerHeight * 0.75);
       applyRulerPos();
       applyRulerStyle();
@@ -3221,21 +3574,21 @@
       rulerOverlay.style.display  = 'none';
       frameOverlay.style.display  = 'block';
       circleOverlay.style.display = 'none';
-      triOverlay.style.display    = 'none';
+      squareOverlay.style.display = 'none';
       applyFrameOuterPos();
       applyFrameStyle();
     } else if (tab === 'circle') {
       rulerOverlay.style.display  = 'none';
       frameOverlay.style.display  = 'none';
       circleOverlay.style.display = 'block';
-      triOverlay.style.display    = 'none';
+      squareOverlay.style.display = 'none';
       applyCircle();
     } else {
       rulerOverlay.style.display  = 'none';
       frameOverlay.style.display  = 'none';
       circleOverlay.style.display = 'none';
-      triOverlay.style.display    = 'block';
-      applyTri();
+      squareOverlay.style.display = 'block';
+      applySquare();
     }
   };
 
@@ -3519,6 +3872,7 @@
   const MAX_FRAME_PRESETS = 5;
   let framePresets = [];
   let activeFramePresetIdx = -1;
+  let activeFramePresetSnapshot = null; // 選択時の設定スナップショット（変更検知用）
 
   function loadFramePresets() {
     try { framePresets = JSON.parse(localStorage.getItem(FRAME_PRESET_KEY)) || []; } catch(e) { framePresets = []; }
@@ -3537,6 +3891,18 @@
       winW:   Math.round(fWin.w),
       winH:   Math.round(fWin.h)
     };
+  }
+  // 現在の設定がアクティブプリセットから変更されているか
+  function isFramePresetDirty() {
+    if (activeFramePresetIdx === -1 || !activeFramePresetSnapshot) return false;
+    const s = activeFramePresetSnapshot;
+    return (
+      fColor !== s.fColor ||
+      fAlpha !== s.fAlpha ||
+      fWin.w !== s.fWin.w || fWin.h !== s.fWin.h ||
+      fOuter.left !== s.fOuter.left || fOuter.right !== s.fOuter.right ||
+      fOuter.top  !== s.fOuter.top  || fOuter.bottom !== s.fOuter.bottom
+    );
   }
   window.saveFramePreset = function() {
     const nameInput = document.getElementById('frame-preset-name');
@@ -3564,6 +3930,20 @@
       renderFramePresets();
     }
   };
+  function applyFramePreset(p, idx) {
+    fColor = p.fColor; fAlpha = p.fAlpha;
+    if (p.fWin)   fWin   = { ...p.fWin };
+    if (p.fOuter) fOuter = { ...p.fOuter };
+    document.getElementById('frame-opacity').value = Math.round(fAlpha * 100);
+    document.getElementById('frame-opacity-label').textContent = Math.round(fAlpha * 100) + '%';
+    frameColorInput.value = fColor;
+    document.querySelectorAll('.frame-color-dot').forEach(d =>
+      d.classList.toggle('active', d.dataset.color === fColor));
+    applyFrameOuterPos(); applyFrameStyle(); saveFrameSettings();
+    activeFramePresetIdx = idx;
+    activeFramePresetSnapshot = { ...currentFrameSnapshot() };
+    renderFramePresets();
+  }
   function renderFramePresets() {
     const list = document.getElementById('frame-preset-list');
     if (!list) return;
@@ -3594,21 +3974,41 @@
           <div class="preset-item-name">${p.name}</div>
 
         </div>
-        <button class="preset-del-btn" data-i="${i}" title="削除" style="margin-left:4px">✕</button>
+        <button class="preset-overwrite-item-btn" data-i="${i}" data-tip="上書き">✎</button>
+        <button class="preset-del-btn" data-i="${i}" data-tip="削除" style="margin-left:4px">✕</button>
       `;
       item.addEventListener('click', e => {
-        if (e.target.closest('.preset-del-btn')) return;
-        fColor = p.fColor; fAlpha = p.fAlpha;
-        if (p.fWin)   fWin   = { ...p.fWin };
-        if (p.fOuter) fOuter = { ...p.fOuter };
-        document.getElementById('frame-opacity').value = Math.round(fAlpha * 100);
-        document.getElementById('frame-opacity-label').textContent = Math.round(fAlpha * 100) + '%';
-        frameColorInput.value = fColor;
-        document.querySelectorAll('.frame-color-dot').forEach(d =>
-          d.classList.toggle('active', d.dataset.color === fColor));
-        applyFrameOuterPos(); applyFrameStyle(); saveFrameSettings();
-        activeFramePresetIdx = i;
-        renderFramePresets();
+        if (e.target.closest('.preset-del-btn') || e.target.closest('.preset-overwrite-item-btn')) return;
+        const doSwitch = () => applyFramePreset(p, i);
+        if (isFramePresetDirty()) {
+          const ps = framePresets;
+          showModal(
+            `「${ps[activeFramePresetIdx].name}」を上書き保存しますか？`,
+            '上書き保存',
+            () => {
+              ps[activeFramePresetIdx] = { name: ps[activeFramePresetIdx].name, ...currentFrameSnapshot() };
+              saveFramePresets();
+              doSwitch();
+            }
+          );
+          modalCancel.onclick = () => { closeModal(); doSwitch(); };
+        } else {
+          doSwitch();
+        }
+      });
+      item.querySelector('.preset-overwrite-item-btn').addEventListener('click', e => {
+        e.stopPropagation();
+        if (activeFramePresetIdx !== i) {
+          // 選んでいない項目 → まずその項目に切り替えるだけ
+          applyFramePreset(p, i);
+          return;
+        }
+        showModal(`「${p.name}」を今の設定で上書き保存しますか？`, '上書き保存', () => {
+          framePresets[i] = { name: p.name, ...currentFrameSnapshot() };
+          saveFramePresets();
+          activeFramePresetSnapshot = { ...currentFrameSnapshot() };
+          renderFramePresets();
+        });
       });
       item.querySelector('.preset-del-btn').addEventListener('click', e => {
         e.stopPropagation();
@@ -4009,6 +4409,12 @@
   const circleOverlay  = document.getElementById('circle-overlay');
   const circleCanvas   = document.getElementById('circle-canvas');
   const circleCtx      = circleCanvas.getContext('2d');
+  const circle3dLayer  = document.getElementById('circle-3d-layer');
+  // canvas（操作判定）とSVGレイヤー（見た目）の両方にdraggingクラスを同期させる
+  function setCircleDragging(on) {
+    circleCanvas.classList.toggle('dragging', on);
+    circle3dLayer.classList.toggle('dragging', on);
+  }
   const CIRCLE_KEY     = 'yucchi_ruler_circle';
 
   let cX = 0, cY = 0;         // 中心座標
@@ -4034,41 +4440,43 @@
   }
 
   function applyCircle() {
+    // 操作判定用canvasは常に画面全体のサイズを保つ（クリック判定のため透明なまま）
     const w = circleCanvas.width, h = circleCanvas.height;
     circleCtx.clearRect(0, 0, w, h);
+
     const hex = cColor;
     const r = parseInt(hex.slice(1,3),16);
     const g = parseInt(hex.slice(3,5),16);
     const b = parseInt(hex.slice(5,7),16);
     const la = Math.min(1, cAlpha * 1.6);
 
-    // ベース塗り（均一色）
-    circleCtx.save();
-    circleCtx.shadowColor   = `rgba(${r},${g},${b},0.25)`;
-    circleCtx.shadowBlur    = 12;
-    circleCtx.shadowOffsetY = 2;
-    circleCtx.beginPath();
-    circleCtx.arc(cX, cY, cR, 0, Math.PI * 2);
-    circleCtx.fillStyle = `rgba(${r},${g},${b},${cAlpha})`;
-    circleCtx.fill();
-    circleCtx.restore();
+    // 見た目専用レイヤー：円がちょうど収まる正方形のSVGをその位置に配置する（Frame/Line定規と同じ仕組み）
+    const left = cX - cR, top = cY - cR;
+    const size = cR * 2;
+    const hiW  = Math.min(cR * 0.18, 12); // ハイライトの太さ
 
-    // 外側だけ白ハイライト（帯のinset box-shadowと同じ）
-    const hiW = Math.min(cR * 0.18, 12); // ハイライト幅
-    const grad = circleCtx.createRadialGradient(cX, cY, cR - hiW, cX, cY, cR);
-    grad.addColorStop(0,   `rgba(255,255,255,0)`);
-    grad.addColorStop(1,   `rgba(255,255,255,0.25)`);
-    circleCtx.beginPath();
-    circleCtx.arc(cX, cY, cR, 0, Math.PI * 2);
-    circleCtx.fillStyle = grad;
-    circleCtx.fill();
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+      <defs>
+        <radialGradient id="clg_hi" cx="50%" cy="50%" r="50%">
+          <stop offset="${Math.max(0, (1 - hiW / cR) * 100)}%" stop-color="rgba(255,255,255,0)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0.25)"/>
+        </radialGradient>
+        <filter id="cdrop" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(${r},${g},${b},0.25)"/>
+        </filter>
+      </defs>
+      <!-- 本体 -->
+      <circle cx="${cR}" cy="${cR}" r="${cR}" fill="rgba(${r},${g},${b},${cAlpha})" filter="url(#cdrop)"/>
+      <!-- 外周ハイライト -->
+      <circle cx="${cR}" cy="${cR}" r="${cR}" fill="url(#clg_hi)"/>
+      <!-- 枠線 -->
+      <circle cx="${cR}" cy="${cR}" r="${cR - 0.75}" fill="none" stroke="rgba(${r},${g},${b},${la})" stroke-width="1.5"/>
+    </svg>`;
 
-    // border（帯と同じ1.5px）
-    circleCtx.beginPath();
-    circleCtx.arc(cX, cY, cR, 0, Math.PI * 2);
-    circleCtx.strokeStyle = `rgba(${r},${g},${b},${la})`;
-    circleCtx.lineWidth   = 1.5;
-    circleCtx.stroke();
+    const layer = document.getElementById('circle-3d-layer');
+    layer.style.left = left + 'px';
+    layer.style.top  = top  + 'px';
+    layer.innerHTML  = svg;
   }
 
   function saveCircleSettings() {
@@ -4213,6 +4621,16 @@
   let cResizeDist0 = 0, cResizeR0 = 0; // リサイズ開始時の値
 
   /* ----- マウス操作（PC）：pointerイベントで処理 ----- */
+  circleCanvas.addEventListener('wheel', viewerWheel, { passive: false });
+  // タッチで円の外側を押した瞬間にパネルを閉じる（Line/Frameのviewer pointerdownと同じ即時クローズ方式）
+  circleCanvas.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'touch') return;
+    const dx = e.clientX - cX, dy = e.clientY - cY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > cR && !isOnCircleRim(e.clientX, e.clientY)) {
+      closeCirclePanelIfOpen();
+    }
+  });
   circleCanvas.addEventListener('pointerdown', e => {
     if (e.pointerType === 'touch') return;
     const dx = e.clientX - cX, dy = e.clientY - cY;
@@ -4222,17 +4640,18 @@
       cResizing = true;
       cResizeDist0 = dist || 1;
       cResizeR0 = cR;
-      circleCanvas.classList.add('dragging');
+      setCircleDragging(true);
       circleCanvas.setPointerCapture(e.pointerId);
     } else if (dist <= cR) {
       // 内側 → ドラッグ移動
       cDragging = true;
       cDragStartX = e.clientX; cDragStartY = e.clientY;
       cCX0 = cX; cCY0 = cY;
-      circleCanvas.classList.add('dragging');
+      setCircleDragging(true);
       circleCanvas.setPointerCapture(e.pointerId);
     } else {
       closeCirclePanelIfOpen();
+      viewerMouseDown(e);
     }
   });
   circleCanvas.addEventListener('pointermove', e => {
@@ -4262,13 +4681,13 @@
     if (e.pointerType === 'touch') return;
     if (cResizing || cDragging) saveCircleSettings();
     cDragging = false; cResizing = false;
-    circleCanvas.classList.remove('dragging');
+    setCircleDragging(false);
     circleCanvas.style.removeProperty('cursor');
   });
   circleCanvas.addEventListener('pointercancel', e => {
     if (e.pointerType === 'touch') return;
     cDragging = false; cResizing = false;
-    circleCanvas.classList.remove('dragging');
+    setCircleDragging(false);
   });
 
   /* ----- タッチ操作（スマホ）：1本指ドラッグ／rim長押しリサイズ／2本指ピンチ／外タップで閉じる ----- */
@@ -4278,53 +4697,72 @@
   let cTouchResizeDist0 = 0, cTouchResizeR0 = 0;
 
   circleCanvas.addEventListener('touchstart', e => {
-    e.preventDefault();
     if (e.touches.length === 2) {
-      cTouchMode = 'pinch';
-      cDragging = false; cResizing = false;
-      circleCanvas.classList.remove('dragging');
-      cPinchDist0 = pinchDist(e.touches) || 1;
-      cR0 = cR;
+      // 2点とも円の内側（rim含む）にあるときだけ円のピンチリサイズ、それ以外は編み図のピンチズームに渡す
+      const t0 = e.touches[0], t1 = e.touches[1];
+      const d0 = Math.hypot(t0.clientX - cX, t0.clientY - cY);
+      const d1 = Math.hypot(t1.clientX - cX, t1.clientY - cY);
+      if (d0 <= cR + 16 && d1 <= cR + 16) {
+        e.preventDefault();
+        cTouchMode = 'pinch';
+        cDragging = false; cResizing = false;
+        setCircleDragging(false);
+        cPinchDist0 = pinchDist(e.touches) || 1;
+        cR0 = cR;
+      } else {
+        cTouchMode = 'viewer';
+        viewerTouchStart(e);
+      }
     } else if (e.touches.length === 1) {
       const t = e.touches[0];
       const dx = t.clientX - cX, dy = t.clientY - cY;
       const dist = Math.sqrt(dx * dx + dy * dy);
       cTouchMoved = false;
       if (isOnCircleRim(t.clientX, t.clientY)) {
+        e.preventDefault();
         cTouchMode = 'rim';
         cTouchResizeDist0 = dist || 1;
         cTouchResizeR0 = cR;
-        circleCanvas.classList.add('dragging');
+        setCircleDragging(true);
       } else if (dist <= cR) {
+        e.preventDefault();
         cTouchMode = 'drag';
         cDragStartX = t.clientX; cDragStartY = t.clientY;
         cCX0 = cX; cCY0 = cY;
-        circleCanvas.classList.add('dragging');
+        setCircleDragging(true);
       } else {
-        cTouchMode = 'outside';
+        // 円の外側：編み図の移動・ピンチに処理を委ねる
+        cTouchMode = 'viewer';
+        viewerTouchStart(e);
       }
     }
   }, { passive: false });
 
   circleCanvas.addEventListener('touchmove', e => {
-    e.preventDefault();
     if (cTouchMode === 'pinch' && e.touches.length === 2) {
+      e.preventDefault();
       const ratio = pinchDist(e.touches) / cPinchDist0;
       cR = Math.max(25, Math.min(400, Math.round(cR0 * ratio)));
       syncCircleSizeUI(); applyCircle();
     } else if (cTouchMode === 'rim' && e.touches.length === 1) {
+      e.preventDefault();
       const t = e.touches[0];
       const dx = t.clientX - cX, dy = t.clientY - cY;
       const dist = Math.sqrt(dx * dx + dy * dy);
       cR = Math.max(25, Math.min(400, Math.round(cTouchResizeR0 * dist / cTouchResizeDist0)));
       syncCircleSizeUI(); applyCircle();
     } else if (cTouchMode === 'drag' && e.touches.length === 1) {
+      e.preventDefault();
       const t = e.touches[0];
       cTouchMoved = true;
       const margin = 10;
       cX = Math.max(cR + margin, Math.min(window.innerWidth  - cR - margin, cCX0 + t.clientX - cDragStartX));
       cY = Math.max(cR + margin, Math.min(window.innerHeight - cR - margin, cCY0 + t.clientY - cDragStartY));
       applyCircle();
+    } else if (cTouchMode === 'viewer') {
+      e.preventDefault();
+      cTouchMoved = true;
+      viewerTouchMove(e);
     } else if (cTouchMode === 'outside') {
       cTouchMoved = true;
     }
@@ -4333,14 +4771,14 @@
   circleCanvas.addEventListener('touchend', e => {
     if (cTouchMode === 'pinch' || cTouchMode === 'drag' || cTouchMode === 'rim') {
       saveCircleSettings();
-    } else if (cTouchMode === 'outside' && !cTouchMoved) {
-      closeCirclePanelIfOpen();
+    } else if (cTouchMode === 'viewer') {
+      viewerTouchEnd(e);
     }
-    circleCanvas.classList.remove('dragging');
+    setCircleDragging(false);
     cTouchMode = null;
   }, { passive: false });
   circleCanvas.addEventListener('touchcancel', () => {
-    circleCanvas.classList.remove('dragging');
+    setCircleDragging(false);
     cTouchMode = null;
   });
 
@@ -4348,6 +4786,7 @@
   const CIRCLE_PRESET_KEY = 'yucchi_circle_presets';
   let circlePresets = [];
   let activeCirclePresetIdx = -1;
+  let activeCirclePresetSnapshot = null; // 選択時の設定スナップショット（変更検知用）
 
   function loadCirclePresets() {
     try { circlePresets = JSON.parse(localStorage.getItem(CIRCLE_PRESET_KEY)) || []; } catch(e) { circlePresets = []; }
@@ -4358,6 +4797,16 @@
   }
   function currentCircleSnapshot() {
     return { color: cColor, alpha: cAlpha, r: cR };
+  }
+  // 現在の設定がアクティブプリセットから変更されているか
+  function isCirclePresetDirty() {
+    if (activeCirclePresetIdx === -1 || !activeCirclePresetSnapshot) return false;
+    const s = activeCirclePresetSnapshot;
+    return (
+      cColor !== s.color ||
+      cAlpha !== s.alpha ||
+      cR     !== s.r
+    );
   }
   window.saveCirclePreset = function() {
     const nameInput = document.getElementById('circle-preset-name');
@@ -4389,6 +4838,21 @@
     renderCirclePresets();
     nameInput.value = '';
   };
+  // プリセット項目の上書きボタン：選択中ならその場で上書き保存、未選択ならまず切り替えるだけ
+  window.overwriteCirclePresetItem = function(i) {
+    const p = circlePresets[i];
+    if (!p) return;
+    if (activeCirclePresetIdx !== i) {
+      doApplyCirclePreset(p, i);
+      return;
+    }
+    showModal(`「${p.name}」を今の設定で上書き保存しますか？`, '上書き保存', () => {
+      circlePresets[i] = { name: p.name, ...currentCircleSnapshot(), diameter: cR * 2 };
+      saveCirclePresets();
+      activeCirclePresetSnapshot = { ...currentCircleSnapshot() };
+      renderCirclePresets();
+    });
+  };
   function renderCirclePresets() {
     const list = document.getElementById('circle-preset-list');
     const countEl = document.getElementById('circle-preset-count');
@@ -4404,14 +4868,34 @@
           <div class="preset-item-name">${p.name}</div>
 
         </div>
-        <button class="preset-del-btn" onclick="deleteCirclePreset(${i})">✕</button>
+        <button class="preset-overwrite-item-btn" data-tip="上書き" onclick="overwriteCirclePresetItem(${i})">✎</button>
+        <button class="preset-del-btn" data-tip="削除" onclick="deleteCirclePreset(${i})">✕</button>
       </div>`).join('');
+  }
+  function doApplyCirclePreset(p, idx) {
+    cColor = p.color; cAlpha = p.alpha; cR = p.r;
+    activeCirclePresetIdx = idx;
+    activeCirclePresetSnapshot = { ...currentCircleSnapshot() };
+    syncCircleUI(); applyCircle(); saveCircleSettings(); renderCirclePresets();
   }
   window.applyCirclePreset = function(i) {
     const p = circlePresets[i];
-    cColor = p.color; cAlpha = p.alpha; cR = p.r;
-    activeCirclePresetIdx = i;
-    syncCircleUI(); applyCircle(); saveCircleSettings(); renderCirclePresets();
+    const doSwitch = () => doApplyCirclePreset(p, i);
+    if (isCirclePresetDirty()) {
+      const ps = circlePresets;
+      showModal(
+        `「${ps[activeCirclePresetIdx].name}」を上書き保存しますか？`,
+        '上書き保存',
+        () => {
+          ps[activeCirclePresetIdx] = { name: ps[activeCirclePresetIdx].name, ...currentCircleSnapshot(), diameter: cR * 2 };
+          saveCirclePresets();
+          doSwitch();
+        }
+      );
+      modalCancel.onclick = () => { closeModal(); doSwitch(); };
+    } else {
+      doSwitch();
+    }
   };
   window.deleteCirclePreset = function(i) {
     circlePresets.splice(i, 1);
@@ -4419,481 +4903,535 @@
     saveCirclePresets(); renderCirclePresets();
   };
 
-  /* ========== 三角定規 ========== */
-  const triOverlay  = document.getElementById('tri-overlay');
-  const triCanvas   = document.getElementById('tri-canvas');
-  const triCtx      = triCanvas.getContext('2d');
-  const triVisual   = document.getElementById('tri-visual');   // プレス中opacity制御用
-  // フロストガラス視覚要素
-  const triClipWrap    = document.getElementById('tri-clip-wrap');
-  const triFrosted     = document.getElementById('tri-frosted');
-  const triDropShadow  = document.getElementById('tri-drop-shadow');
-  const triGlowPath    = document.getElementById('tri-glow-path');   // 内側グロウ
-  const triOuterBorder = document.getElementById('tri-outer-border');
-  const triClipPath    = document.getElementById('tri-clip-path');
-  const TRI_KEY     = 'yucchi_ruler_tri';
-  const TRI_PRESET_KEY = 'yucchi_tri_presets';
+  /* ========== Square定規 ========== */
+  const squareOverlay  = document.getElementById('square-overlay');
+  const squareCanvas   = document.getElementById('square-canvas');
+  const squareCtx      = squareCanvas.getContext('2d');
+  const square3dLayer  = document.getElementById('square-3d-layer');
+  // canvas（操作判定）とSVGレイヤー（見た目）の両方にdraggingクラスを同期させる
+  function setSquareDragging(on) {
+    squareCanvas.classList.toggle('dragging', on);
+    square3dLayer.classList.toggle('dragging', on);
+  }
+  const SQUARE_KEY     = 'yucchi_ruler_square';
 
-  let tX = 0, tY = 0;   // 重心座標
-  let tS = 150;          // 一辺の長さ
-  let tColor = '#b2aaaa';
-  let tAlpha = 0.70;
-  let tDragging = false;
-  let tResizing = false;
-  let tRotation = 0;       // 回転角度（度）
-  let triPresets = [];
-  let activeTriPresetIdx = -1;
+  let sqX = 0, sqY = 0;          // 中心座標
+  let sqHalfW = 50, sqHalfH = 50; // 中心から辺までの距離（半幅・半高）
+  let sqColor = '#b2aaaa';
+  let sqAlpha = 0.70;
+  let squareStep  = 0;       // 段ガイドON時に有効な1段の幅（OFF時は0）
+  let squareStepBase = 0;    // 計測した実寸（段ガイドOFFでも保持、未計測なら0）
+  let squareCount = 0;
+  let showSquareCounter = true;
+  let sqDragging = false;
+  let sqResizing = false;       // リサイズ中フラグ（角・辺共通）
+  let sqResizeMode = null;      // 'corner-tl' | 'corner-tr' | 'corner-bl' | 'corner-br' | 'edge-t' | 'edge-b' | 'edge-l' | 'edge-r'
+  let sqDragStartX = 0, sqDragStartY = 0, sqCX0 = 0, sqCY0 = 0;
+  let sqResizeStartX = 0, sqResizeStartY = 0, sqHalfW0 = 0, sqHalfH0 = 0;
 
-  function initTriPos() {
-    triCanvas.width  = window.innerWidth;
-    triCanvas.height = window.innerHeight;
-    if (tX === 0 && tY === 0) {
-      tX = Math.round(window.innerWidth  / 2);
-      tY = Math.round(window.innerHeight / 2);
+  function resizeSquareCanvas() {
+    squareCanvas.width  = window.innerWidth;
+    squareCanvas.height = window.innerHeight;
+    if (sqX === 0 && sqY === 0) {
+      sqX = Math.round(window.innerWidth  / 2);
+      sqY = Math.round(window.innerHeight / 2);
     }
-    applyTri();
+    applySquare();
   }
 
-  function triVertices(x, y, s) {
-    // 正三角形：重心(x,y)、一辺s、頂点は上向き（その後tRotationで回転）
-    const h = s * Math.sqrt(3) / 2;
-    const cx2g = h * 2 / 3;
-    const cx2t = h - cx2g;
-    const base = [
-      { x: x,         y: y - cx2t },
-      { x: x + s / 2, y: y + cx2g },
-      { x: x - s / 2, y: y + cx2g },
-    ];
-    if (!tRotation) return base;
-    const rad = tRotation * Math.PI / 180;
-    const cos = Math.cos(rad), sin = Math.sin(rad);
-    return base.map(v => ({
-      x: x + (v.x - x) * cos - (v.y - y) * sin,
-      y: y + (v.x - x) * sin + (v.y - y) * cos,
-    }));
-  }
+  function applySquare() {
+    // 操作判定用canvasは常に画面全体のサイズを保つ（クリック判定のため透明なまま）
+    const w = squareCanvas.width, h = squareCanvas.height;
+    squareCtx.clearRect(0, 0, w, h);
 
-  // 角丸三角形のSVGパス文字列を生成（CSS clip-path: path() とSVG path両用）
-  // ベジェ近似ではなく真円弧（SVG Aコマンド）で正確な角丸を実現
-  function getRoundedTriSVGPathArc(verts, targetR) {
-    let d = '';
-    for (let i = 0; i < 3; i++) {
-      const v    = verts[i];
-      const prev = verts[(i - 1 + 3) % 3];
-      const next = verts[(i + 1) % 3];
-      const d1 = Math.hypot(prev.x - v.x, prev.y - v.y);
-      const d2 = Math.hypot(next.x - v.x, next.y - v.y);
-      const u1x = (prev.x - v.x) / d1, u1y = (prev.y - v.y) / d1;
-      const u2x = (next.x - v.x) / d2, u2y = (next.y - v.y) / d2;
-      // 内角の半分のtanから正確な接点距離を計算
-      const dot      = Math.max(-1, Math.min(1, u1x*u2x + u1y*u2y));
-      const halfAngle = Math.acos(dot) / 2;
-      const tanHalf   = Math.tan(halfAngle);
-      const rr = Math.min(targetR, (Math.min(d1, d2) / 2) * tanHalf);
-      const td = rr / tanHalf;
-      const t1x = v.x + u1x * td, t1y = v.y + u1y * td;
-      const t2x = v.x + u2x * td, t2y = v.y + u2y * td;
-      if (i === 0) d += `M ${t1x.toFixed(2)} ${t1y.toFixed(2)} `;
-      else         d += `L ${t1x.toFixed(2)} ${t1y.toFixed(2)} `;
-      // 真円弧：large-arc=0, sweep=1（時計回り＝外側に凸の自然な角丸）
-      d += `A ${rr.toFixed(2)} ${rr.toFixed(2)} 0 0 1 ${t2x.toFixed(2)} ${t2y.toFixed(2)} `;
-    }
-    return d + 'Z';
-  }
-
-  function getRoundedTriSVGPath(verts, cornerR) {
-    let d = '';
-    for (let i = 0; i < 3; i++) {
-      const v    = verts[i];
-      const prev = verts[(i - 1 + 3) % 3];
-      const next = verts[(i + 1) % 3];
-      const d1 = Math.hypot(prev.x - v.x, prev.y - v.y);
-      const d2 = Math.hypot(next.x - v.x, next.y - v.y);
-      const rr = Math.min(cornerR, d1 / 2, d2 / 2);
-      const p1 = { x: v.x + (prev.x - v.x) / d1 * rr, y: v.y + (prev.y - v.y) / d1 * rr };
-      const p2 = { x: v.x + (next.x - v.x) / d2 * rr, y: v.y + (next.y - v.y) / d2 * rr };
-      d += (i === 0 ? `M ${p1.x} ${p1.y} ` : `L ${p1.x} ${p1.y} `);
-      d += `Q ${v.x} ${v.y} ${p2.x} ${p2.y} `;
-    }
-    return d + 'Z';
-  }
-
-  function applyTri() {
-    // canvasはイベント担当のみ（描画なし・透明）
-    triCtx.clearRect(0, 0, triCanvas.width, triCanvas.height);
-
-    const hex = tColor;
+    const hex = sqColor;
     const r = parseInt(hex.slice(1,3),16);
     const g = parseInt(hex.slice(3,5),16);
     const b = parseInt(hex.slice(5,7),16);
-    const la = Math.min(1, tAlpha * 1.6);
-    const verts = triVertices(tX, tY, tS);
+    const la = Math.min(1, sqAlpha * 1.6);
 
-    // 真円弧で角丸（Excelと同じ真円の角丸）
-    const cornerR = Math.min(tS * 0.03, 10);
-    const sp = getRoundedTriSVGPathArc(verts, cornerR);
+    // 見た目専用レイヤー：正方形/長方形がちょうど収まるSVGをその位置に配置する（Frame/Line/Circle定規と同じ仕組み）
+    const left = sqX - sqHalfW, top = sqY - sqHalfH;
+    const ow = sqHalfW * 2, oh = sqHalfH * 2;
+    const rad = Math.min(10, sqHalfW * 0.15, sqHalfH * 0.15);
+    const hiDepthTB = Math.min(12, oh / 3);
+    const hiDepthLR = Math.min(12, ow / 3);
 
-    // ① フロストガラス（clip-path + backdrop-filter + 単色background）
-    triClipWrap.style.clipPath  = `path('${sp}')`;
-    triFrosted.style.background = `rgba(${r},${g},${b},${tAlpha})`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow}" height="${oh}">
+      <defs>
+        <linearGradient id="sqlg_t" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </linearGradient>
+        <linearGradient id="sqlg_b" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </linearGradient>
+        <linearGradient id="sqlg_l" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </linearGradient>
+        <linearGradient id="sqlg_r" x1="1" y1="0" x2="0" y2="0">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </linearGradient>
+        <filter id="sqdrop" x="-5%" y="-5%" width="115%" height="120%">
+          <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(${r},${g},${b},0.25)"/>
+        </filter>
+      </defs>
+      <!-- 本体 -->
+      <rect x="0" y="0" width="${ow}" height="${oh}" rx="${rad}" ry="${rad}"
+        fill="rgba(${r},${g},${b},${sqAlpha})" filter="url(#sqdrop)"/>
+      <!-- 上ハイライト -->
+      <path fill="url(#sqlg_t)"
+        d="M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${hiDepthTB} H0 V${rad} Q0,0 ${rad},0 Z"/>
+      <!-- 下ハイライト -->
+      <path fill="url(#sqlg_b)"
+        d="M0,${oh-hiDepthTB} H${ow} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
+      <!-- 左ハイライト -->
+      <path fill="url(#sqlg_l)"
+        d="M0,${rad} Q0,0 ${rad},0 H${hiDepthLR} V${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
+      <!-- 右ハイライト -->
+      <path fill="url(#sqlg_r)"
+        d="M${ow-hiDepthLR},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${ow-hiDepthLR} Z"/>
+      <!-- 枠線 -->
+      <rect x="0.75" y="0.75" width="${ow-1.5}" height="${oh-1.5}" rx="${rad}" ry="${rad}"
+        fill="none" stroke="rgba(${r},${g},${b},${la})" stroke-width="1.5"/>
+    </svg>`;
 
-    // ② ドロップシャドウ
-    triDropShadow.setAttribute('d', sp);
-    triDropShadow.style.fill   = `rgba(${r},${g},${b},0.02)`;
-    triDropShadow.style.filter = `drop-shadow(0 3px 14px rgba(${r},${g},${b},0.38))`;
-
-    triClipPath.setAttribute('d', sp);
-    triGlowPath.setAttribute('d', sp);
-    triGlowPath.setAttribute('fill', 'none');
-    triGlowPath.removeAttribute('filter');
-    triGlowPath.style.filter = '';
-    triGlowPath.setAttribute('stroke', `rgba(255,255,255,0.20)`);
-
-    // ④ 外側ボーダー：丸と同じ1.5px細線（角丸パスをそのまま使う）
-    triOuterBorder.setAttribute('d', sp);
-    triOuterBorder.setAttribute('stroke', `rgba(${r},${g},${b},${la})`);
-    triOuterBorder.setAttribute('stroke-width', '1.5');
+    const layer = document.getElementById('square-3d-layer');
+    layer.style.left = left + 'px';
+    layer.style.top  = top  + 'px';
+    layer.innerHTML  = svg;
   }
 
-  function saveTriSettings() {
-    try { localStorage.setItem(TRI_KEY, JSON.stringify({ tX, tY, tS, tColor, tAlpha, tRotation })); } catch(e) {}
+  function saveSquareSettings() {
+    try { localStorage.setItem(SQUARE_KEY, JSON.stringify({ sqX, sqY, sqHalfW, sqHalfH, sqColor, sqAlpha, squareStep, squareStepBase, squareCount, showSquareCounter })); } catch(e) {}
   }
-  function loadTriSettings() {
+  function loadSquareSettings() {
     try {
-      const s = JSON.parse(localStorage.getItem(TRI_KEY));
+      const s = JSON.parse(localStorage.getItem(SQUARE_KEY));
       if (!s) return false;
-      if (s.tS)     tS     = s.tS;
-      if (s.tColor) tColor = s.tColor;
-      if (s.tAlpha != null) tAlpha = s.tAlpha;
-      if (s.tX)     tX     = s.tX;
-      if (s.tY)     tY     = s.tY;
-      if (s.tRotation != null) tRotation = s.tRotation;
-      // UI反映
-      document.getElementById('tri-size').value    = tS;
-      document.getElementById('tri-size-label').textContent = tS + ' px';
-      document.getElementById('tri-opacity').value = Math.round(tAlpha * 100);
-      document.getElementById('tri-opacity-label').textContent = Math.round(tAlpha * 100) + '%';
-      document.getElementById('tri-rotation').value = tRotation;
-      document.getElementById('tri-rotation-label').textContent = tRotation + '°';
-      document.getElementById('tri-color').value   = tColor;
-      document.querySelectorAll('#tri-card .color-dot').forEach(d =>
-        d.classList.toggle('active', d.dataset.color === tColor));
+      if (s.sqHalfW) sqHalfW = s.sqHalfW;
+      if (s.sqHalfH) sqHalfH = s.sqHalfH;
+      if (s.sqColor) sqColor = s.sqColor;
+      if (s.sqAlpha != null) sqAlpha = s.sqAlpha;
+      if (s.sqX)     sqX     = s.sqX;
+      if (s.sqY)     sqY     = s.sqY;
+      // 画面サイズに収まるようにクランプ
+      const maxHalf = Math.min(window.innerWidth, window.innerHeight) * 0.45;
+      sqHalfW = Math.min(sqHalfW, maxHalf);
+      sqHalfH = Math.min(sqHalfH, maxHalf);
+      sqX = Math.max(sqHalfW, Math.min(window.innerWidth  - sqHalfW, sqX));
+      sqY = Math.max(sqHalfH, Math.min(window.innerHeight - sqHalfH, sqY));
+      if (s.squareStep  != null) squareStep  = s.squareStep;
+      if (s.squareStepBase != null) squareStepBase = s.squareStepBase;
+      else if (s.squareStep != null) squareStepBase = s.squareStep;
+      if (s.squareCount != null) squareCount = s.squareCount;
+      if (s.showSquareCounter != null) showSquareCounter = s.showSquareCounter;
       return true;
     } catch(e) { return false; }
   }
 
-  window.resetTriDefault = function() {
-    tS = 150; tColor = '#b2aaaa'; tAlpha = 0.70; tRotation = 0;
-    tX = Math.round(window.innerWidth  / 2);
-    tY = Math.round(window.innerHeight / 2);
-    document.getElementById('tri-size').value    = tS;
-    document.getElementById('tri-rotation').value = 0;
-    document.getElementById('tri-rotation-label').textContent = '0°';
-    document.getElementById('tri-size-label').textContent = tS + ' px';
-    document.getElementById('tri-opacity').value = 70;
-    document.getElementById('tri-opacity-label').textContent = '70%';
-    document.getElementById('tri-color').value   = tColor;
-    document.querySelectorAll('#tri-card .color-dot').forEach(d =>
-      d.classList.toggle('active', d.dataset.color === tColor));
-    applyTri(); saveTriSettings();
-  };
-
-  // 三角の内側かどうか判定するヘルパー
-  function isInsideTri(x, y) {
-    const verts = triVertices(tX, tY, tS);
-    triCtx.beginPath();
-    triCtx.moveTo(verts[0].x, verts[0].y);
-    verts.slice(1).forEach(v => triCtx.lineTo(v.x, v.y));
-    triCtx.closePath();
-    return triCtx.isPointInPath(x, y);
-  }
-  // 三角の外（編み図エリア）をタップしたらメニューパネルを閉じる
-  function closeTriPanelIfOpen() {
-    if (!floatPanel.classList.contains('collapsed')) togglePanel(true);
+  // UI初期反映
+  function syncSquareUI() {
+    document.getElementById('square-opacity').value      = Math.round(sqAlpha * 100);
+    document.getElementById('square-opacity-label').textContent = Math.round(sqAlpha * 100) + '%';
+    document.getElementById('square-color').value        = sqColor;
+    document.getElementById('toggle-square-counter').checked = showSquareCounter;
+    cpNum.textContent = squareCount;
+    document.querySelectorAll('#square-card .color-dot').forEach(d =>
+      d.classList.toggle('active', d.dataset.color === sqColor));
   }
 
-  // 外枠rim判定：点と三角の各辺との距離で判定
-  function distToTriEdge(x, y) {
-    const v = triVertices(tX, tY, tS);
-    let min = Infinity;
-    for (let i = 0; i < 3; i++) {
-      const a = v[i], b = v[(i + 1) % 3];
-      const ex = b.x - a.x, ey = b.y - a.y;
-      const t = Math.max(0, Math.min(1, ((x - a.x) * ex + (y - a.y) * ey) / (ex * ex + ey * ey)));
-      const px = x - (a.x + t * ex), py = y - (a.y + t * ey);
-      min = Math.min(min, Math.sqrt(px * px + py * py));
-    }
-    return min;
-  }
-  function isOnTriRim(x, y) {
-    const edgeDist = distToTriEdge(x, y);
-    return (isInsideTri(x, y) && edgeDist < 18) || (!isInsideTri(x, y) && edgeDist < 16);
-  }
-  // 最も近い辺の外向き法線からカーソルを決定（辺ごとに一定の方向）
-  function triEdgeCursor(x, y) {
-    const v = triVertices(tX, tY, tS);
-    const c = triCentroid();
-    // ① 頂点付近：重心→カーソル方向（丸と同じ標準OSカーソル）
-    for (let i = 0; i < 3; i++) {
-      const dx = x - v[i].x, dy = y - v[i].y;
-      if (dx * dx + dy * dy < 400) return rimResizeCursor(c.x, c.y, x, y);
-    }
-    // ② 辺上：辺の外向き法線方向（標準OSカーソル）
-    let minDist = Infinity, nearestIdx = 0;
-    for (let i = 0; i < 3; i++) {
-      const a = v[i], b = v[(i + 1) % 3];
-      const ex = b.x - a.x, ey = b.y - a.y;
-      const t = Math.max(0, Math.min(1, ((x - a.x) * ex + (y - a.y) * ey) / (ex * ex + ey * ey)));
-      const px = x - (a.x + t * ex), py = y - (a.y + t * ey);
-      const d = Math.sqrt(px * px + py * py);
-      if (d < minDist) { minDist = d; nearestIdx = i; }
-    }
-    const a = v[nearestIdx], b = v[(nearestIdx + 1) % 3];
-    const nx = b.y - a.y, ny = -(b.x - a.x);
-    const angle = Math.atan2(ny, nx) * 180 / Math.PI;
-    const deg = ((angle % 180) + 180) % 180;
-    if (deg < 22.5 || deg >= 157.5) return 'ew-resize';
-    if (deg < 67.5)  return 'nwse-resize';
-    if (deg < 112.5) return 'ns-resize';
-    return 'nesw-resize';
-  }
-  // 三角の重心（リサイズ基準点）
-  function triCentroid() {
-    return { x: tX, y: tY + tS * Math.sqrt(3) / 6 };
-  }
-
-  /* ----- マウス操作（PC） ----- */
-  let triDragStartX = 0, triDragStartY = 0, triStartTX = 0, triStartTY = 0;
-  let tResizeDist0 = 0, tResizeS0 = 0;
-
-  triCanvas.addEventListener('pointerdown', e => {
-    if (e.pointerType === 'touch') return;
-    if (isOnTriRim(e.clientX, e.clientY)) {
-      // 外枠 → リサイズ
-      tResizing = true;
-      const c = triCentroid();
-      tResizeDist0 = Math.sqrt((e.clientX - c.x) ** 2 + (e.clientY - c.y) ** 2) || 1;
-      tResizeS0 = tS;
-      triCanvas.classList.add('dragging');
-      triVisual.classList.add('dragging');
-      triCanvas.setPointerCapture(e.pointerId);
-    } else if (isInsideTri(e.clientX, e.clientY)) {
-      // 内側 → 移動
-      tDragging = true;
-      triDragStartX = e.clientX; triDragStartY = e.clientY;
-      triStartTX = tX; triStartTY = tY;
-      triCanvas.classList.add('dragging');
-      triVisual.classList.add('dragging');
-      triCanvas.setPointerCapture(e.pointerId);
-    } else {
-      closeTriPanelIfOpen();
-    }
+  // スライダー
+  document.getElementById('square-opacity').addEventListener('input', e => {
+    sqAlpha = parseInt(e.target.value) / 100;
+    document.getElementById('square-opacity-label').textContent = e.target.value + '%';
+    applySquare(); saveSquareSettings();
   });
-  triCanvas.addEventListener('pointermove', e => {
-    if (e.pointerType === 'touch') return;
-    if (tResizing) {
-      const c = triCentroid();
-      const dist = Math.sqrt((e.clientX - c.x) ** 2 + (e.clientY - c.y) ** 2);
-      tS = Math.max(50, Math.min(800, Math.round(tResizeS0 * dist / tResizeDist0 / 10) * 10));
-      document.getElementById('tri-size').value = tS;
-      document.getElementById('tri-size-label').textContent = tS + ' px';
-      applyTri();
-    } else if (tDragging) {
-      const dx = e.clientX - triDragStartX, dy = e.clientY - triDragStartY;
-      const margin = 10;
-      tX = Math.max(tS / 2 + margin, Math.min(window.innerWidth  - tS / 2 - margin, triStartTX + dx));
-      tY = Math.max(tS * Math.sqrt(3) / 6 + margin, Math.min(window.innerHeight - tS * Math.sqrt(3) / 3 - margin, triStartTY + dy));
-      applyTri();
-    } else {
-      // ホバー：rim上かどうかでカーソル切替
-      if (isOnTriRim(e.clientX, e.clientY)) {
-        triCanvas.classList.add('rim');
-        triCanvas.style.cursor = triEdgeCursor(e.clientX, e.clientY);
-      } else {
-        triCanvas.classList.remove('rim');
-        triCanvas.style.cursor = '';
-      }
+  document.getElementById('toggle-square-counter').addEventListener('change', e => {
+    showSquareCounter = e.target.checked;
+    if (currentRulerTab === 'square') {
+      counterPanel.style.display = showSquareCounter ? 'flex' : 'none';
+      cpGuideRow.style.display = showSquareCounter ? 'flex' : 'none';
     }
-  });
-  triCanvas.addEventListener('pointerup', e => {
-    if (e.pointerType === 'touch') return;
-    if (tResizing || tDragging) saveTriSettings();
-    tDragging = false; tResizing = false;
-    triCanvas.classList.remove('dragging');
-    triVisual.classList.remove('dragging');
-    triCanvas.style.cursor = '';
-  });
-  triCanvas.addEventListener('pointercancel', e => {
-    if (e.pointerType === 'touch') return;
-    tDragging = false; tResizing = false;
-    triCanvas.classList.remove('dragging');
-    triVisual.classList.remove('dragging');
-    triCanvas.style.cursor = '';
+    saveSquareSettings();
   });
 
-  /* ----- タッチ操作（スマホ） ----- */
-  let tTouchMode = null;   // 'drag' | 'rim' | 'pinch' | 'outside' | null
-  let tTouchMoved = false;
-  let triPinchDist0 = 0, triPinchS0 = 0;
-  let tTouchResizeDist0 = 0, tTouchResizeS0 = 0, tTouchResizeCX = 0, tTouchResizeCY = 0;
-
-  triCanvas.addEventListener('touchstart', e => {
-    e.preventDefault();
-    if (e.touches.length === 2) {
-      tTouchMode = 'pinch';
-      tDragging = false; tResizing = false;
-      triCanvas.classList.remove('dragging');
-      triVisual.classList.remove('dragging');
-      triPinchDist0 = pinchDist(e.touches) || 1;
-      triPinchS0 = tS;
-    } else if (e.touches.length === 1) {
-      const t = e.touches[0];
-      tTouchMoved = false;
-      if (isOnTriRim(t.clientX, t.clientY)) {
-        tTouchMode = 'rim';
-        const c = triCentroid();
-        tTouchResizeCX = c.x; tTouchResizeCY = c.y;
-        tTouchResizeDist0 = Math.sqrt((t.clientX - c.x) ** 2 + (t.clientY - c.y) ** 2) || 1;
-        tTouchResizeS0 = tS;
-        triCanvas.classList.add('dragging');
-        triVisual.classList.add('dragging');
-      } else if (isInsideTri(t.clientX, t.clientY)) {
-        tTouchMode = 'drag';
-        triDragStartX = t.clientX; triDragStartY = t.clientY;
-        triStartTX = tX; triStartTY = tY;
-        triCanvas.classList.add('dragging');
-        triVisual.classList.add('dragging');
-      } else {
-        tTouchMode = 'outside';
-      }
-    }
-  }, { passive: false });
-
-  triCanvas.addEventListener('touchmove', e => {
-    e.preventDefault();
-    if (tTouchMode === 'pinch' && e.touches.length === 2) {
-      const ratio = pinchDist(e.touches) / triPinchDist0;
-      tS = Math.max(50, Math.min(800, Math.round(triPinchS0 * ratio / 10) * 10));
-      document.getElementById('tri-size').value = tS;
-      document.getElementById('tri-size-label').textContent = tS + ' px';
-      applyTri();
-    } else if (tTouchMode === 'rim' && e.touches.length === 1) {
-      const t = e.touches[0];
-      const dist = Math.sqrt((t.clientX - tTouchResizeCX) ** 2 + (t.clientY - tTouchResizeCY) ** 2);
-      tS = Math.max(50, Math.min(800, Math.round(tTouchResizeS0 * dist / tTouchResizeDist0 / 10) * 10));
-      document.getElementById('tri-size').value = tS;
-      document.getElementById('tri-size-label').textContent = tS + ' px';
-      applyTri();
-    } else if (tTouchMode === 'drag' && e.touches.length === 1) {
-      const t = e.touches[0];
-      tTouchMoved = true;
-      const dx = t.clientX - triDragStartX, dy = t.clientY - triDragStartY;
-      const margin = 10;
-      tX = Math.max(tS / 2 + margin, Math.min(window.innerWidth  - tS / 2 - margin, triStartTX + dx));
-      tY = Math.max(tS * Math.sqrt(3) / 6 + margin, Math.min(window.innerHeight - tS * Math.sqrt(3) / 3 - margin, triStartTY + dy));
-      applyTri();
-    } else if (tTouchMode === 'outside') {
-      tTouchMoved = true;
-    }
-  }, { passive: false });
-
-  triCanvas.addEventListener('touchend', e => {
-    if (tTouchMode === 'pinch' || tTouchMode === 'drag' || tTouchMode === 'rim') {
-      saveTriSettings();
-    } else if (tTouchMode === 'outside' && !tTouchMoved) {
-      closeTriPanelIfOpen();
-    }
-    triCanvas.classList.remove('dragging');
-    triVisual.classList.remove('dragging');
-    tTouchMode = null;
-  }, { passive: false });
-  triCanvas.addEventListener('touchcancel', () => {
-    triCanvas.classList.remove('dragging');
-    triVisual.classList.remove('dragging');
-    tTouchMode = null;
-  });
-
-  // スライダー・カラー
-  document.getElementById('tri-size').addEventListener('input', e => {
-    tS = parseInt(e.target.value);
-    document.getElementById('tri-size-label').textContent = tS + ' px';
-    applyTri(); saveTriSettings();
-  });
-  document.getElementById('tri-opacity').addEventListener('input', e => {
-    tAlpha = parseInt(e.target.value) / 100;
-    document.getElementById('tri-opacity-label').textContent = e.target.value + '%';
-    applyTri(); saveTriSettings();
-  });
-  document.getElementById('tri-rotation').addEventListener('input', e => {
-    tRotation = parseInt(e.target.value);
-    document.getElementById('tri-rotation-label').textContent = tRotation + '°';
-    applyTri(); saveTriSettings();
-  });
-  document.querySelectorAll('#tri-card .color-dot').forEach(dot => {
+  // カラードット
+  document.querySelectorAll('#square-card .color-dot').forEach(dot => {
     dot.addEventListener('click', () => {
-      tColor = dot.dataset.color;
-      document.querySelectorAll('#tri-card .color-dot').forEach(d => d.classList.remove('active'));
+      sqColor = dot.dataset.color;
+      document.querySelectorAll('#square-card .color-dot').forEach(d => d.classList.remove('active'));
       dot.classList.add('active');
-      document.getElementById('tri-color').value = tColor;
-      applyTri(); saveTriSettings();
+      document.getElementById('square-color').value = sqColor;
+      applySquare(); saveSquareSettings();
     });
   });
-  document.getElementById('tri-color').addEventListener('input', e => {
-    tColor = e.target.value;
-    document.querySelectorAll('#tri-card .color-dot').forEach(d => d.classList.remove('active'));
-    applyTri(); saveTriSettings();
+  document.getElementById('square-color').addEventListener('input', e => {
+    sqColor = e.target.value;
+    document.querySelectorAll('#square-card .color-dot').forEach(d => d.classList.remove('active'));
+    applySquare(); saveSquareSettings();
+  });
+
+  // リセット
+  window.resetSquareDefault = function() {
+    sqHalfW = 50; sqHalfH = 50; sqColor = '#b2aaaa'; sqAlpha = 0.70;
+    squareStep = 0; squareStepBase = 0; squareCount = 0; showSquareCounter = true;
+    sqX = Math.round(window.innerWidth  / 2);
+    const sh = window.innerHeight;
+    const textCenterY = sh / 2;
+    const textBlockH = 14 * 2 + 16 + 18;
+    const hintBlockH = 46 + (11 * 1.7 * 3) + 10;
+    const textBottom = textCenterY + Math.max(textBlockH / 2, hintBlockH);
+    sqY = Math.round(textBottom + 35 + sqHalfH);
+    syncSquareUI();
+    syncGuideRowUI('square');
+    applySquare(); saveSquareSettings();
+  };
+
+  /* ----- 角・辺判定（リサイズゾーン） ----- */
+  function closeSquarePanelIfOpen() {
+    if (!floatPanel.classList.contains('collapsed')) togglePanel(true);
+  }
+  const SQ_HANDLE_R = 16; // 角・辺の当たり判定の許容範囲(px)
+
+  // 座標から「どの操作ゾーンか」を判定する。戻り値: null（外側） / 'inside'（移動） / 'corner-tl' などのリサイズモード
+  function squareHitTest(px, py) {
+    const left = sqX - sqHalfW, right = sqX + sqHalfW;
+    const top  = sqY - sqHalfH, bottom = sqY + sqHalfH;
+    const corners = [
+      { mode: 'corner-tl', x: left,  y: top },
+      { mode: 'corner-tr', x: right, y: top },
+      { mode: 'corner-bl', x: left,  y: bottom },
+      { mode: 'corner-br', x: right, y: bottom },
+    ];
+    for (const c of corners) {
+      if (Math.hypot(px - c.x, py - c.y) <= SQ_HANDLE_R) return c.mode;
+    }
+    const midX = sqX, midY = sqY;
+    const edges = [
+      { mode: 'edge-t', x: midX, y: top },
+      { mode: 'edge-b', x: midX, y: bottom },
+      { mode: 'edge-l', x: left, y: midY },
+      { mode: 'edge-r', x: right, y: midY },
+    ];
+    for (const e of edges) {
+      if (Math.hypot(px - e.x, py - e.y) <= SQ_HANDLE_R) return e.mode;
+    }
+    if (px >= left && px <= right && py >= top && py <= bottom) return 'inside';
+    return null;
+  }
+  function squareResizeCursor(mode) {
+    if (mode === 'corner-tl' || mode === 'corner-br') return 'nwse-resize';
+    if (mode === 'corner-tr' || mode === 'corner-bl') return 'nesw-resize';
+    if (mode === 'edge-t' || mode === 'edge-b') return 'ns-resize';
+    if (mode === 'edge-l' || mode === 'edge-r') return 'ew-resize';
+    return 'grab';
+  }
+  // リサイズ操作中：角は中心固定で正方形のまま拡大縮小、辺は片側のみ調整
+  function applySquareResize(mode, dx, dy) {
+    const MIN_HALF = 20, MAX_HALF = 400;
+    if (mode === 'corner-tl') {
+      const d = Math.max(-dx, -dy); // 左上へ離れるほど拡大
+      sqHalfW = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfW0 + d));
+      sqHalfH = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfH0 + d));
+    } else if (mode === 'corner-tr') {
+      const d = Math.max(dx, -dy);
+      sqHalfW = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfW0 + d));
+      sqHalfH = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfH0 + d));
+    } else if (mode === 'corner-bl') {
+      const d = Math.max(-dx, dy);
+      sqHalfW = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfW0 + d));
+      sqHalfH = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfH0 + d));
+    } else if (mode === 'corner-br') {
+      const d = Math.max(dx, dy);
+      sqHalfW = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfW0 + d));
+      sqHalfH = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfH0 + d));
+    } else if (mode === 'edge-t') {
+      sqHalfH = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfH0 - dy));
+    } else if (mode === 'edge-b') {
+      sqHalfH = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfH0 + dy));
+    } else if (mode === 'edge-l') {
+      sqHalfW = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfW0 - dx));
+    } else if (mode === 'edge-r') {
+      sqHalfW = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfW0 + dx));
+    }
+  }
+
+  /* ----- マウス操作（PC）：pointerイベントで処理 ----- */
+  squareCanvas.addEventListener('wheel', viewerWheel, { passive: false });
+  // タッチで外側を押した瞬間にパネルを閉じる
+  squareCanvas.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'touch') return;
+    if (squareHitTest(e.clientX, e.clientY) === null) {
+      closeSquarePanelIfOpen();
+    }
+  });
+  squareCanvas.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'touch') return;
+    const hit = squareHitTest(e.clientX, e.clientY);
+    if (hit && hit !== 'inside') {
+      sqResizing = true;
+      sqResizeMode = hit;
+      sqResizeStartX = e.clientX; sqResizeStartY = e.clientY;
+      sqHalfW0 = sqHalfW; sqHalfH0 = sqHalfH;
+      setSquareDragging(true);
+      squareCanvas.setPointerCapture(e.pointerId);
+    } else if (hit === 'inside') {
+      sqDragging = true;
+      sqDragStartX = e.clientX; sqDragStartY = e.clientY;
+      sqCX0 = sqX; sqCY0 = sqY;
+      setSquareDragging(true);
+      squareCanvas.setPointerCapture(e.pointerId);
+    } else {
+      closeSquarePanelIfOpen();
+      viewerMouseDown(e);
+    }
+  });
+  squareCanvas.addEventListener('pointermove', e => {
+    if (e.pointerType === 'touch') return;
+    if (sqResizing) {
+      applySquareResize(sqResizeMode, e.clientX - sqResizeStartX, e.clientY - sqResizeStartY);
+      applySquare();
+    } else if (sqDragging) {
+      const margin = 5;
+      sqX = Math.max(sqHalfW + margin, Math.min(window.innerWidth  - sqHalfW - margin, sqCX0 + e.clientX - sqDragStartX));
+      sqY = Math.max(sqHalfH + margin, Math.min(window.innerHeight - sqHalfH - margin, sqCY0 + e.clientY - sqDragStartY));
+      applySquare();
+    } else {
+      const hit = squareHitTest(e.clientX, e.clientY);
+      if (hit && hit !== 'inside') {
+        squareCanvas.classList.add('rim');
+        squareCanvas.style.setProperty('cursor', squareResizeCursor(hit), 'important');
+      } else {
+        squareCanvas.classList.remove('rim');
+        squareCanvas.style.removeProperty('cursor');
+      }
+    }
+  });
+  squareCanvas.addEventListener('pointerup', e => {
+    if (e.pointerType === 'touch') return;
+    if (sqResizing || sqDragging) saveSquareSettings();
+    sqDragging = false; sqResizing = false; sqResizeMode = null;
+    setSquareDragging(false);
+    squareCanvas.style.removeProperty('cursor');
+  });
+  squareCanvas.addEventListener('pointercancel', e => {
+    if (e.pointerType === 'touch') return;
+    sqDragging = false; sqResizing = false; sqResizeMode = null;
+    setSquareDragging(false);
+  });
+
+  /* ----- タッチ操作（スマホ）：1本指ドラッグ／角辺長押しリサイズ／2本指ピンチ／外タップで閉じる ----- */
+  let sqTouchMode = null;   // 'drag' | 'corner' | 'edge' | 'pinch' | 'viewer' | null
+  let sqTouchMoved = false;
+  let sqPinchDist0 = 0, sqHalfW00 = 0, sqHalfH00 = 0;
+  let sqTouchResizeMode = null;
+  let sqTouchStartX = 0, sqTouchStartY = 0;
+
+  squareCanvas.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      const t0 = e.touches[0], t1 = e.touches[1];
+      const hit0 = squareHitTest(t0.clientX, t0.clientY);
+      const hit1 = squareHitTest(t1.clientX, t1.clientY);
+      if (hit0 !== null && hit1 !== null) {
+        e.preventDefault();
+        sqTouchMode = 'pinch';
+        sqDragging = false; sqResizing = false;
+        setSquareDragging(false);
+        sqPinchDist0 = pinchDist(e.touches) || 1;
+        sqHalfW00 = sqHalfW; sqHalfH00 = sqHalfH;
+      } else {
+        sqTouchMode = 'viewer';
+        viewerTouchStart(e);
+      }
+    } else if (e.touches.length === 1) {
+      const t = e.touches[0];
+      const hit = squareHitTest(t.clientX, t.clientY);
+      sqTouchMoved = false;
+      if (hit && hit !== 'inside') {
+        e.preventDefault();
+        sqTouchMode = (hit.indexOf('corner') === 0) ? 'corner' : 'edge';
+        sqTouchResizeMode = hit;
+        sqTouchStartX = t.clientX; sqTouchStartY = t.clientY;
+        sqHalfW0 = sqHalfW; sqHalfH0 = sqHalfH;
+        setSquareDragging(true);
+      } else if (hit === 'inside') {
+        e.preventDefault();
+        sqTouchMode = 'drag';
+        sqDragStartX = t.clientX; sqDragStartY = t.clientY;
+        sqCX0 = sqX; sqCY0 = sqY;
+        setSquareDragging(true);
+      } else {
+        sqTouchMode = 'viewer';
+        viewerTouchStart(e);
+      }
+    }
+  }, { passive: false });
+
+  squareCanvas.addEventListener('touchmove', e => {
+    if (sqTouchMode === 'pinch' && e.touches.length === 2) {
+      e.preventDefault();
+      const ratio = pinchDist(e.touches) / sqPinchDist0;
+      sqHalfW = Math.max(20, Math.min(400, Math.round(sqHalfW00 * ratio)));
+      sqHalfH = Math.max(20, Math.min(400, Math.round(sqHalfH00 * ratio)));
+      applySquare();
+    } else if ((sqTouchMode === 'corner' || sqTouchMode === 'edge') && e.touches.length === 1) {
+      e.preventDefault();
+      const t = e.touches[0];
+      applySquareResize(sqTouchResizeMode, t.clientX - sqTouchStartX, t.clientY - sqTouchStartY);
+      applySquare();
+    } else if (sqTouchMode === 'drag' && e.touches.length === 1) {
+      e.preventDefault();
+      const t = e.touches[0];
+      sqTouchMoved = true;
+      const margin = 5;
+      sqX = Math.max(sqHalfW + margin, Math.min(window.innerWidth  - sqHalfW - margin, sqCX0 + t.clientX - sqDragStartX));
+      sqY = Math.max(sqHalfH + margin, Math.min(window.innerHeight - sqHalfH - margin, sqCY0 + t.clientY - sqDragStartY));
+      applySquare();
+    } else if (sqTouchMode === 'viewer') {
+      e.preventDefault();
+      sqTouchMoved = true;
+      viewerTouchMove(e);
+    }
+  }, { passive: false });
+
+  squareCanvas.addEventListener('touchend', e => {
+    if (sqTouchMode === 'pinch' || sqTouchMode === 'drag' || sqTouchMode === 'corner' || sqTouchMode === 'edge') {
+      saveSquareSettings();
+    } else if (sqTouchMode === 'viewer') {
+      viewerTouchEnd(e);
+    }
+    setSquareDragging(false);
+    sqTouchMode = null;
+  }, { passive: false });
+  squareCanvas.addEventListener('touchcancel', () => {
+    setSquareDragging(false);
+    sqTouchMode = null;
   });
 
   // プリセット
-  let activeTriPresetSnapshot = null;
-  function loadTriPresets() {
-    try { triPresets = JSON.parse(localStorage.getItem(TRI_PRESET_KEY)) || []; } catch(e) { triPresets = []; }
-  }
-  function saveTriPresets() {
-    try { localStorage.setItem(TRI_PRESET_KEY, JSON.stringify(triPresets)); } catch(e) {}
-  }
-  function currentTriSnapshot() { return { tS, tColor, tAlpha }; }
+  const SQUARE_PRESET_KEY = 'yucchi_square_presets';
+  let squarePresets = [];
+  let activeSquarePresetIdx = -1;
+  let activeSquarePresetSnapshot = null; // 選択時の設定スナップショット（変更検知用）
 
-  window.saveTriPreset = function() {
-    const name = document.getElementById('tri-preset-name').value.trim() || '定規' + (triPresets.length + 1);
-    triPresets.push({ name, ...currentTriSnapshot() });
-    activeTriPresetIdx = triPresets.length - 1;
-    saveTriPresets(); renderTriPresets();
-    document.getElementById('tri-preset-name').value = '';
+  function loadSquarePresets() {
+    try { squarePresets = JSON.parse(localStorage.getItem(SQUARE_PRESET_KEY)) || []; } catch(e) { squarePresets = []; }
+    renderSquarePresets();
+  }
+  function saveSquarePresets() {
+    try { localStorage.setItem(SQUARE_PRESET_KEY, JSON.stringify(squarePresets)); } catch(e) {}
+  }
+  function currentSquareSnapshot() {
+    return { color: sqColor, alpha: sqAlpha, halfW: sqHalfW, halfH: sqHalfH };
+  }
+  // 現在の設定がアクティブプリセットから変更されているか
+  function isSquarePresetDirty() {
+    if (activeSquarePresetIdx === -1 || !activeSquarePresetSnapshot) return false;
+    const s = activeSquarePresetSnapshot;
+    return (
+      sqColor !== s.color ||
+      sqAlpha !== s.alpha ||
+      sqHalfW !== s.halfW ||
+      sqHalfH !== s.halfH
+    );
+  }
+  window.saveSquarePreset = function() {
+    const nameInput = document.getElementById('square-preset-name');
+    const name = nameInput.value.trim();
+    if (!name) {
+      showModal('名前を入力してください。', 'OK', () => nameInput.focus(), false);
+      return;
+    }
+    const dupIdx = squarePresets.findIndex(p => p.name === name);
+    if (dupIdx !== -1) {
+      showModal(`「${name}」はすでに保存されています。\n上書きしますか？`, '上書き保存', () => {
+        squarePresets[dupIdx] = { name, ...currentSquareSnapshot() };
+        saveSquarePresets();
+        nameInput.value = '';
+        renderSquarePresets();
+      });
+      return;
+    }
+    if (squarePresets.length >= 5) {
+      showModal('保存できるのは5個までです。\n先に削除してから保存してください。', 'OK', () => {}, false);
+      return;
+    }
+    squarePresets.push({ name, ...currentSquareSnapshot() });
+    activeSquarePresetIdx = squarePresets.length - 1;
+    saveSquarePresets();
+    renderSquarePresets();
+    nameInput.value = '';
   };
+  // プリセット項目の上書きボタン：選択中ならその場で上書き保存、未選択ならまず切り替えるだけ
+  window.overwriteSquarePresetItem = function(i) {
+    const p = squarePresets[i];
+    if (!p) return;
+    if (activeSquarePresetIdx !== i) {
+      doApplySquarePreset(p, i);
+      return;
+    }
+    showModal(`「${p.name}」を今の設定で上書き保存しますか？`, '上書き保存', () => {
+      squarePresets[i] = { name: p.name, ...currentSquareSnapshot() };
+      saveSquarePresets();
+      activeSquarePresetSnapshot = { ...currentSquareSnapshot() };
+      renderSquarePresets();
+    });
+  };
+  function renderSquarePresets() {
+    const list = document.getElementById('square-preset-list');
+    const countEl = document.getElementById('square-preset-count');
+    if (countEl) countEl.textContent = squarePresets.length;
+    if (!squarePresets.length) {
+      list.innerHTML = '<div class="preset-empty">保存した定規はありません</div>';
+      return;
+    }
+    list.innerHTML = squarePresets.map((p, i) => `
+      <div class="preset-item${i === activeSquarePresetIdx ? ' preset-active' : ''}" style="display:flex;align-items:center;gap:6px;">
+        <div style="width:16px;height:16px;flex-shrink:0;border-radius:3px;background:${p.color};opacity:${Math.min(1,(p.alpha||0.7)+0.3)};border:1.5px solid ${p.color};"></div>
+        <div style="flex:1;min-width:0;cursor:pointer;" onclick="applySquarePreset(${i})">
+          <div class="preset-item-name">${p.name}</div>
 
-  function renderTriPresets() {
-    const list = document.getElementById('tri-preset-list');
-    if (!triPresets.length) { list.innerHTML = '<div class="preset-empty">まだ保存されていません</div>'; return; }
-    list.innerHTML = triPresets.map((p, i) => `
-      <div class="preset-item${i === activeTriPresetIdx ? ' active' : ''}" onclick="applyTriPreset(${i})">
-        <span class="preset-item-name">${p.name}</span>
-        <button class="preset-delete-btn" onclick="event.stopPropagation();deleteTriPreset(${i})">✕</button>
+        </div>
+        <button class="preset-overwrite-item-btn" data-tip="上書き" onclick="overwriteSquarePresetItem(${i})">✎</button>
+        <button class="preset-del-btn" data-tip="削除" onclick="deleteSquarePreset(${i})">✕</button>
       </div>`).join('');
   }
-  window.applyTriPreset = function(i) {
-    const p = triPresets[i];
-    tS = p.tS; tColor = p.tColor; tAlpha = p.tAlpha;
-    document.getElementById('tri-size').value    = tS;
-    document.getElementById('tri-size-label').textContent = tS + ' px';
-    document.getElementById('tri-opacity').value = Math.round(tAlpha * 100);
-    document.getElementById('tri-opacity-label').textContent = Math.round(tAlpha * 100) + '%';
-    document.getElementById('tri-color').value   = tColor;
-    document.querySelectorAll('#tri-card .color-dot').forEach(d =>
-      d.classList.toggle('active', d.dataset.color === tColor));
-    activeTriPresetIdx = i;
-    applyTri(); saveTriSettings(); renderTriPresets();
+  function doApplySquarePreset(p, idx) {
+    sqColor = p.color; sqAlpha = p.alpha;
+    sqHalfW = p.halfW; sqHalfH = p.halfH;
+    activeSquarePresetIdx = idx;
+    activeSquarePresetSnapshot = { ...currentSquareSnapshot() };
+    syncSquareUI(); applySquare(); saveSquareSettings(); renderSquarePresets();
+  }
+  window.applySquarePreset = function(i) {
+    const p = squarePresets[i];
+    const doSwitch = () => doApplySquarePreset(p, i);
+    if (isSquarePresetDirty()) {
+      const ps = squarePresets;
+      showModal(
+        `「${ps[activeSquarePresetIdx].name}」を上書き保存しますか？`,
+        '上書き保存',
+        () => {
+          ps[activeSquarePresetIdx] = { name: ps[activeSquarePresetIdx].name, ...currentSquareSnapshot() };
+          saveSquarePresets();
+          doSwitch();
+        }
+      );
+      modalCancel.onclick = () => { closeModal(); doSwitch(); };
+    } else {
+      doSwitch();
+    }
   };
-  window.deleteTriPreset = function(i) {
-    triPresets.splice(i, 1);
-    if (activeTriPresetIdx >= triPresets.length) activeTriPresetIdx = -1;
-    saveTriPresets(); renderTriPresets();
+  window.deleteSquarePreset = function(i) {
+    squarePresets.splice(i, 1);
+    if (activeSquarePresetIdx >= squarePresets.length) activeSquarePresetIdx = -1;
+    saveSquarePresets(); renderSquarePresets();
   };
 
-  loadTriSettings();
-  loadTriPresets();
-  renderTriPresets();
-  initTriPos();
 
   /* ========== 初期化 ========== */
   canvas.width  = window.innerWidth;
@@ -4906,6 +5444,10 @@
   loadCircleSettings();
   syncCircleUI();
   loadCirclePresets();
+  resizeSquareCanvas();
+  loadSquareSettings();
+  syncSquareUI();
+  loadSquarePresets();
   // 初期タブをbandに統一（全定規の表示状態をリセット）
   switchRulerTab('band');
   /* ========== 計測モード ========== */
@@ -4920,8 +5462,25 @@
     const redoBtn   = document.getElementById('measure-redo-btn');
     const closeBtn  = document.getElementById('measure-close-btn');
     const resultCol = document.getElementById('measure-result-col');
+    const axisToggle = document.getElementById('measure-axis-toggle');
+    const axisBtnV    = document.getElementById('measure-axis-v');
+    const axisBtnH    = document.getElementById('measure-axis-h');
 
     let pt1 = null, pt2 = null;
+    let measureAxis = 'v'; // Square定規専用：'v'=縦のみ／'h'=横のみ
+
+    axisBtnV.addEventListener('click', e => {
+      e.stopPropagation();
+      measureAxis = 'v';
+      axisBtnV.classList.add('active');
+      axisBtnH.classList.remove('active');
+    });
+    axisBtnH.addEventListener('click', e => {
+      e.stopPropagation();
+      measureAxis = 'h';
+      axisBtnH.classList.add('active');
+      axisBtnV.classList.remove('active');
+    });
 
     // バーをタップ位置の近くに表示（画面端では自動調整）
     // preferBelow: trueなら下側優先（2点目タップ後、計測線と被らないように）
@@ -4930,17 +5489,20 @@
       bar.style.transform = 'none';
       const barWidth  = bar.offsetWidth || 220;
       const barHeight = bar.offsetHeight || 36;
+      const minTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--measure-bar-top')) || 8;
       let barLeft = x - barWidth / 2;
       barLeft = Math.max(8, Math.min(window.innerWidth - barWidth - 8, barLeft));
       let barTop;
       if (preferBelow) {
         barTop = y + 24;
         if (barTop + barHeight > window.innerHeight - 8) {
-          barTop = Math.max(8, y - barHeight - 24);
+          barTop = Math.max(minTop, y - barHeight - 24);
         }
       } else {
-        barTop = y - barHeight - 20;
-        if (barTop < 8) barTop = y + 20;
+        // 常にタップ位置の「上」に出す。パネルに近すぎて収まらない場合は
+        // タップ位置を仮想的に下げてから、その上に出す（バー自体は常に上側）
+        const effectiveY = Math.max(y, minTop + barHeight + 20);
+        barTop = effectiveY - barHeight - 20;
       }
       bar.style.left = barLeft + 'px';
       bar.style.top  = barTop + 'px';
@@ -4948,7 +5510,8 @@
 
     function resetBarToCenter() {
       bar.style.left = '50%';
-      bar.style.top = '70px';
+      const topVar = getComputedStyle(document.documentElement).getPropertyValue('--measure-bar-top').trim();
+      bar.style.top = topVar || '70px';
       bar.style.transform = 'translateX(-50%)';
     }
 
@@ -4965,46 +5528,57 @@
 
       const color = '#7A9B93';
       const isDiagonal = (currentRulerTab === 'circle');
+      const isHorizontal = (currentRulerTab === 'square' && measureAxis === 'h');
 
-      // 1点目のマーカー
+      // 1点目のマーカー（丸＋ガイド線。縦モードは横線、横モードは縦線）
       ctx.beginPath();
       ctx.arc(pt1.x, pt1.y, 6, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
 
-      if (isDiagonal) {
-        // 斜め計測：点の周りに十字マーカー
-        ctx.beginPath();
-        ctx.moveTo(pt1.x - 14, pt1.y);
-        ctx.lineTo(pt1.x + 14, pt1.y);
-        ctx.moveTo(pt1.x, pt1.y - 14);
-        ctx.lineTo(pt1.x, pt1.y + 14);
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
-        ctx.stroke();
+      ctx.beginPath();
+      if (isHorizontal) {
+        ctx.moveTo(pt1.x, pt1.y - 18);
+        ctx.lineTo(pt1.x, pt1.y + 18);
       } else {
-        ctx.beginPath();
         ctx.moveTo(pt1.x - 18, pt1.y);
         ctx.lineTo(pt1.x + 18, pt1.y);
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
-        ctx.stroke();
       }
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
 
       if (!pt2) return;
 
-      // 2点目のマーカー
-      ctx.beginPath();
-      ctx.arc(pt2.x, pt2.y, 6, 0, Math.PI * 2);
-      ctx.fillStyle = color;
-      ctx.fill();
-
       if (isDiagonal) {
+        // 2点を結ぶ線の角度に対して垂直な向きでマーカーを描く
+        const lineAngle = Math.atan2(pt2.y - pt1.y, pt2.x - pt1.x);
+        const perpAngle = lineAngle + Math.PI / 2;
+        const mdx = Math.cos(perpAngle) * 18;
+        const mdy = Math.sin(perpAngle) * 18;
+
+        // 1点目のマーカーを垂直向きで描き直す（水平線は上で既に描いたので消してから再描画）
+        ctx.clearRect(0, 0, cvs.width, cvs.height);
         ctx.beginPath();
-        ctx.moveTo(pt2.x - 14, pt2.y);
-        ctx.lineTo(pt2.x + 14, pt2.y);
-        ctx.moveTo(pt2.x, pt2.y - 14);
-        ctx.lineTo(pt2.x, pt2.y + 14);
+        ctx.arc(pt1.x, pt1.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(pt1.x - mdx, pt1.y - mdy);
+        ctx.lineTo(pt1.x + mdx, pt1.y + mdy);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // 2点目のマーカー（実際にタップした座標のまま、線に対して垂直な向き）
+        ctx.beginPath();
+        ctx.arc(pt2.x, pt2.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(pt2.x - mdx, pt2.y - mdy);
+        ctx.lineTo(pt2.x + mdx, pt2.y + mdy);
         ctx.strokeStyle = color;
         ctx.lineWidth = 2;
         ctx.stroke();
@@ -5024,18 +5598,65 @@
         const dist = Math.round(Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y));
         ctx.font = '700 13px "Zen Maru Gothic", sans-serif';
         ctx.fillStyle = color;
-        ctx.fillText(dist + ' px', midX + 14, midY - 10);
+        // テキストは線に対して垂直な方向にオフセットして配置する（線の角度に関わらず点線・マーカーと重ならないように）
+        const textOffset = 22;
+        let tox = Math.cos(perpAngle) * textOffset;
+        let toy = Math.sin(perpAngle) * textOffset;
+        // 上方向（画面の上側）に出るよう正規化（線がどちらの向きでも見た目を安定させる）
+        if (toy > 0) { tox = -tox; toy = -toy; }
+        ctx.textAlign = (tox >= 0) ? 'left' : 'right';
+        ctx.fillText(dist + ' px', midX + tox, midY + toy);
+        ctx.textAlign = 'left';
       } else {
+        if (isHorizontal) {
+          const y = pt1.y; // Square横モード：1点目のY座標に揃えて描く（縦ズレを無視した横距離計測）
+          // 2点目のマーカー（Y座標は1点目に揃える）
+          ctx.beginPath();
+          ctx.arc(pt2.x, y, 6, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.moveTo(pt2.x, y - 18);
+          ctx.lineTo(pt2.x, y + 18);
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(pt1.x, y);
+          ctx.lineTo(pt2.x, y);
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          const midX = (pt1.x + pt2.x) / 2;
+          const dist = Math.round(Math.abs(pt2.x - pt1.x));
+          ctx.font = '700 13px "Zen Maru Gothic", sans-serif';
+          ctx.fillStyle = color;
+          ctx.textAlign = 'center';
+          ctx.fillText(dist + ' px', midX, y - 24);
+          ctx.textAlign = 'left';
+        } else {
+        const x = pt1.x; // Line/Frame/Square縦モードは常に1点目のX座標に揃えて描く（横ズレを無視した縦距離計測）
+        // 2点目のマーカー（X座標は1点目に揃える。実際のタップ座標の点は描かない）
         ctx.beginPath();
-        ctx.moveTo(pt2.x - 18, pt2.y);
-        ctx.lineTo(pt2.x + 18, pt2.y);
+        ctx.arc(x, pt2.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(x - 18, pt2.y);
+        ctx.lineTo(x + 18, pt2.y);
         ctx.strokeStyle = color;
         ctx.lineWidth = 2;
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.moveTo(pt1.x, pt1.y);
-        ctx.lineTo(pt1.x, pt2.y);
+        ctx.moveTo(x, pt1.y);
+        ctx.lineTo(x, pt2.y);
         ctx.strokeStyle = color;
         ctx.lineWidth = 2;
         ctx.setLineDash([6, 4]);
@@ -5046,7 +5667,8 @@
         const dist = Math.round(Math.abs(pt2.y - pt1.y));
         ctx.font = '700 13px "Zen Maru Gothic", sans-serif';
         ctx.fillStyle = color;
-        ctx.fillText(dist + ' px', pt1.x + 24, midY + 5);
+        ctx.fillText(dist + ' px', x + 24, midY + 5);
+        }
       }
     }
 
@@ -5055,18 +5677,22 @@
       hint.textContent = text;
       hint.style.display = 'inline';
       resultCol.style.display = 'none';
+      // Square定規：1点目を選ぶ前（やり直し含む）だけ縦/横トグルを見せる
+      axisToggle.style.display = (currentRulerTab === 'square') ? 'flex' : 'none';
     }
 
     // バーの中身を結果表示に切り替え
     function showResultMode(dist) {
       hint.style.display = 'none';
+      axisToggle.style.display = 'none'; // 2点目を選んだ時点で縦横は確定済みなので隠す
       pxLabel.textContent = dist + ' px';
       resultCol.style.display = 'flex';
     }
 
     function onTap(e) {
-      if (e.target.closest('#measure-redo-btn') || e.target.closest('#measure-close-btn')) return;
+      if (e.target.closest('#measure-redo-btn') || e.target.closest('#measure-close-btn') || e.target.closest('#measure-apply-btn')) return;
       e.stopPropagation();
+      if (e.type === 'touchstart') e.preventDefault(); // 続く合成clickの二重発火を防止
       const touch = e.touches ? e.touches[0] : e;
       const x = touch.clientX;
       const y = touch.clientY;
@@ -5075,14 +5701,16 @@
         pt1 = { x, y };
         draw();
         redoBtn.style.display = 'flex';
-        showHintMode(currentRulerTab === 'circle' ? '円周（端）をタップ' : '2点目をタップ');
+        showHintMode('2点目をタップ');
         positionBar(x, y);
       } else if (!pt2) {
         pt2 = { x, y };
         draw();
         const dist = (currentRulerTab === 'circle')
           ? Math.round(Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y))
-          : Math.round(Math.abs(pt2.y - pt1.y));
+          : (currentRulerTab === 'square' && measureAxis === 'h')
+            ? Math.round(Math.abs(pt2.x - pt1.x))
+            : Math.round(Math.abs(pt2.y - pt1.y));
         showResultMode(dist);
         positionBar(pt1.x, pt2.y, true);
       }
@@ -5094,10 +5722,12 @@
       ctx.clearRect(0, 0, cvs.width, cvs.height);
       redoBtn.style.display = 'none';
       resetBarToCenter();
-      if (currentRulerTab === 'circle') {
-        showHintMode('編み図を拡大して中心をタップ');
-      } else {
-        showHintMode('編み図を拡大して1点目をタップ');
+      showHintMode('編み図を拡大して1点目をタップ');
+      // Square定規のときは毎回「縦」から開始（表示・非表示はshowHintModeが担当）
+      if (currentRulerTab === 'square') {
+        measureAxis = 'v';
+        axisBtnV.classList.add('active');
+        axisBtnH.classList.remove('active');
       }
       overlay.style.display = 'block';
       overlay.style.pointerEvents = 'all';
@@ -5116,12 +5746,12 @@
       if (pt2) {
         pt2 = null;
         draw();
-        showHintMode(currentRulerTab === 'circle' ? '円周（端）をタップ' : '2点目をタップ');
+        showHintMode('2点目をタップ');
         positionBar(pt1.x, pt1.y);
       } else {
         pt1 = null; pt2 = null;
         ctx.clearRect(0, 0, cvs.width, cvs.height);
-        showHintMode(currentRulerTab === 'circle' ? '中心をタップ' : '1点目をタップ');
+        showHintMode('1点目をタップ');
       }
     }
 
@@ -5135,19 +5765,25 @@
       if (!pt1 || !pt2) return;
       const rawDist = (currentRulerTab === 'circle')
         ? Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y)
-        : Math.abs(pt2.y - pt1.y);
+        : (currentRulerTab === 'square' && measureAxis === 'h')
+          ? Math.abs(pt2.x - pt1.x)
+          : Math.abs(pt2.y - pt1.y);
       const dist = Math.max(6, Math.round(rawDist));
       document.getElementById('measure-float-btn').style.display = 'none';
       const gpToggle = document.getElementById('gp-toggle-guide');
       const gpStep = document.getElementById('gp-step-label');
       if (currentRulerTab === 'frame') {
         frameStep = dist;
-        frameStepBase = dist;
+        frameStepBase = scale > 0 ? dist / scale : dist;
         saveFrameSettings();
       } else if (currentRulerTab === 'circle') {
         circleStep = dist;
-        circleStepBase = dist;
+        circleStepBase = scale > 0 ? dist / scale : dist;
         saveCircleSettings();
+      } else if (currentRulerTab === 'square') {
+        squareStep = dist;
+        squareStepBase = scale > 0 ? dist / scale : dist;
+        saveSquareSettings();
       } else {
         rulerStep = dist;
         rulerBaseStep = scale > 0 ? dist / scale : dist;
