@@ -109,6 +109,29 @@
       user-select: none;
     }
     #save-hint-center span { white-space: nowrap; }
+    #square-edge-toast {
+      position: fixed;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-6px);
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 12px;
+      letter-spacing: .04em;
+      color: #FFF6EE;
+      background: #6B5258;
+      padding: 8px 16px;
+      border-radius: 18px;
+      white-space: nowrap;
+      pointer-events: none;
+      user-select: none;
+      z-index: 200;
+      opacity: 0;
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    #square-edge-toast.show {
+      opacity: 0.94;
+      transform: translateX(-50%) translateY(0);
+    }
     #save-hint-corner {
       display: none;
       position: absolute;
@@ -539,7 +562,7 @@
       color: var(--text);
       letter-spacing: .04em;
       line-height: 1.5;
-      word-break: keep-all;
+      overflow-wrap: break-word;
     }
     .ruler-op-pinch {
       font-size: 10px;
@@ -548,7 +571,7 @@
       opacity: 0.8;
       padding-left: 0;
       margin-top: -2px;
-      word-break: keep-all;
+      overflow-wrap: break-word;
     }
     .ruler-control > div {
       min-width: 0;
@@ -558,7 +581,7 @@
     /* スライダー行 */
     .ruler-control {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 8px;
     }
     .ruler-control label {
@@ -568,6 +591,7 @@
       letter-spacing: .05em;
       white-space: nowrap;
       min-width: 4em;
+      line-height: 1.5; /* .ruler-op-descと同じline-height・font-sizeにして、説明の1行目とラベルの高さを揃える */
     }
     .ruler-control input[type=range] {
       flex: 1;
@@ -584,7 +608,8 @@
     }
 
     /* カラー行 */
-    .ruler-color-row { flex-wrap: wrap; gap: 6px; }
+    .ruler-color-row { flex-wrap: wrap; gap: 6px; align-items: center; }
+    .ruler-slider-row { align-items: center; }
     .color-presets { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; max-width: 160px; }
     .color-col { display: flex; flex-direction: column; gap: 5px; align-items: stretch; }
     .color-dot {
@@ -788,6 +813,7 @@
       z-index: 52;
       pointer-events: all;
       touch-action: none;
+      transform: translate(-50%, -50%); /* top/leftに入れた座標が常に中心になるようにする（Line定規の角と同じ「ズレない」考え方） */
     }
     .frame-outer-corner[data-oc="tl"] { cursor: nwse-resize; }
     .frame-outer-corner[data-oc="tr"] { cursor: nesw-resize; }
@@ -1526,6 +1552,9 @@
   <canvas id="square-canvas" style="position:absolute;top:0;left:0;pointer-events:all;touch-action:none;cursor:grab;"></canvas>
 </div>
 
+<!-- ===== Square定規：辺を掴んだ時のお知らせトースト ===== -->
+<div id="square-edge-toast">▭ 長方形になります</div>
+
 <!-- ===== 段ガイド計測フロートバナー（未使用） ===== -->
 <div id="measure-float-btn" style="display:none;"></div>
 
@@ -1637,13 +1666,16 @@
           <span>定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:12px 12px 10px; gap:14px;">
+        <div class="card-accordion-body" style="padding:18px 12px 10px; gap:14px;">
           <div class="ruler-control">
             <label>リサイズ</label>
             <div>
-              <span class="ruler-op-desc">四辺・四隅をドラッグ</span>
-              <div class="ruler-op-pinch">🤏 ピンチでリサイズも可</div>
+              <div class="ruler-op-desc">枠の辺や角をドラッグ／ピンチ</div>
             </div>
+          </div>
+          <div class="ruler-control">
+            <label>移動</label>
+            <div class="ruler-op-desc">長押し＆ドラッグ</div>
           </div>
           <div class="ruler-control ruler-color-row">
             <label>色</label>
@@ -1657,14 +1689,10 @@
               <label for="ruler-color" class="color-custom-label" title="カラーを選ぶ"></label>
             </div>
           </div>
-          <div class="ruler-control">
+          <div class="ruler-control ruler-slider-row">
             <label for="ruler-opacity">濃度</label>
             <input type="range" id="ruler-opacity" min="10" max="90" value="70" step="5" style="width:127px; flex:none;">
             <span id="ruler-opacity-label">70%</span>
-          </div>
-          <div class="ruler-control">
-            <label>移動</label>
-            <span class="ruler-op-desc">長押し＆ドラッグ</span>
           </div>
           <button class="reset-default-btn" id="band-reset-btn" onclick="resetBandDefault()">リセット</button>
         </div>
@@ -1716,14 +1744,16 @@
           <span>定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:12px 12px 10px; gap:14px;">
+        <div class="card-accordion-body" style="padding:18px 12px 10px; gap:14px;">
           <div class="ruler-control">
             <label>リサイズ</label>
             <div>
-              <span class="ruler-op-desc">四辺・四隅をドラッグ</span>
-              <div class="ruler-op-pinch">外枠と窓それぞれ操作できます</div>
-              <div class="ruler-op-pinch">🤏 ピンチでリサイズも可</div>
+              <div class="ruler-op-desc">外枠・窓の辺や角をドラッグ／ピンチ</div>
             </div>
+          </div>
+          <div class="ruler-control">
+            <label>移動</label>
+            <div class="ruler-op-desc">長押し＆ドラッグ</div>
           </div>
           <div class="ruler-control ruler-color-row">
             <label>色</label>
@@ -1737,14 +1767,10 @@
               <label for="frame-color" class="color-custom-label" title="カラーを選ぶ"></label>
             </div>
           </div>
-          <div class="ruler-control">
+          <div class="ruler-control ruler-slider-row">
             <label for="frame-opacity">濃度</label>
             <input type="range" id="frame-opacity" min="10" max="90" value="70" step="5" style="width:127px; flex:none;">
             <span id="frame-opacity-label">70%</span>
-          </div>
-          <div class="ruler-control">
-            <label>移動</label>
-            <span class="ruler-op-desc">長押し＆ドラッグ</span>
           </div>
           <button class="reset-default-btn" id="frame-reset-btn" onclick="resetFrameDefault()">リセット</button>
         </div>
@@ -1796,13 +1822,16 @@
           <span>定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:12px 12px 10px; gap:14px;">
+        <div class="card-accordion-body" style="padding:18px 12px 10px; gap:14px;">
           <div class="ruler-control">
             <label>リサイズ</label>
             <div>
-              <span class="ruler-op-desc">外枠をドラッグ</span>
-              <div class="ruler-op-pinch">🤏 ピンチでリサイズも可</div>
+              <div class="ruler-op-desc">枠をドラッグ／ピンチ</div>
             </div>
+          </div>
+          <div class="ruler-control">
+            <label>移動</label>
+            <div class="ruler-op-desc">長押し＆ドラッグ</div>
           </div>
           <div class="ruler-control ruler-color-row">
             <label>色</label>
@@ -1816,14 +1845,10 @@
               <label for="circle-color" class="color-custom-label" title="カラーを選ぶ"></label>
             </div>
           </div>
-          <div class="ruler-control">
+          <div class="ruler-control ruler-slider-row">
             <label for="circle-opacity">濃度</label>
             <input type="range" id="circle-opacity" min="10" max="90" value="70" step="5" style="width:127px; flex:none;">
             <span id="circle-opacity-label">70%</span>
-          </div>
-          <div class="ruler-control">
-            <label>移動</label>
-            <span class="ruler-op-desc">長押し＆ドラッグ</span>
           </div>
           <button class="reset-default-btn" id="circle-reset-btn" onclick="resetCircleDefault()">リセット</button>
         </div>
@@ -1875,13 +1900,17 @@
           <span>定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:12px 12px 10px; gap:14px;">
+        <div class="card-accordion-body" style="padding:18px 12px 10px; gap:14px;">
           <div class="ruler-control">
             <label>リサイズ</label>
             <div>
-              <span class="ruler-op-desc">角をドラッグで正方形に拡大縮小</span>
-              <div class="ruler-op-pinch">🤏 辺の中央をドラッグで一辺だけ調整</div>
+              <div class="ruler-op-desc">角をドラッグ／ピンチ</div>
+              <div class="ruler-op-pinch">※辺の中央をドラッグで長方形に／内側ダブルタップで正方形⇔長方形を切替</div>
             </div>
+          </div>
+          <div class="ruler-control">
+            <label>移動</label>
+            <div class="ruler-op-desc">長押し＆ドラッグ</div>
           </div>
           <div class="ruler-control ruler-color-row">
             <label>色</label>
@@ -1895,14 +1924,10 @@
               <label for="square-color" class="color-custom-label" title="カラーを選ぶ"></label>
             </div>
           </div>
-          <div class="ruler-control">
+          <div class="ruler-control ruler-slider-row">
             <label for="square-opacity">濃度</label>
             <input type="range" id="square-opacity" min="10" max="90" value="70" step="5" style="width:127px; flex:none;">
             <span id="square-opacity-label">70%</span>
-          </div>
-          <div class="ruler-control">
-            <label>移動</label>
-            <span class="ruler-op-desc">長押し＆ドラッグ</span>
           </div>
           <button class="reset-default-btn" id="square-reset-btn" onclick="resetSquareDefault()">リセット</button>
         </div>
@@ -2151,7 +2176,6 @@
     rulerTop  = Math.round(window.innerHeight * 0.75);
     rulerLeft = 0;
     applyRulerPos();
-    applyRulerStyle();
   }
 
   function applyRulerPos() {
@@ -2168,6 +2192,8 @@
     rulerHandle.style.height = rulerHeight + 'px';
     rulerHandle.style.left   = leftPx  + 'px';
     rulerHandle.style.width  = widthPx + 'px';
+    // 位置・サイズが変わったら見た目（SVG）も必ず更新する（Frame定規と同じ構造）
+    applyRulerStyle();
   }
 
 
@@ -2202,7 +2228,7 @@
           <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
-        <filter id="rdrop" x="-5%" y="-5%" width="115%" height="120%">
+        <filter id="rdrop" x="-5%" y="-5%" width="115%" height="120%" color-interpolation-filters="sRGB">
           <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(${r},${g},${b},0.25)"/>
         </filter>
       </defs>
@@ -2610,7 +2636,7 @@
       e.preventDefault();
     });
     edge.addEventListener('pointerup', () => {
-      if (edgeDragging) saveSettings();
+      if (edgeDragging) { applyRulerStyle(); saveSettings(); }
       edgeDragging = false;
       rulerHandle.classList.remove('resizing');
     });
@@ -2682,7 +2708,7 @@
       e.preventDefault();
     });
     corner.addEventListener('pointerup', () => {
-      if (cornerDragging) saveSettings();
+      if (cornerDragging) { applyRulerStyle(); saveSettings(); }
       cornerDragging = false;
       rulerHandle.classList.remove('resizing');
     });
@@ -2831,7 +2857,6 @@
     if (rulerSizeInput)  rulerSizeInput.value = rulerHeight;
     if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
     applyRulerPos();
-    applyRulerStyle();
   }, { passive: false });
 
   rulerHandle.addEventListener('touchend', e => {
@@ -2840,6 +2865,43 @@
       saveSettings();
     }
   });
+
+  // ===== 帯定規：トラックパッドのピンチ（Mac/Win共通でctrlKey付きwheel）=====
+  // Ctrlなしの通常ホイール／トラックパッド2本指スクロールは編み図側のズームに渡す
+  let rulerWheelPinchTimer = null;
+  rulerHandle.addEventListener('wheel', e => {
+    if (!e.ctrlKey) { viewerWheel(e); return; }
+    e.preventDefault();
+    e.stopPropagation();
+    // deltaYが負＝指を開く（拡大）、正＝指を閉じる（縮小）
+    const factor = Math.exp(-e.deltaY * 0.01);
+    // 中心位置（横%・縦px）
+    const cxPct  = rulerLeft + rulerWidth / 2;
+    const cyPx   = rulerTop  + rulerHeight / 2;
+    const cxPx   = (cxPct / 100) * window.innerWidth;
+    // 中心から画面端までの最短距離を基準に、縦横比を保った最大拡大率を求める
+    const maxHalfWPx = Math.min(cxPx, window.innerWidth  - cxPx);
+    const maxHalfHPx = Math.min(cyPx, window.innerHeight - cyPx);
+    const curHalfWPx = (rulerWidth / 100) * window.innerWidth / 2;
+    const curHalfHPx = rulerHeight / 2;
+    const maxGrowRatio = Math.min(maxHalfWPx / curHalfWPx, maxHalfHPx / curHalfHPx);
+    const cappedFactor = factor > 1 ? Math.min(factor, maxGrowRatio) : factor;
+    const newWidth  = Math.min(100, Math.max(5, rulerWidth  * cappedFactor));
+    const newHeight = Math.min(600, Math.max(MIN_RULER_H, rulerHeight * cappedFactor));
+    rulerWidth  = Math.round(newWidth * 10) / 10;
+    rulerHeight = Math.round(newHeight);
+    rulerLeft   = Math.max(0, Math.min(100 - rulerWidth, cxPct - rulerWidth / 2));
+    rulerLeft   = Math.round(rulerLeft * 10) / 10;
+    rulerTop    = Math.max(0, Math.min(window.innerHeight - rulerHeight, cyPx - rulerHeight / 2));
+    rulerTop    = Math.round(rulerTop);
+    if (rulerWidthInput) rulerWidthInput.value = Math.round(rulerWidth);
+    if (rulerWidthLabel) rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
+    if (rulerSizeInput)  rulerSizeInput.value = Math.max(24, Math.min(120, rulerHeight));
+    if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
+    applyRulerPos();
+    clearTimeout(rulerWheelPinchTimer);
+    rulerWheelPinchTimer = setTimeout(saveSettings, 200);
+  }, { passive: false });
 
   /* ========== パン（マウス） ========== */
   let panning = false, panStartX = 0, panStartY = 0, panOffsetX = 0, panOffsetY = 0;
@@ -3126,7 +3188,6 @@
     document.querySelectorAll('.color-dot').forEach(d =>
       d.classList.toggle('active', d.dataset.color === rulerColor));
     applyRulerPos();
-    applyRulerStyle();
     saveSettings();
     // アクティブプリセット更新
     activePresetIndex    = idx ?? -1;
@@ -3569,7 +3630,6 @@
       squareOverlay.style.display = 'none';
       if (!rulerTop) rulerTop = Math.round(window.innerHeight * 0.75);
       applyRulerPos();
-      applyRulerStyle();
     } else if (tab === 'frame') {
       rulerOverlay.style.display  = 'none';
       frameOverlay.style.display  = 'block';
@@ -3672,12 +3732,11 @@
     frameWinWrap.style.height = fWin.h + 'px';
     frameWinWrap.style.pointerEvents = 'none';
 
-    // 外枠コーナーの位置更新
-    const cs = 28; // コーナーサイズ
+    // 外枠コーナーの位置更新（中心座標をそのまま渡す。CSSのtransform:translate(-50%,-50%)で中心が合う）
     const setCorner = (id, t, l) => {
       const el = document.getElementById(id);
-      el.style.top  = (t - cs / 2) + 'px';
-      el.style.left = (l - cs / 2) + 'px';
+      el.style.top  = t + 'px';
+      el.style.left = l + 'px';
     };
     setCorner('foc-tl', outerTop,    outerLeft);
     setCorner('foc-tr', outerTop,    outerRight);
@@ -3738,7 +3797,7 @@
           <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
-        <filter id="drop" x="-5%" y="-5%" width="115%" height="120%">
+        <filter id="drop" x="-5%" y="-5%" width="115%" height="120%" color-interpolation-filters="sRGB">
           <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(${r},${g},${b},0.25)"/>
         </filter>
       </defs>
@@ -3807,7 +3866,6 @@
     rulerTop = Math.round(textBottom + 35);
 
     applyRulerPos();
-    applyRulerStyle();
     saveSettings();
   }
 
@@ -4405,6 +4463,37 @@
     }
   });
 
+  // ===== 窓定規：トラックパッドのピンチ（ctrlKey付きwheel）=====
+  // Ctrlなしの通常ホイールは編み図側のズームに渡す
+  let frameWheelPinchTimer = null;
+  frameOverlay.addEventListener('wheel', e => {
+    if (!e.ctrlKey) { viewerWheel(e); return; }
+    e.preventDefault();
+    e.stopPropagation();
+    const factor = Math.exp(-e.deltaY * 0.01);
+    const cx = fWin.x + fWin.w / 2;
+    const cy = fWin.y + fWin.h / 2;
+    // 外枠の余白(fOuter)も含めた全体が画面内に収まる最大拡大率を、軸ごとに求める
+    // 左右：中心から左に伸ばせる量＝cx、右に伸ばせる量＝画面幅-cx。それぞれ余白を引いた残りが「窓の半幅」の上限
+    const maxHalfWFromLeft  = cx                      - fOuter.left;
+    const maxHalfWFromRight = (window.innerWidth - cx) - fOuter.right;
+    const maxHalfHFromTop    = cy                       - fOuter.top;
+    const maxHalfHFromBottom = (window.innerHeight - cy) - fOuter.bottom;
+    const maxHalfW = Math.min(maxHalfWFromLeft, maxHalfWFromRight);
+    const maxHalfH = Math.min(maxHalfHFromTop, maxHalfHFromBottom);
+    const maxGrowRatio = Math.min(maxHalfW / (fWin.w / 2), maxHalfH / (fWin.h / 2));
+    const cappedFactor = factor > 1 ? Math.min(factor, Math.max(1, maxGrowRatio)) : factor;
+    const newW = Math.max(80, Math.round(fWin.w * cappedFactor));
+    const newH = Math.max(80, Math.round(fWin.h * cappedFactor));
+    fWin.w = newW;
+    fWin.h = newH;
+    fWin.x = Math.round(cx - newW / 2);
+    fWin.y = Math.round(cy - newH / 2);
+    applyFrameOuterPos();
+    clearTimeout(frameWheelPinchTimer);
+    frameWheelPinchTimer = setTimeout(saveFrameSettings, 200);
+  }, { passive: false });
+
   /* ========== 丸定規 ========== */
   const circleOverlay  = document.getElementById('circle-overlay');
   const circleCanvas   = document.getElementById('circle-canvas');
@@ -4461,7 +4550,7 @@
           <stop offset="${Math.max(0, (1 - hiW / cR) * 100)}%" stop-color="rgba(255,255,255,0)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0.25)"/>
         </radialGradient>
-        <filter id="cdrop" x="-20%" y="-20%" width="140%" height="140%">
+        <filter id="cdrop" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
           <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(${r},${g},${b},0.25)"/>
         </filter>
       </defs>
@@ -4621,7 +4710,27 @@
   let cResizeDist0 = 0, cResizeR0 = 0; // リサイズ開始時の値
 
   /* ----- マウス操作（PC）：pointerイベントで処理 ----- */
-  circleCanvas.addEventListener('wheel', viewerWheel, { passive: false });
+  // トラックパッドのピンチ（ctrlKey付きwheel）：円の内側（rim含む）なら円のリサイズ、外側なら編み図ズーム
+  let circleWheelPinchTimer = null;
+  circleCanvas.addEventListener('wheel', e => {
+    if (e.ctrlKey) {
+      const rect = circleCanvas.getBoundingClientRect();
+      const px = e.clientX - rect.left, py = e.clientY - rect.top;
+      const dist = Math.hypot(px - cX, py - cY);
+      if (dist <= cR + 16) {
+        e.preventDefault();
+        const factor = Math.exp(-e.deltaY * 0.01);
+        // 中心から画面端までの最短距離を半径の上限にする（画面内に収める）
+        const maxR = Math.min(cX, window.innerWidth - cX, cY, window.innerHeight - cY);
+        cR = Math.max(25, Math.min(400, Math.min(maxR, Math.round(cR * factor))));
+        syncCircleSizeUI(); applyCircle();
+        clearTimeout(circleWheelPinchTimer);
+        circleWheelPinchTimer = setTimeout(saveCircleSettings, 200);
+        return;
+      }
+    }
+    viewerWheel(e);
+  }, { passive: false });
   // タッチで円の外側を押した瞬間にパネルを閉じる（Line/Frameのviewer pointerdownと同じ即時クローズ方式）
   circleCanvas.addEventListener('pointerdown', e => {
     if (e.pointerType !== 'touch') return;
@@ -4632,7 +4741,7 @@
     }
   });
   circleCanvas.addEventListener('pointerdown', e => {
-    if (e.pointerType === 'touch') return;
+    if (e.pointerType === 'touch' || e.pointerType === 'pen') return;
     const dx = e.clientX - cX, dy = e.clientY - cY;
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (isOnCircleRim(e.clientX, e.clientY)) {
@@ -4655,7 +4764,7 @@
     }
   });
   circleCanvas.addEventListener('pointermove', e => {
-    if (e.pointerType === 'touch') return;
+    if (e.pointerType === 'touch' || e.pointerType === 'pen') return;
     const dx = e.clientX - cX, dy = e.clientY - cY;
     if (cResizing) {
       cR = Math.max(25, Math.min(400, Math.round(Math.sqrt(dx * dx + dy * dy))));
@@ -4678,14 +4787,14 @@
     }
   });
   circleCanvas.addEventListener('pointerup', e => {
-    if (e.pointerType === 'touch') return;
+    if (e.pointerType === 'touch' || e.pointerType === 'pen') return;
     if (cResizing || cDragging) saveCircleSettings();
     cDragging = false; cResizing = false;
     setCircleDragging(false);
     circleCanvas.style.removeProperty('cursor');
   });
   circleCanvas.addEventListener('pointercancel', e => {
-    if (e.pointerType === 'touch') return;
+    if (e.pointerType === 'touch' || e.pointerType === 'pen') return;
     cDragging = false; cResizing = false;
     setCircleDragging(false);
   });
@@ -4917,6 +5026,8 @@
 
   let sqX = 0, sqY = 0;          // 中心座標
   let sqHalfW = 50, sqHalfH = 50; // 中心から辺までの距離（半幅・半高）
+  // 正方形⇔長方形トグル用：直前の長方形サイズを記憶（正方形に変える前の値）
+  let sqRectHalfW = null, sqRectHalfH = null;
   let sqColor = '#b2aaaa';
   let sqAlpha = 0.70;
   let squareStep  = 0;       // 段ガイドON時に有効な1段の幅（OFF時は0）
@@ -4975,7 +5086,7 @@
           <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
-        <filter id="sqdrop" x="-5%" y="-5%" width="115%" height="120%">
+        <filter id="sqdrop" x="-5%" y="-5%" width="115%" height="120%" color-interpolation-filters="sRGB">
           <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(${r},${g},${b},0.25)"/>
         </filter>
       </defs>
@@ -5006,7 +5117,7 @@
   }
 
   function saveSquareSettings() {
-    try { localStorage.setItem(SQUARE_KEY, JSON.stringify({ sqX, sqY, sqHalfW, sqHalfH, sqColor, sqAlpha, squareStep, squareStepBase, squareCount, showSquareCounter })); } catch(e) {}
+    try { localStorage.setItem(SQUARE_KEY, JSON.stringify({ sqX, sqY, sqHalfW, sqHalfH, sqColor, sqAlpha, squareStep, squareStepBase, squareCount, showSquareCounter, sqRectHalfW, sqRectHalfH })); } catch(e) {}
   }
   function loadSquareSettings() {
     try {
@@ -5029,6 +5140,8 @@
       else if (s.squareStep != null) squareStepBase = s.squareStep;
       if (s.squareCount != null) squareCount = s.squareCount;
       if (s.showSquareCounter != null) showSquareCounter = s.showSquareCounter;
+      if (s.sqRectHalfW != null) sqRectHalfW = s.sqRectHalfW;
+      if (s.sqRectHalfH != null) sqRectHalfH = s.sqRectHalfH;
       return true;
     } catch(e) { return false; }
   }
@@ -5095,7 +5208,7 @@
   function closeSquarePanelIfOpen() {
     if (!floatPanel.classList.contains('collapsed')) togglePanel(true);
   }
-  const SQ_HANDLE_R = 16; // 角・辺の当たり判定の許容範囲(px)
+  const SQ_HANDLE_R = 26; // 角・辺の当たり判定の許容範囲(px)　※スマホでも掴みやすいよう16→26に拡大
 
   // 座標から「どの操作ゾーンか」を判定する。戻り値: null（外側） / 'inside'（移動） / 'corner-tl' などのリサイズモード
   function squareHitTest(px, py) {
@@ -5130,6 +5243,17 @@
     if (mode === 'edge-l' || mode === 'edge-r') return 'ew-resize';
     return 'grab';
   }
+  // 辺を掴んだ瞬間だけ「長方形になります」とふわっと知らせる（角は正方形維持なので表示しない）
+  const squareEdgeToastEl = document.getElementById('square-edge-toast');
+  let squareEdgeToastTimer = null;
+  function showSquareEdgeToast() {
+    if (!squareEdgeToastEl) return;
+    squareEdgeToastEl.classList.add('show');
+    clearTimeout(squareEdgeToastTimer);
+    squareEdgeToastTimer = setTimeout(() => {
+      squareEdgeToastEl.classList.remove('show');
+    }, 1500);
+  }
   // リサイズ操作中：角は中心固定で正方形のまま拡大縮小、辺は片側のみ調整
   function applySquareResize(mode, dx, dy) {
     const MIN_HALF = 20, MAX_HALF = 400;
@@ -5161,7 +5285,36 @@
   }
 
   /* ----- マウス操作（PC）：pointerイベントで処理 ----- */
-  squareCanvas.addEventListener('wheel', viewerWheel, { passive: false });
+  // トラックパッドのピンチ（ctrlKey付きwheel）：枠の上（角・辺・内側）なら枠のリサイズ、外側なら編み図ズーム
+  let squareWheelPinchTimer = null;
+  squareCanvas.addEventListener('wheel', e => {
+    if (e.ctrlKey) {
+      const hit = squareHitTest(e.clientX, e.clientY);
+      if (hit !== null) {
+        e.preventDefault();
+        const factor = Math.exp(-e.deltaY * 0.01);
+        if (hit === 'edge-t' || hit === 'edge-b') {
+          const maxHalfH = Math.min(sqY, window.innerHeight - sqY);
+          sqHalfH = Math.max(20, Math.min(400, maxHalfH, Math.round(sqHalfH * factor)));
+          showSquareEdgeToast();
+        } else if (hit === 'edge-l' || hit === 'edge-r') {
+          const maxHalfW = Math.min(sqX, window.innerWidth - sqX);
+          sqHalfW = Math.max(20, Math.min(400, maxHalfW, Math.round(sqHalfW * factor)));
+          showSquareEdgeToast();
+        } else {
+          // 角または内側：正方形を保ったまま、画面内に収まる範囲で拡縮
+          const maxHalf = Math.min(sqX, window.innerWidth - sqX, sqY, window.innerHeight - sqY);
+          sqHalfW = Math.max(20, Math.min(400, maxHalf, Math.round(sqHalfW * factor)));
+          sqHalfH = Math.max(20, Math.min(400, maxHalf, Math.round(sqHalfH * factor)));
+        }
+        applySquare();
+        clearTimeout(squareWheelPinchTimer);
+        squareWheelPinchTimer = setTimeout(saveSquareSettings, 200);
+        return;
+      }
+    }
+    viewerWheel(e);
+  }, { passive: false });
   // タッチで外側を押した瞬間にパネルを閉じる
   squareCanvas.addEventListener('pointerdown', e => {
     if (e.pointerType !== 'touch') return;
@@ -5169,8 +5322,30 @@
       closeSquarePanelIfOpen();
     }
   });
+  // 内側をダブルタップ/ダブルクリックした時、正方形⇔長方形をトグルする
+  function toggleSquareShape() {
+    const isSquareNow = (sqHalfW === sqHalfH);
+    if (isSquareNow) {
+      // 正方形 → 長方形：記憶している直前の長方形サイズに戻す（記憶がなければ何もしない）
+      if (sqRectHalfW == null || sqRectHalfH == null) return false;
+      sqHalfW = sqRectHalfW;
+      sqHalfH = sqRectHalfH;
+    } else {
+      // 長方形 → 正方形：今のサイズを記憶してから、小さい方の辺に揃える（画面外に出ないよう安全な方を採用）
+      sqRectHalfW = sqHalfW;
+      sqRectHalfH = sqHalfH;
+      const side = Math.min(sqHalfW, sqHalfH);
+      sqHalfW = side;
+      sqHalfH = side;
+    }
+    applySquare();
+    saveSquareSettings();
+    return true;
+  }
+
+  let sqLastInsideClickTime = 0; // 内側クリックのダブルクリック検出用（マウス・ペン共通）
   squareCanvas.addEventListener('pointerdown', e => {
-    if (e.pointerType === 'touch') return;
+    if (e.pointerType === 'touch') return; // ペン(Apple Pencil等)はマウスと同様に扱う
     const hit = squareHitTest(e.clientX, e.clientY);
     if (hit && hit !== 'inside') {
       sqResizing = true;
@@ -5179,7 +5354,19 @@
       sqHalfW0 = sqHalfW; sqHalfH0 = sqHalfH;
       setSquareDragging(true);
       squareCanvas.setPointerCapture(e.pointerId);
+      if (hit === 'edge-t' || hit === 'edge-b' || hit === 'edge-l' || hit === 'edge-r') {
+        showSquareEdgeToast();
+      }
     } else if (hit === 'inside') {
+      // 内側のダブルクリック／ダブルタップ（ペン）判定：300ms以内に同じ場所をもう一度押したらトグル
+      const now = Date.now();
+      if ((now - sqLastInsideClickTime) < 300) {
+        toggleSquareShape();
+        sqLastInsideClickTime = 0;
+        return; // トグルしたらこのクリックではドラッグを開始しない
+      } else {
+        sqLastInsideClickTime = now;
+      }
       sqDragging = true;
       sqDragStartX = e.clientX; sqDragStartY = e.clientY;
       sqCX0 = sqX; sqCY0 = sqY;
@@ -5191,7 +5378,7 @@
     }
   });
   squareCanvas.addEventListener('pointermove', e => {
-    if (e.pointerType === 'touch') return;
+    if (e.pointerType === 'touch') return; // ペンはマウスと同様に扱う
     if (sqResizing) {
       applySquareResize(sqResizeMode, e.clientX - sqResizeStartX, e.clientY - sqResizeStartY);
       applySquare();
@@ -5212,14 +5399,14 @@
     }
   });
   squareCanvas.addEventListener('pointerup', e => {
-    if (e.pointerType === 'touch') return;
+    if (e.pointerType === 'touch') return; // ペンはマウスと同様に扱う
     if (sqResizing || sqDragging) saveSquareSettings();
     sqDragging = false; sqResizing = false; sqResizeMode = null;
     setSquareDragging(false);
     squareCanvas.style.removeProperty('cursor');
   });
   squareCanvas.addEventListener('pointercancel', e => {
-    if (e.pointerType === 'touch') return;
+    if (e.pointerType === 'touch') return; // ペンはマウスと同様に扱う
     sqDragging = false; sqResizing = false; sqResizeMode = null;
     setSquareDragging(false);
   });
@@ -5230,8 +5417,11 @@
   let sqPinchDist0 = 0, sqHalfW00 = 0, sqHalfH00 = 0;
   let sqTouchResizeMode = null;
   let sqTouchStartX = 0, sqTouchStartY = 0;
+  let sqLastInsideTapTime = 0; // 内側ダブルタップ検出用（正方形⇔長方形トグル）
 
   squareCanvas.addEventListener('touchstart', e => {
+    // Apple Pencil等のスタイラスはpointerイベント側（PCマウスと同様の処理）に一本化するため、ここでは扱わない
+    if (e.touches[0] && e.touches[0].touchType === 'stylus') return;
     if (e.touches.length === 2) {
       const t0 = e.touches[0], t1 = e.touches[1];
       const hit0 = squareHitTest(t0.clientX, t0.clientY);
@@ -5281,6 +5471,11 @@
     } else if ((sqTouchMode === 'corner' || sqTouchMode === 'edge') && e.touches.length === 1) {
       e.preventDefault();
       const t = e.touches[0];
+      // 動いた量が小さい間はタップ扱いのまま（ダブルタップ判定を活かすため）。一定以上動いたらリサイズ操作とみなす
+      if (Math.hypot(t.clientX - sqTouchStartX, t.clientY - sqTouchStartY) > 8) {
+        if (!sqTouchMoved && sqTouchMode === 'edge') showSquareEdgeToast();
+        sqTouchMoved = true;
+      }
       applySquareResize(sqTouchResizeMode, t.clientX - sqTouchStartX, t.clientY - sqTouchStartY);
       applySquare();
     } else if (sqTouchMode === 'drag' && e.touches.length === 1) {
@@ -5303,6 +5498,16 @@
       saveSquareSettings();
     } else if (sqTouchMode === 'viewer') {
       viewerTouchEnd(e);
+    }
+    // 内側を「動かさずタップしただけ」の場合、ダブルタップ判定する（300ms以内に2回タップ）→ 正方形⇔長方形トグル
+    if (sqTouchMode === 'drag' && !sqTouchMoved) {
+      const now = Date.now();
+      if ((now - sqLastInsideTapTime) < 300) {
+        toggleSquareShape();
+        sqLastInsideTapTime = 0;
+      } else {
+        sqLastInsideTapTime = now;
+      }
     }
     setSquareDragging(false);
     sqTouchMode = null;
