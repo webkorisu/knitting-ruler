@@ -1568,6 +1568,9 @@
     <!-- ヒント表示（タップ案内） -->
     <span id="measure-hint" style="font-size:12px; color:var(--text); white-space:nowrap; flex-shrink:0;">編み図を拡大して1点目をタップ</span>
 
+    <!-- 拡大調整フェーズ専用：拡大完了ボタン -->
+    <button id="measure-zoomdone-btn" style="display:none; background:var(--primary); border:none; border-radius:16px; padding:6px 14px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; color:var(--text); cursor:pointer; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.10); flex-shrink:0;">拡大完了</button>
+
     <!-- Square定規専用：計測前に縦/横を選ぶトグル -->
     <div id="measure-axis-toggle" style="display:none; align-items:center; gap:4px; flex-shrink:0; background:var(--bg); border-radius:14px; padding:3px;">
       <button id="measure-axis-v" class="measure-axis-btn active" data-axis="v" style="border:none; border-radius:11px; padding:5px 10px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap;">↕ 縦</button>
@@ -2179,15 +2182,11 @@
   }
 
   function applyRulerPos() {
-    const border = 2;
     const sw = window.innerWidth;
     const sh = window.innerHeight;
-    let leftPx  = (rulerLeft  / 100) * sw;
-    let widthPx = (rulerWidth / 100) * sw;
-    leftPx  = Math.max(Math.max(border, 10), leftPx);
-    widthPx = Math.min(widthPx, sw - leftPx - Math.max(border, 10));
-    const topPx = Math.max(10, Math.min(sh - rulerHeight - 10, rulerTop));
-    rulerTop = topPx; // クランプ後の値をrulerTopに反映して内部状態と表示を一致させる
+    const leftPx  = (rulerLeft  / 100) * sw;
+    const widthPx = (rulerWidth / 100) * sw;
+    const topPx = rulerTop;
     rulerHandle.style.top    = topPx  + 'px';
     rulerHandle.style.height = rulerHeight + 'px';
     rulerHandle.style.left   = leftPx  + 'px';
@@ -2610,21 +2609,26 @@
       const dx = e.clientX - edgeStartX;
       const dy = e.clientY - edgeStartY;
       const dxPct = (dx / window.innerWidth) * 100;
+      const marginPct10px = (10 / window.innerWidth) * 100;
       if (side === 'right') {
-        rulerWidth = Math.max(5, Math.min(100 - edgeStartLeft, edgeStartWidth + dxPct));
+        // 右辺を右へ伸ばす。画面右端から10pxだけ余白を残す
+        rulerWidth = Math.max(5, Math.min((100 - edgeStartLeft) - marginPct10px, edgeStartWidth + dxPct));
         rulerWidth = Math.round(rulerWidth * 10) / 10;
       } else if (side === 'left') {
         const rightEdge = edgeStartLeft + edgeStartWidth;
-        rulerLeft  = Math.max(0, Math.min(rightEdge - 5, edgeStartLeft + dxPct));
+        const tentativeLeft = edgeStartLeft + dxPct;
+        rulerLeft  = Math.max(marginPct10px, Math.min(rightEdge - 5, tentativeLeft));
         rulerLeft  = Math.round(rulerLeft * 10) / 10;
         rulerWidth = Math.round((rightEdge - rulerLeft) * 10) / 10;
       } else if (side === 'bottom') {
-        const maxH = window.innerHeight - edgeStartTop;
+        // 下辺を下へ伸ばす。画面下端から10pxだけ余白を残す
+        const maxH = (window.innerHeight - edgeStartTop) - 10;
         rulerHeight = Math.max(MIN_RULER_H, Math.min(maxH, edgeStartHeight + dy));
         rulerHeight = Math.round(rulerHeight);
       } else if (side === 'top') {
         const bottomEdge = edgeStartTop + edgeStartHeight;
-        rulerTop    = Math.max(0, Math.min(bottomEdge - MIN_RULER_H, edgeStartTop + dy));
+        const tentativeTop = edgeStartTop + dy;
+        rulerTop    = Math.max(10, Math.min(bottomEdge - MIN_RULER_H, tentativeTop));
         rulerTop    = Math.round(rulerTop);
         rulerHeight = Math.round(bottomEdge - rulerTop);
       }
@@ -2674,28 +2678,31 @@
       const sw = window.innerWidth;
 
       // 横方向
+      const marginPct10px = (10 / window.innerWidth) * 100;
       if (cornerSide === 'tr' || cornerSide === 'br') {
-        // 右コーナー：右端を伸縮
-        rulerWidth = Math.max(5, Math.min(100 - cornerStartLeft, cornerStartWidth + dxPct));
+        // 右コーナー：右端を伸縮。画面右端から10pxだけ余白を残す
+        rulerWidth = Math.max(5, Math.min((100 - cornerStartLeft) - marginPct10px, cornerStartWidth + dxPct));
         rulerWidth = Math.round(rulerWidth * 10) / 10;
       } else {
         // 左コーナー：左端を伸縮
         const rightEdge = cornerStartLeft + cornerStartWidth;
-        rulerLeft  = Math.max(0, Math.min(rightEdge - 5, cornerStartLeft + dxPct));
+        const tentativeLeft = cornerStartLeft + dxPct;
+        rulerLeft  = Math.max(marginPct10px, Math.min(rightEdge - 5, tentativeLeft));
         rulerLeft  = Math.round(rulerLeft * 10) / 10;
         rulerWidth = Math.round((rightEdge - rulerLeft) * 10) / 10;
       }
 
       // 縦方向
       if (cornerSide === 'bl' || cornerSide === 'br') {
-        // 下コーナー：下端を伸縮
-        const maxH = window.innerHeight - cornerStartTop;
+        // 下コーナー：下端を伸縮。画面下端から10pxだけ余白を残す
+        const maxH = (window.innerHeight - cornerStartTop) - 10;
         rulerHeight = Math.max(MIN_RULER_H, Math.min(maxH, cornerStartHeight + dy));
         rulerHeight = Math.round(rulerHeight);
       } else {
         // 上コーナー：上端を伸縮
         const bottomEdge = cornerStartTop + cornerStartHeight;
-        rulerTop    = Math.max(0, Math.min(bottomEdge - MIN_RULER_H, cornerStartTop + dy));
+        const tentativeTop = cornerStartTop + dy;
+        rulerTop    = Math.max(10, Math.min(bottomEdge - MIN_RULER_H, tentativeTop));
         rulerTop    = Math.round(rulerTop);
         rulerHeight = Math.round(bottomEdge - rulerTop);
       }
@@ -2794,9 +2801,11 @@
     } else if (rulerDragging) {
       const dy = e.clientY - rulerDragStartY;
       const dx = e.clientX - rulerDragStartX;
-      rulerTop  = Math.max(0, Math.min(window.innerHeight - rulerHeight, rulerDragStartTop + dy));
+      // 定規の高さ・幅の10%だけ画面内に見えていればOK（＝90%まで画面外に隠れてよい）
+      rulerTop  = Math.max(-rulerHeight * 0.9, Math.min(window.innerHeight - rulerHeight * 0.1, rulerDragStartTop + dy));
       const leftPx = (rulerDragStartLeft / 100) * window.innerWidth + dx;
-      rulerLeft = Math.max(0, Math.min(100 - rulerWidth, (leftPx / window.innerWidth) * 100));
+      const leftPct = (leftPx / window.innerWidth) * 100;
+      rulerLeft = Math.max(-rulerWidth * 0.9, Math.min(100 - rulerWidth * 0.1, leftPct));
       applyRulerPos();
       e.preventDefault();
     } else {
@@ -2879,20 +2888,15 @@
     const cxPct  = rulerLeft + rulerWidth / 2;
     const cyPx   = rulerTop  + rulerHeight / 2;
     const cxPx   = (cxPct / 100) * window.innerWidth;
-    // 中心から画面端までの最短距離を基準に、縦横比を保った最大拡大率を求める
-    const maxHalfWPx = Math.min(cxPx, window.innerWidth  - cxPx);
-    const maxHalfHPx = Math.min(cyPx, window.innerHeight - cyPx);
-    const curHalfWPx = (rulerWidth / 100) * window.innerWidth / 2;
-    const curHalfHPx = rulerHeight / 2;
-    const maxGrowRatio = Math.min(maxHalfWPx / curHalfWPx, maxHalfHPx / curHalfHPx);
-    const cappedFactor = factor > 1 ? Math.min(factor, maxGrowRatio) : factor;
-    const newWidth  = Math.min(100, Math.max(5, rulerWidth  * cappedFactor));
-    const newHeight = Math.min(600, Math.max(MIN_RULER_H, rulerHeight * cappedFactor));
+    const newWidth  = Math.min(100, Math.max(5, rulerWidth  * factor));
+    const newHeight = Math.min(600, Math.max(MIN_RULER_H, rulerHeight * factor));
     rulerWidth  = Math.round(newWidth * 10) / 10;
     rulerHeight = Math.round(newHeight);
-    rulerLeft   = Math.max(0, Math.min(100 - rulerWidth, cxPct - rulerWidth / 2));
+    // 画面端から少し余白(10px相当)を残して、それ以上は止める
+    const marginPx10Pct = (10 / window.innerWidth) * 100;
+    rulerLeft   = Math.max(-marginPx10Pct, Math.min(100 - rulerWidth + marginPx10Pct, cxPct - rulerWidth / 2));
     rulerLeft   = Math.round(rulerLeft * 10) / 10;
-    rulerTop    = Math.max(0, Math.min(window.innerHeight - rulerHeight, cyPx - rulerHeight / 2));
+    rulerTop    = Math.max(-10, Math.min(window.innerHeight - rulerHeight + 10, cyPx - rulerHeight / 2));
     rulerTop    = Math.round(rulerTop);
     if (rulerWidthInput) rulerWidthInput.value = Math.round(rulerWidth);
     if (rulerWidthLabel) rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
@@ -3075,22 +3079,27 @@
       offsetY += (canvas.height - ph) / 2;
       drawImage();
     }
-    // Line定規：位置だけ画面内に収まるようクランプ（サイズは変えない）
-    rulerTop  = Math.max(10, Math.min(window.innerHeight - rulerHeight - 10, rulerTop));
-    rulerLeft = Math.max(0, Math.min(100 - rulerWidth, rulerLeft));
+    // Line定規：位置だけ画面内に収まるようクランプ（サイズは変えない。10%だけ画面内に見えていればOK）
+    {
+      rulerTop  = Math.max(-rulerHeight * 0.9, Math.min(window.innerHeight - rulerHeight * 0.1, rulerTop));
+      rulerLeft = Math.max(-rulerWidth  * 0.9, Math.min(100 - rulerWidth * 0.1, rulerLeft));
+    }
     applyRulerPos();
     // Frame定規：再配置
     if (typeof applyFrameOuterPos === 'function') applyFrameOuterPos();
-    // Circle定規：位置だけ画面内に収まるようクランプ（サイズは変えない）
+    // Circle定規：位置だけ画面内に収まるようクランプ（サイズは変えない。直径の10%だけ画面内に見えていればOK）
     if (typeof applyCircle === 'function') {
-      cX = Math.max(cR, Math.min(window.innerWidth  - cR, cX));
-      cY = Math.max(cR, Math.min(window.innerHeight - cR, cY));
+      const margin = cR * 0.8;
+      cX = Math.max(-margin, Math.min(window.innerWidth  + margin, cX));
+      cY = Math.max(-margin, Math.min(window.innerHeight + margin, cY));
       resizeCircleCanvas();
     }
-    // Square定規：位置だけ画面内に収まるようクランプ（サイズは変えない）
+    // Square定規：位置だけ画面内に収まるようクランプ（サイズは変えない。10%だけ画面内に見えていればOK）
     if (typeof applySquare === 'function') {
-      sqX = Math.max(sqHalfW, Math.min(window.innerWidth  - sqHalfW, sqX));
-      sqY = Math.max(sqHalfH, Math.min(window.innerHeight - sqHalfH, sqY));
+      const marginW = sqHalfW * 0.8;
+      const marginH = sqHalfH * 0.8;
+      sqX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, sqX));
+      sqY = Math.max(-marginH, Math.min(window.innerHeight + marginH, sqY));
       resizeSquareCanvas();
     }
     // パネルが画面外に出ないようにクランプ
@@ -3588,6 +3597,8 @@
 
   window.switchRulerTab = function(tab) {
     if (currentRulerTab !== tab) {
+      // 計測モード中にタブを切り替えた場合、計測パネルが残ってしまうため強制終了する
+      if (window.stopMeasureIfActive) window.stopMeasureIfActive();
       saveChartStateForTab(currentRulerTab);
       loadChartStateForTab(tab);
     }
@@ -4269,7 +4280,7 @@
   let frameResizeMode = false;
   let longPressTimer  = null;
   const framePanelIds = ['frame-top','frame-bottom','frame-left','frame-right'];
-  const FRAME_SCREEN_MARGIN = 10; // 画面端に必ず残す余白（px）
+  const FRAME_SCREEN_MARGIN = 10; // (未使用) 旧:画面端に必ず残す余白（px）。現在は外枠サイズの10%はみ出し許容方式に変更
 
   function enterFrameResizeMode() {
     frameResizeMode = true;
@@ -4283,13 +4294,13 @@
       document.getElementById(id).classList.remove('resize-mode'));
   }
 
-  // 外枠の各辺の最大値（画面端から FRAME_SCREEN_MARGIN 残す）
+  // 外枠の各辺の最大値（画面端から10pxだけ余白を残し、それ以外は画面いっぱいまで広げられる）
   function maxOuter(side) {
     const sw = window.innerWidth, sh = window.innerHeight;
-    if (side === 'top')    return Math.max(F_OUTER_MIN, fWin.y - FRAME_SCREEN_MARGIN);
-    if (side === 'bottom') return Math.max(F_OUTER_MIN, sh - (fWin.y + fWin.h) - FRAME_SCREEN_MARGIN);
-    if (side === 'left')   return Math.max(F_OUTER_MIN, fWin.x - FRAME_SCREEN_MARGIN);
-    if (side === 'right')  return Math.max(F_OUTER_MIN, sw - (fWin.x + fWin.w) - FRAME_SCREEN_MARGIN);
+    if (side === 'top')    { const d = fWin.y; return Math.max(F_OUTER_MIN, d - 10); }
+    if (side === 'bottom') { const d = sh - (fWin.y + fWin.h); return Math.max(F_OUTER_MIN, d - 10); }
+    if (side === 'left')   { const d = fWin.x; return Math.max(F_OUTER_MIN, d - 10); }
+    if (side === 'right')  { const d = sw - (fWin.x + fWin.w); return Math.max(F_OUTER_MIN, d - 10); }
     return 9999;
   }
 
@@ -4334,12 +4345,14 @@
         clearTimeout(longPressTimer);
       }
 
-      // リサイズモード中・通常ともに全体移動
+      // リサイズモード中・通常ともに全体移動。外枠全体サイズの10%だけ画面内に見えていればOK（＝90%まで隠れてよい）
       const scw = window.innerWidth, sch = window.innerHeight;
-      const minX = FRAME_SCREEN_MARGIN + startOuter.left;
-      const minY = FRAME_SCREEN_MARGIN + startOuter.top;
-      const maxX = scw - fWin.w - startOuter.right  - FRAME_SCREEN_MARGIN;
-      const maxY = sch - fWin.h - startOuter.bottom - FRAME_SCREEN_MARGIN;
+      const outerW = fWin.w + startOuter.left + startOuter.right;
+      const outerH = fWin.h + startOuter.top  + startOuter.bottom;
+      const minX = 0.1 * outerW - fWin.w - startOuter.right;
+      const minY = 0.1 * outerH - fWin.h - startOuter.bottom;
+      const maxX = scw - 0.1 * outerW + startOuter.left;
+      const maxY = sch - 0.1 * outerH + startOuter.top;
       fWin.x = Math.max(minX, Math.min(maxX, startWinX + dx));
       fWin.y = Math.max(minY, Math.min(maxY, startWinY + dy));
       applyFrameOuterPos();
@@ -4473,12 +4486,11 @@
     const factor = Math.exp(-e.deltaY * 0.01);
     const cx = fWin.x + fWin.w / 2;
     const cy = fWin.y + fWin.h / 2;
-    // 外枠の余白(fOuter)も含めた全体が画面内に収まる最大拡大率を、軸ごとに求める
-    // 左右：中心から左に伸ばせる量＝cx、右に伸ばせる量＝画面幅-cx。それぞれ余白を引いた残りが「窓の半幅」の上限
-    const maxHalfWFromLeft  = cx                      - fOuter.left;
-    const maxHalfWFromRight = (window.innerWidth - cx) - fOuter.right;
-    const maxHalfHFromTop    = cy                       - fOuter.top;
-    const maxHalfHFromBottom = (window.innerHeight - cy) - fOuter.bottom;
+    // 外枠の余白(fOuter)も含めた全体が、画面端から10pxだけ余白を残して画面いっぱいまで広がれる
+    const maxHalfWFromLeft  = (cx                      - fOuter.left) - 10;
+    const maxHalfWFromRight = ((window.innerWidth - cx) - fOuter.right) - 10;
+    const maxHalfHFromTop    = (cy                       - fOuter.top) - 10;
+    const maxHalfHFromBottom = (window.innerHeight - cy) - fOuter.bottom - 10;
     const maxHalfW = Math.min(maxHalfWFromLeft, maxHalfWFromRight);
     const maxHalfH = Math.min(maxHalfHFromTop, maxHalfHFromBottom);
     const maxGrowRatio = Math.min(maxHalfW / (fWin.w / 2), maxHalfH / (fWin.h / 2));
@@ -4580,11 +4592,12 @@
       if (s.cAlpha != null) cAlpha = s.cAlpha;
       if (s.cX)     cX     = s.cX;
       if (s.cY)     cY     = s.cY;
-      // 画面サイズに収まるようにクランプ
+      // 画面サイズに収まるようにクランプ（直径の10%だけ画面内に見えていればOK）
       const maxR = Math.min(window.innerWidth, window.innerHeight) * 0.45;
       cR = Math.min(cR, maxR);
-      cX = Math.max(cR, Math.min(window.innerWidth  - cR, cX));
-      cY = Math.max(cR, Math.min(window.innerHeight - cR, cY));
+      const margin = cR * 0.8;
+      cX = Math.max(-margin, Math.min(window.innerWidth  + margin, cX));
+      cY = Math.max(-margin, Math.min(window.innerHeight + margin, cY));
       if (s.circleStep  != null) circleStep  = s.circleStep;
       // circleStepBaseが未保存の旧データの場合、旧circleStepの値を引き継ぐ
       if (s.circleStepBase != null) circleStepBase = s.circleStepBase;
@@ -4720,8 +4733,9 @@
       if (dist <= cR + 16) {
         e.preventDefault();
         const factor = Math.exp(-e.deltaY * 0.01);
-        // 中心から画面端までの最短距離を半径の上限にする（画面内に収める）
-        const maxR = Math.min(cX, window.innerWidth - cX, cY, window.innerHeight - cY);
+        // 中心から画面端までの距離 - 10px を半径の上限にする（画面端ギリギリまで広がれるが、10pxだけ余白を残す）
+        const edgeDist = Math.min(cX, window.innerWidth - cX, cY, window.innerHeight - cY);
+        const maxR = Math.max(25, edgeDist - 10);
         cR = Math.max(25, Math.min(400, Math.min(maxR, Math.round(cR * factor))));
         syncCircleSizeUI(); applyCircle();
         clearTimeout(circleWheelPinchTimer);
@@ -4771,9 +4785,10 @@
       syncCircleSizeUI();
       applyCircle();
     } else if (cDragging) {
-      const margin = 10;
-      cX = Math.max(cR + margin, Math.min(window.innerWidth  - cR - margin, cCX0 + e.clientX - cDragStartX));
-      cY = Math.max(cR + margin, Math.min(window.innerHeight - cR - margin, cCY0 + e.clientY - cDragStartY));
+      // 円の直径の10%だけ画面内に見えていればOK（＝90%まで画面外に隠れてよい）
+      const margin = cR * 0.8;
+      cX = Math.max(-margin, Math.min(window.innerWidth  + margin, cCX0 + e.clientX - cDragStartX));
+      cY = Math.max(-margin, Math.min(window.innerHeight + margin, cCY0 + e.clientY - cDragStartY));
       applyCircle();
     } else {
       // ホバー中：rim上かどうかでカーソル切替
@@ -4864,9 +4879,10 @@
       e.preventDefault();
       const t = e.touches[0];
       cTouchMoved = true;
-      const margin = 10;
-      cX = Math.max(cR + margin, Math.min(window.innerWidth  - cR - margin, cCX0 + t.clientX - cDragStartX));
-      cY = Math.max(cR + margin, Math.min(window.innerHeight - cR - margin, cCY0 + t.clientY - cDragStartY));
+      // 円の直径の10%だけ画面内に見えていればOK（＝90%まで画面外に隠れてよい）
+      const margin = cR * 0.8;
+      cX = Math.max(-margin, Math.min(window.innerWidth  + margin, cCX0 + t.clientX - cDragStartX));
+      cY = Math.max(-margin, Math.min(window.innerHeight + margin, cCY0 + t.clientY - cDragStartY));
       applyCircle();
     } else if (cTouchMode === 'viewer') {
       e.preventDefault();
@@ -5129,12 +5145,16 @@
       if (s.sqAlpha != null) sqAlpha = s.sqAlpha;
       if (s.sqX)     sqX     = s.sqX;
       if (s.sqY)     sqY     = s.sqY;
-      // 画面サイズに収まるようにクランプ
+      // 画面サイズに収まるようにクランプ（辺の10%まで画面外へはみ出すのは許容）
       const maxHalf = Math.min(window.innerWidth, window.innerHeight) * 0.45;
       sqHalfW = Math.min(sqHalfW, maxHalf);
       sqHalfH = Math.min(sqHalfH, maxHalf);
-      sqX = Math.max(sqHalfW, Math.min(window.innerWidth  - sqHalfW, sqX));
-      sqY = Math.max(sqHalfH, Math.min(window.innerHeight - sqHalfH, sqY));
+      {
+        const marginW = sqHalfW * 0.8;
+        const marginH = sqHalfH * 0.8;
+        sqX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, sqX));
+        sqY = Math.max(-marginH, Math.min(window.innerHeight + marginH, sqY));
+      }
       if (s.squareStep  != null) squareStep  = s.squareStep;
       if (s.squareStepBase != null) squareStepBase = s.squareStepBase;
       else if (s.squareStep != null) squareStepBase = s.squareStep;
@@ -5294,16 +5314,19 @@
         e.preventDefault();
         const factor = Math.exp(-e.deltaY * 0.01);
         if (hit === 'edge-t' || hit === 'edge-b') {
-          const maxHalfH = Math.min(sqY, window.innerHeight - sqY);
+          const edgeDist = Math.min(sqY, window.innerHeight - sqY);
+          const maxHalfH = Math.max(20, edgeDist - 10); // 画面端から10pxだけ余白を残す
           sqHalfH = Math.max(20, Math.min(400, maxHalfH, Math.round(sqHalfH * factor)));
           showSquareEdgeToast();
         } else if (hit === 'edge-l' || hit === 'edge-r') {
-          const maxHalfW = Math.min(sqX, window.innerWidth - sqX);
+          const edgeDist = Math.min(sqX, window.innerWidth - sqX);
+          const maxHalfW = Math.max(20, edgeDist - 10); // 画面端から10pxだけ余白を残す
           sqHalfW = Math.max(20, Math.min(400, maxHalfW, Math.round(sqHalfW * factor)));
           showSquareEdgeToast();
         } else {
-          // 角または内側：正方形を保ったまま、画面内に収まる範囲で拡縮
-          const maxHalf = Math.min(sqX, window.innerWidth - sqX, sqY, window.innerHeight - sqY);
+          // 角または内側：正方形を保ったまま、画面端から10pxだけ余白を残す
+          const edgeDist = Math.min(sqX, window.innerWidth - sqX, sqY, window.innerHeight - sqY);
+          const maxHalf = Math.max(20, edgeDist - 10);
           sqHalfW = Math.max(20, Math.min(400, maxHalf, Math.round(sqHalfW * factor)));
           sqHalfH = Math.max(20, Math.min(400, maxHalf, Math.round(sqHalfH * factor)));
         }
@@ -5383,9 +5406,11 @@
       applySquareResize(sqResizeMode, e.clientX - sqResizeStartX, e.clientY - sqResizeStartY);
       applySquare();
     } else if (sqDragging) {
-      const margin = 5;
-      sqX = Math.max(sqHalfW + margin, Math.min(window.innerWidth  - sqHalfW - margin, sqCX0 + e.clientX - sqDragStartX));
-      sqY = Math.max(sqHalfH + margin, Math.min(window.innerHeight - sqHalfH - margin, sqCY0 + e.clientY - sqDragStartY));
+      // 辺の10%だけ画面内に見えていればOK（＝90%まで画面外に隠れてよい）
+      const marginW = sqHalfW * 0.8;
+      const marginH = sqHalfH * 0.8;
+      sqX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, sqCX0 + e.clientX - sqDragStartX));
+      sqY = Math.max(-marginH, Math.min(window.innerHeight + marginH, sqCY0 + e.clientY - sqDragStartY));
       applySquare();
     } else {
       const hit = squareHitTest(e.clientX, e.clientY);
@@ -5482,9 +5507,11 @@
       e.preventDefault();
       const t = e.touches[0];
       sqTouchMoved = true;
-      const margin = 5;
-      sqX = Math.max(sqHalfW + margin, Math.min(window.innerWidth  - sqHalfW - margin, sqCX0 + t.clientX - sqDragStartX));
-      sqY = Math.max(sqHalfH + margin, Math.min(window.innerHeight - sqHalfH - margin, sqCY0 + t.clientY - sqDragStartY));
+      // 辺の10%だけ画面内に見えていればOK（＝90%まで画面外に隠れてよい）
+      const marginW = sqHalfW * 0.8;
+      const marginH = sqHalfH * 0.8;
+      sqX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, sqCX0 + t.clientX - sqDragStartX));
+      sqY = Math.max(-marginH, Math.min(window.innerHeight + marginH, sqCY0 + t.clientY - sqDragStartY));
       applySquare();
     } else if (sqTouchMode === 'viewer') {
       e.preventDefault();
@@ -5655,6 +5682,10 @@
   loadSquarePresets();
   // 初期タブをbandに統一（全定規の表示状態をリセット）
   switchRulerTab('band');
+  // スマホ幅（680px未満）の場合は、画面を広く使えるよう最初からメニューパネルを閉じておく
+  if (window.innerWidth < 680) {
+    floatPanel.classList.add('collapsed');
+  }
   /* ========== 計測モード ========== */
   (function() {
     const overlay   = document.getElementById('measure-overlay');
@@ -5662,6 +5693,7 @@
     const ctx       = cvs.getContext('2d');
     const bar       = document.getElementById('measure-bar');
     const hint      = document.getElementById('measure-hint');
+    const zoomDoneBtn = document.getElementById('measure-zoomdone-btn');
     const pxLabel   = document.getElementById('measure-px');
     const applyBtn  = document.getElementById('measure-apply-btn');
     const redoBtn   = document.getElementById('measure-redo-btn');
@@ -5673,6 +5705,10 @@
 
     let pt1 = null, pt2 = null;
     let measureAxis = 'v'; // Square定規専用：'v'=縦のみ／'h'=横のみ
+    // measurePhase: 'zoom'(拡大調整中・タップ無効) → 'pick1'(1点目待ち) → 'pick2'(2点目待ち) → 'adjust'(2点とも確定・ドラッグで伸縮調整可)
+    let measurePhase = 'zoom';
+    let adjustDragTarget = null; // 'pt1' | 'pt2' | null（伸縮調整中につかんでいる点）
+    const PT_HIT_R = 22; // 点をつかむ判定の半径(px)
 
     axisBtnV.addEventListener('click', e => {
       e.stopPropagation();
@@ -5711,6 +5747,46 @@
       }
       bar.style.left = barLeft + 'px';
       bar.style.top  = barTop + 'px';
+    }
+
+    // 計測線の「左側・上下中央」にバーを配置する（px表示は線の右側に出るため、左に置けば重ならない）
+    // lineX: 計測線のX座標, midY: 1点目と2点目の中点Y座標
+    function positionBarLeftOf(lineX, midY) {
+      bar.style.left = '0px';
+      bar.style.transform = 'none';
+      const barWidth  = bar.offsetWidth  || 220;
+      const barHeight = bar.offsetHeight || 36;
+      const gap = 20;
+      let barLeft = lineX - gap - barWidth;
+      let barTop  = midY - barHeight / 2;
+      // 左に置ききれない（画面が狭い等）場合は、右側に回す
+      if (barLeft < 8) {
+        barLeft = lineX + gap;
+      }
+      barLeft = Math.max(8, Math.min(window.innerWidth - barWidth - 8, barLeft));
+      barTop  = Math.max(8, Math.min(window.innerHeight - barHeight - 8, barTop));
+      bar.style.left = barLeft + 'px';
+      bar.style.top  = barTop + 'px';
+    }
+
+    // 計測線の種類に応じて、px表示と重ならない位置にバーを配置する
+    function positionBarForLine() {
+      if (!pt1 || !pt2) { resetBarToCenter(); return; }
+      const isHorizontal = (currentRulerTab === 'square' && measureAxis === 'h');
+      if (isHorizontal) {
+        // 横計測（Square横モード）は左右の概念がはっきりしないため、画面上部中央に固定
+        resetBarToCenter();
+      } else if (currentRulerTab === 'circle') {
+        // 斜め計測：px表示は線の中点から右側に出るため、バーは中点の左側に
+        const lineX = (pt1.x + pt2.x) / 2;
+        const midY  = (pt1.y + pt2.y) / 2;
+        positionBarLeftOf(lineX, midY);
+      } else {
+        // 縦計測（Line/Frame/Square縦）：px表示は線の右側に出るため、バーは線の左側・中央に
+        const lineX = pt1.x;
+        const midY  = (pt1.y + pt2.y) / 2;
+        positionBarLeftOf(lineX, midY);
+      }
     }
 
     function resetBarToCenter() {
@@ -5803,15 +5879,9 @@
         const dist = Math.round(Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y));
         ctx.font = '700 13px "Zen Maru Gothic", sans-serif';
         ctx.fillStyle = color;
-        // テキストは線に対して垂直な方向にオフセットして配置する（線の角度に関わらず点線・マーカーと重ならないように）
-        const textOffset = 22;
-        let tox = Math.cos(perpAngle) * textOffset;
-        let toy = Math.sin(perpAngle) * textOffset;
-        // 上方向（画面の上側）に出るよう正規化（線がどちらの向きでも見た目を安定させる）
-        if (toy > 0) { tox = -tox; toy = -toy; }
-        ctx.textAlign = (tox >= 0) ? 'left' : 'right';
-        ctx.fillText(dist + ' px', midX + tox, midY + toy);
+        // テキストは線の中点から右側に表示する（Line/Frame/Squareと同じく「右にpx・左にカード」で統一）
         ctx.textAlign = 'left';
+        ctx.fillText(dist + ' px', midX + 24, midY + 5);
       } else {
         if (isHorizontal) {
           const y = pt1.y; // Square横モード：1点目のY座標に揃えて描く（縦ズレを無視した横距離計測）
@@ -5877,57 +5947,72 @@
       }
     }
 
-    // バーの中身をヒート表示に切り替え
-    function showHintMode(text) {
+    // バーの中身をヒント表示に切り替え。showZoomDoneBtn=trueの間だけ「拡大完了」ボタンを見せる
+    function showHintMode(text, showZoomDoneBtn) {
       hint.textContent = text;
       hint.style.display = 'inline';
       resultCol.style.display = 'none';
-      // Square定規：1点目を選ぶ前（やり直し含む）だけ縦/横トグルを見せる
-      axisToggle.style.display = (currentRulerTab === 'square') ? 'flex' : 'none';
+      zoomDoneBtn.style.display = showZoomDoneBtn ? 'inline-block' : 'none';
+      // Square定規：1点目を選ぶ前（やり直し含む）だけ縦/横トグルを見せる（拡大調整中は出さない）
+      axisToggle.style.display = (currentRulerTab === 'square' && !showZoomDoneBtn) ? 'flex' : 'none';
     }
 
     // バーの中身を結果表示に切り替え
     function showResultMode(dist) {
       hint.style.display = 'none';
+      zoomDoneBtn.style.display = 'none';
       axisToggle.style.display = 'none'; // 2点目を選んだ時点で縦横は確定済みなので隠す
       pxLabel.textContent = dist + ' px';
       resultCol.style.display = 'flex';
     }
 
+    // 現在のpt1/pt2から、軸（縦/横/斜め）に応じた距離(px)を計算
+    function calcDist() {
+      if (!pt1 || !pt2) return 0;
+      if (currentRulerTab === 'circle') return Math.round(Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y));
+      if (currentRulerTab === 'square' && measureAxis === 'h') return Math.round(Math.abs(pt2.x - pt1.x));
+      return Math.round(Math.abs(pt2.y - pt1.y));
+    }
+
     function onTap(e) {
-      if (e.target.closest('#measure-redo-btn') || e.target.closest('#measure-close-btn') || e.target.closest('#measure-apply-btn')) return;
+      if (e.target.closest('#measure-redo-btn') || e.target.closest('#measure-close-btn') || e.target.closest('#measure-apply-btn') || e.target.closest('#measure-zoomdone-btn')) return;
+      // 拡大調整中はタップを無視し、編み図側のピンチ/ホイール操作に委ねる（1点目が誤って打たれるのを防ぐ）
+      if (measurePhase === 'zoom') return;
+      // adjustフェーズの「点をつかむ」操作はonAdjustStart（pointerdown）が担当するため、ここでは何もしない
+      if (measurePhase === 'adjust') return;
       e.stopPropagation();
       if (e.type === 'touchstart') e.preventDefault(); // 続く合成clickの二重発火を防止
       const touch = e.touches ? e.touches[0] : e;
       const x = touch.clientX;
       const y = touch.clientY;
 
-      if (!pt1) {
+      if (measurePhase === 'pick1') {
         pt1 = { x, y };
         draw();
         redoBtn.style.display = 'flex';
+        measurePhase = 'pick2';
         showHintMode('2点目をタップ');
         positionBar(x, y);
-      } else if (!pt2) {
+      } else if (measurePhase === 'pick2') {
         pt2 = { x, y };
         draw();
-        const dist = (currentRulerTab === 'circle')
-          ? Math.round(Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y))
-          : (currentRulerTab === 'square' && measureAxis === 'h')
-            ? Math.round(Math.abs(pt2.x - pt1.x))
-            : Math.round(Math.abs(pt2.y - pt1.y));
+        const dist = calcDist();
+        measurePhase = 'adjust';
         showResultMode(dist);
-        positionBar(pt1.x, pt2.y, true);
+        // px表示と重ならない位置（縦計測なら線の左側中央）にバーを置く
+        positionBarForLine();
       }
     }
 
     window.startMeasure = function() {
       document.getElementById('measure-float-btn').style.display = 'none';
       pt1 = null; pt2 = null;
+      adjustDragTarget = null;
       ctx.clearRect(0, 0, cvs.width, cvs.height);
       redoBtn.style.display = 'none';
       resetBarToCenter();
-      showHintMode('編み図を拡大して1点目をタップ');
+      measurePhase = 'zoom';
+      showHintMode('編み図を拡大してください', true);
       // Square定規のときは毎回「縦」から開始（表示・非表示はshowHintModeが担当）
       if (currentRulerTab === 'square') {
         measureAxis = 'v';
@@ -5935,7 +6020,9 @@
         axisBtnH.classList.remove('active');
       }
       overlay.style.display = 'block';
-      overlay.style.pointerEvents = 'all';
+      // 拡大調整中は編み図側のピンチ/ホイール操作をそのまま通すため、overlay自体はクリックを拾わない。
+      // バー（#measure-bar）にはpointer-events:allが個別指定済みなので、ボタン操作はできる。
+      overlay.style.pointerEvents = 'none';
     };
 
     function stopMeasure() {
@@ -5943,21 +6030,24 @@
       overlay.style.pointerEvents = 'none';
       ctx.clearRect(0, 0, cvs.width, cvs.height);
       pt1 = null; pt2 = null;
+      adjustDragTarget = null;
+      measurePhase = 'zoom';
       redoBtn.style.display = 'none';
+      document.getElementById('measure-float-btn').style.display = 'none';
     }
+    window.stopMeasureIfActive = function() {
+      if (overlay.style.display !== 'none') stopMeasure();
+    };
 
-    // やり直す：2点目があれば2点目だけリセット、なければ1点目からやり直す
+    // やり直す：常に拡大調整からやり直す（編み図のズームを変えてから測り直したいケースに対応）
     function redoMeasure() {
-      if (pt2) {
-        pt2 = null;
-        draw();
-        showHintMode('2点目をタップ');
-        positionBar(pt1.x, pt1.y);
-      } else {
-        pt1 = null; pt2 = null;
-        ctx.clearRect(0, 0, cvs.width, cvs.height);
-        showHintMode('1点目をタップ');
-      }
+      pt1 = null; pt2 = null;
+      adjustDragTarget = null;
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      redoBtn.style.display = 'none';
+      measurePhase = 'zoom';
+      showHintMode('編み図を拡大してください', true);
+      overlay.style.pointerEvents = 'none';
     }
 
     redoBtn.addEventListener('click', e => {
@@ -5968,12 +6058,7 @@
     applyBtn.addEventListener('click', e => {
       e.stopPropagation();
       if (!pt1 || !pt2) return;
-      const rawDist = (currentRulerTab === 'circle')
-        ? Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y)
-        : (currentRulerTab === 'square' && measureAxis === 'h')
-          ? Math.abs(pt2.x - pt1.x)
-          : Math.abs(pt2.y - pt1.y);
-      const dist = Math.max(6, Math.round(rawDist));
+      const dist = Math.max(6, calcDist());
       document.getElementById('measure-float-btn').style.display = 'none';
       const gpToggle = document.getElementById('gp-toggle-guide');
       const gpStep = document.getElementById('gp-step-label');
@@ -6004,6 +6089,68 @@
     closeBtn.addEventListener('click', e => {
       e.stopPropagation();
       stopMeasure();
+    });
+
+    // 2点とも確定済み（adjustフェーズ）：つかんだ方の点だけを動かして区間を伸縮する
+    // adjustフェーズ：点の近くをpointerdownしたらドラッグ開始（マウスのドラッグにも対応するためpointerdownを使う）
+    function onAdjustStart(e) {
+      if (measurePhase !== 'adjust') return;
+      if (e.target.closest('#measure-redo-btn') || e.target.closest('#measure-close-btn') || e.target.closest('#measure-apply-btn')) return;
+      if (!pt1 || !pt2) return;
+      const x = e.clientX, y = e.clientY;
+      const d1 = Math.hypot(x - pt1.x, y - pt1.y);
+      const d2 = Math.hypot(x - pt2.x, y - pt2.y);
+      if (d1 <= PT_HIT_R || d2 <= PT_HIT_R) {
+        e.preventDefault();
+        e.stopPropagation();
+        adjustDragTarget = (d1 <= d2) ? 'pt1' : 'pt2';
+        if (overlay.setPointerCapture) {
+          try { overlay.setPointerCapture(e.pointerId); } catch(err) {}
+        }
+      }
+    }
+    function onAdjustMove(e) {
+      if (!adjustDragTarget) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const touch = e.touches ? e.touches[0] : e;
+      const x = touch.clientX;
+      const y = touch.clientY;
+      const target = (adjustDragTarget === 'pt1') ? pt1 : pt2;
+      if (currentRulerTab === 'circle') {
+        // 斜め計測：自由に動かせる
+        target.x = x; target.y = y;
+      } else if (currentRulerTab === 'square' && measureAxis === 'h') {
+        // 横方向のみ計測：Y座標は固定し、Xだけ動かす
+        target.x = x;
+      } else {
+        // Line/Frame/Square(縦)：X座標は固定し、Yだけ動かす
+        target.y = y;
+      }
+      draw();
+      const dist = calcDist();
+      pxLabel.textContent = dist + ' px';
+      // 線の左側中央に追従させる（点とは反対側なので、つかむ操作とは競合しない）
+      positionBarForLine();
+    }
+    function onAdjustEnd(e) {
+      if (adjustDragTarget && overlay.releasePointerCapture && e && e.pointerId != null) {
+        try { overlay.releasePointerCapture(e.pointerId); } catch(err) {}
+      }
+      adjustDragTarget = null;
+    }
+    overlay.addEventListener('pointerdown', onAdjustStart);
+    overlay.addEventListener('pointermove', onAdjustMove);
+    overlay.addEventListener('pointerup',   onAdjustEnd);
+    overlay.addEventListener('pointercancel', onAdjustEnd);
+
+    // 拡大完了ボタン：編み図の拡大調整を終え、1点目を打てる状態にする
+    zoomDoneBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      measurePhase = 'pick1';
+      showHintMode('1点目をタップ', false);
+      // ここからはタップで点を打つので、overlay自体でクリックを拾えるようにする
+      overlay.style.pointerEvents = 'all';
     });
 
     // タップ（マウス・タッチ両対応）
