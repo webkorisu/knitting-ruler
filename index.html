@@ -2437,7 +2437,7 @@
     if (currentRulerTab === 'circle') {
       circleCount++;
       if (circleStep > 0) {
-        cR = Math.min(400, cR + circleStep);
+        cR = Math.min(circleMaxRForScreen(), cR + circleStep);
         applyCircle();
       }
       cpNum.textContent = circleCount;
@@ -4526,6 +4526,17 @@
   let circleStepBase = 0;    // 計測した実寸（段ガイドOFFでも保持、未計測なら0）
   let circleCount = 0;
   let showCircleCounter = true;
+  // 中心(cX,cY)から画面の最も遠い角までの距離。これを半径の上限にすれば、画面の四隅まで円で埋め尽くせる
+  function circleMaxRForScreen() {
+    const sw = window.innerWidth, sh = window.innerHeight;
+    const corners = [
+      Math.hypot(cX - 0,  cY - 0),
+      Math.hypot(cX - sw, cY - 0),
+      Math.hypot(cX - 0,  cY - sh),
+      Math.hypot(cX - sw, cY - sh),
+    ];
+    return Math.max(...corners);
+  }
   let cDragging = false;
   let cResizing = false;       // 外枠リサイズ中フラグ
   let cDragStartX = 0, cDragStartY = 0, cCX0 = 0, cCY0 = 0;
@@ -4733,10 +4744,9 @@
       if (dist <= cR + 16) {
         e.preventDefault();
         const factor = Math.exp(-e.deltaY * 0.01);
-        // 中心から画面端までの距離 - 10px を半径の上限にする（画面端ギリギリまで広がれるが、10pxだけ余白を残す）
-        const edgeDist = Math.min(cX, window.innerWidth - cX, cY, window.innerHeight - cY);
-        const maxR = Math.max(25, edgeDist - 10);
-        cR = Math.max(25, Math.min(400, Math.min(maxR, Math.round(cR * factor))));
+        // 中心から画面の最も遠い角までの距離を上限にする（画面の四隅まで円で埋め尽くせる）
+        const maxR = circleMaxRForScreen();
+        cR = Math.max(25, Math.min(maxR, Math.round(cR * factor)));
         syncCircleSizeUI(); applyCircle();
         clearTimeout(circleWheelPinchTimer);
         circleWheelPinchTimer = setTimeout(saveCircleSettings, 200);
@@ -4781,7 +4791,7 @@
     if (e.pointerType === 'touch' || e.pointerType === 'pen') return;
     const dx = e.clientX - cX, dy = e.clientY - cY;
     if (cResizing) {
-      cR = Math.max(25, Math.min(400, Math.round(Math.sqrt(dx * dx + dy * dy))));
+      cR = Math.max(25, Math.min(circleMaxRForScreen(), Math.round(Math.sqrt(dx * dx + dy * dy))));
       syncCircleSizeUI();
       applyCircle();
     } else if (cDragging) {
@@ -4866,14 +4876,14 @@
     if (cTouchMode === 'pinch' && e.touches.length === 2) {
       e.preventDefault();
       const ratio = pinchDist(e.touches) / cPinchDist0;
-      cR = Math.max(25, Math.min(400, Math.round(cR0 * ratio)));
+      cR = Math.max(25, Math.min(circleMaxRForScreen(), Math.round(cR0 * ratio)));
       syncCircleSizeUI(); applyCircle();
     } else if (cTouchMode === 'rim' && e.touches.length === 1) {
       e.preventDefault();
       const t = e.touches[0];
       const dx = t.clientX - cX, dy = t.clientY - cY;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      cR = Math.max(25, Math.min(400, Math.round(cTouchResizeR0 * dist / cTouchResizeDist0)));
+      cR = Math.max(25, Math.min(circleMaxRForScreen(), Math.round(cTouchResizeR0 * dist / cTouchResizeDist0)));
       syncCircleSizeUI(); applyCircle();
     } else if (cTouchMode === 'drag' && e.touches.length === 1) {
       e.preventDefault();
@@ -5751,12 +5761,12 @@
 
     // 計測線の「左側・上下中央」にバーを配置する（px表示は線の右側に出るため、左に置けば重ならない）
     // lineX: 計測線のX座標, midY: 1点目と2点目の中点Y座標
-    function positionBarLeftOf(lineX, midY) {
+    function positionBarLeftOf(lineX, midY, gap) {
       bar.style.left = '0px';
       bar.style.transform = 'none';
       const barWidth  = bar.offsetWidth  || 220;
       const barHeight = bar.offsetHeight || 36;
-      const gap = 20;
+      gap = gap || 20;
       let barLeft = lineX - gap - barWidth;
       let barTop  = midY - barHeight / 2;
       // 左に置ききれない（画面が狭い等）場合は、右側に回す
@@ -5777,10 +5787,11 @@
         // 横計測（Square横モード）は左右の概念がはっきりしないため、画面上部中央に固定
         resetBarToCenter();
       } else if (currentRulerTab === 'circle') {
-        // 斜め計測：px表示は線の中点から右側に出るため、バーは中点の左側に
-        const lineX = (pt1.x + pt2.x) / 2;
+        // 斜め計測：px表示は線の中点から右側に出るため、バーは線の左側に
+        // 2点のうちより左にある方の点を基準にすることで、線の角度に関わらず点と重ならないようにする
+        const lineX = Math.min(pt1.x, pt2.x);
         const midY  = (pt1.y + pt2.y) / 2;
-        positionBarLeftOf(lineX, midY);
+        positionBarLeftOf(lineX, midY, 36);
       } else {
         // 縦計測（Line/Frame/Square縦）：px表示は線の右側に出るため、バーは線の左側・中央に
         const lineX = pt1.x;
