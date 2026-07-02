@@ -7,7 +7,6 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta http-equiv="Expires" content="0">
   <title>編み図ルーラー | Knitting Chart Ruler ✿ YUCCHI ✿</title>
   <link rel="icon" href="favicon.ico">
   <link rel="shortcut icon" href="favicon.ico">
@@ -67,7 +66,7 @@
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       gap: 16px;
-      color: rgba(160,112,128,0.55);
+      color: rgba(160,112,128,0.80);
       pointer-events: none;
       user-select: none;
       -webkit-user-select: none;
@@ -87,7 +86,7 @@
       font-family: 'Zen Maru Gothic', sans-serif;
       font-size: 10px;
       letter-spacing: .06em;
-      color: rgba(160,112,128,0.5);
+      color: rgba(160,112,128,0.75);
       pointer-events: none;
       user-select: none;
       z-index: 10;
@@ -100,7 +99,7 @@
       font-family: 'Zen Maru Gothic', sans-serif;
       font-size: 11px;
       letter-spacing: .04em;
-      color: rgba(160,112,128,0.45);
+      color: rgba(160,112,128,0.70);
       text-align: center;
       line-height: 1.7;
       padding: 0 12px;
@@ -141,7 +140,7 @@
       font-family: 'Zen Maru Gothic', sans-serif;
       font-size: clamp(8px, 2.9vw, 10px);
       letter-spacing: .02em;
-      color: rgba(160,112,128,0.45);
+      color: rgba(160,112,128,0.70);
       pointer-events: none;
       user-select: none;
       white-space: nowrap;
@@ -154,7 +153,7 @@
       font-family: 'Cormorant Garamond', serif;
       font-size: 18px;
       letter-spacing: .18em;
-      color: rgba(160,112,128,0.38);
+      color: rgba(160,112,128,0.63);
     }
     #chart-canvas {
       position: absolute; inset: 0;
@@ -2130,6 +2129,12 @@
       document.querySelectorAll('.color-dot').forEach(d => {
         d.classList.toggle('active', d.dataset.color === rulerColor);
       });
+      // 古いlocalStorageの値が画面外の場合に備えてクランプ（最低44px見える位置に補正）
+      const vVisible = Math.max(44, rulerHeight * 0.1);
+      const hVisible = Math.max(44, (rulerWidth / 100) * window.innerWidth * 0.1);
+      const hVisiblePct = (hVisible / window.innerWidth) * 100;
+      rulerTop  = Math.max(-(rulerHeight - vVisible), Math.min(window.innerHeight - vVisible, rulerTop));
+      rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - rulerWidth + hVisiblePct, rulerLeft));
     } catch(e) {}
   }
 
@@ -2803,11 +2808,17 @@
     } else if (rulerDragging) {
       const dy = e.clientY - rulerDragStartY;
       const dx = e.clientX - rulerDragStartX;
-      // 定規の高さ・幅の10%だけ画面内に見えていればOK（＝90%まで画面外に隠れてよい）
-      rulerTop  = Math.max(-rulerHeight * 0.9, Math.min(window.innerHeight - rulerHeight * 0.1, rulerDragStartTop + dy));
+      // 90%まで隠れてOKだが、最低44px（指1本分）は必ず見えるよう保証
+      const vVisible = Math.max(44, rulerHeight * 0.1); // 縦：見える最小px
+      const hVisible = Math.max(44, (rulerWidth / 100) * window.innerWidth * 0.1); // 横：見える最小px
+      const hVisiblePct = (hVisible / window.innerWidth) * 100;
+      rulerTop  = Math.max(-(rulerHeight - vVisible), Math.min(window.innerHeight - vVisible, rulerDragStartTop + dy));
       const leftPx = (rulerDragStartLeft / 100) * window.innerWidth + dx;
       const leftPct = (leftPx / window.innerWidth) * 100;
-      rulerLeft = Math.max(-rulerWidth * 0.9, Math.min(100 - rulerWidth * 0.1, leftPct));
+      // 左方向：定規の右端がhVisiblePct分だけ画面内に残る（左に追いやれる限界）
+      // 右方向：定規の右端がhVisiblePct分だけ画面内に残る（右に追いやれる限界）
+      //   → 定規の左端の最大値 = 100 - rulerWidth + hVisiblePct（定規の左がhVisiblePct%だけ見える）
+      rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - rulerWidth + hVisiblePct, leftPct));
       applyRulerPos();
       e.preventDefault();
     } else {
@@ -2827,12 +2838,31 @@
   });
 
   rulerHandle.addEventListener('pointerup', () => {
+    if (rulerDragging) {
+      // ドラッグ後に強制クランプ：最低44px（指1本分）は必ず画面内に残す
+      const vVisible = Math.max(44, rulerHeight * 0.1);
+      const hVisible = Math.max(44, (rulerWidth / 100) * window.innerWidth * 0.1);
+      const hVisiblePct = (hVisible / window.innerWidth) * 100;
+      rulerTop  = Math.max(-(rulerHeight - vVisible), Math.min(window.innerHeight - vVisible, rulerTop));
+      rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - rulerWidth + hVisiblePct, rulerLeft));
+      applyRulerPos();
+    }
     if (resizeDragging || rulerDragging) saveSettings();
     resizeDragging = false;
     rulerDragging  = false;
     rulerHandle.classList.remove('dragging', 'resizing');
   });
   rulerHandle.addEventListener('pointercancel', () => {
+    // キャンセル時も同じクランプを適用して保存（指が画面外に出た時の位置ずれを防ぐ）
+    if (rulerDragging) {
+      const vVisible = Math.max(44, rulerHeight * 0.1);
+      const hVisible = Math.max(44, (rulerWidth / 100) * window.innerWidth * 0.1);
+      const hVisiblePct = (hVisible / window.innerWidth) * 100;
+      rulerTop  = Math.max(-(rulerHeight - vVisible), Math.min(window.innerHeight - vVisible, rulerTop));
+      rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - rulerWidth + hVisiblePct, rulerLeft));
+      applyRulerPos();
+      saveSettings();
+    }
     resizeDragging = false;
     rulerDragging  = false;
     rulerHandle.classList.remove('dragging', 'resizing');
@@ -3081,10 +3111,13 @@
       offsetY += (canvas.height - ph) / 2;
       drawImage();
     }
-    // Line定規：位置だけ画面内に収まるようクランプ（サイズは変えない。10%だけ画面内に見えていればOK）
+    // Line定規：位置だけ画面内に収まるようクランプ（サイズは変えない。10%だけ画面内に見えていればOK、最低44px保証）
     {
-      rulerTop  = Math.max(-rulerHeight * 0.9, Math.min(window.innerHeight - rulerHeight * 0.1, rulerTop));
-      rulerLeft = Math.max(-rulerWidth  * 0.9, Math.min(100 - rulerWidth * 0.1, rulerLeft));
+      const vVisible = Math.max(44, rulerHeight * 0.1);
+      const hVisible = Math.max(44, (rulerWidth / 100) * window.innerWidth * 0.1);
+      const hVisiblePct = (hVisible / window.innerWidth) * 100;
+      rulerTop  = Math.max(-(rulerHeight - vVisible), Math.min(window.innerHeight - vVisible, rulerTop));
+      rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - rulerWidth + hVisiblePct, rulerLeft));
     }
     applyRulerPos();
     // Frame定規：再配置
@@ -4347,14 +4380,16 @@
         clearTimeout(longPressTimer);
       }
 
-      // リサイズモード中・通常ともに全体移動。外枠全体サイズの10%だけ画面内に見えていればOK（＝90%まで隠れてよい）
+      // 90%まで隠れてOKだが、最低44px（指1本分）は必ず見えるよう保証
       const scw = window.innerWidth, sch = window.innerHeight;
       const outerW = fWin.w + startOuter.left + startOuter.right;
       const outerH = fWin.h + startOuter.top  + startOuter.bottom;
-      const minX = 0.1 * outerW - fWin.w - startOuter.right;
-      const minY = 0.1 * outerH - fWin.h - startOuter.bottom;
-      const maxX = scw - 0.1 * outerW + startOuter.left;
-      const maxY = sch - 0.1 * outerH + startOuter.top;
+      const visX = Math.max(44, outerW * 0.1);
+      const visY = Math.max(44, outerH * 0.1);
+      const minX = visX - fWin.w - startOuter.right;
+      const minY = visY - fWin.h - startOuter.bottom;
+      const maxX = scw - visX + startOuter.left;
+      const maxY = sch - visY + startOuter.top;
       fWin.x = Math.max(minX, Math.min(maxX, startWinX + dx));
       fWin.y = Math.max(minY, Math.min(maxY, startWinY + dy));
       applyFrameOuterPos();
@@ -4368,6 +4403,20 @@
         document.getElementById(pid).classList.remove('dragging'));
       document.getElementById('frame-3d-border').classList.remove('dragging');
       if (frameResizeMode) exitFrameResizeMode();
+      // ドラッグ後に強制クランプ：最低44px（指1本分）は必ず画面内に残す
+      {
+        const outerW = fWin.w + fOuter.left + fOuter.right;
+        const outerH = fWin.h + fOuter.top  + fOuter.bottom;
+        const visX = Math.max(44, outerW * 0.1);
+        const visY = Math.max(44, outerH * 0.1);
+        const minX = visX - fWin.w - fOuter.right;
+        const minY = visY - fWin.h - fOuter.bottom;
+        const maxX = window.innerWidth  - visX + fOuter.left;
+        const maxY = window.innerHeight - visY + fOuter.top;
+        fWin.x = Math.max(minX, Math.min(maxX, fWin.x));
+        fWin.y = Math.max(minY, Math.min(maxY, fWin.y));
+        applyFrameOuterPos();
+      }
       saveFrameSettings();
     });
     el.addEventListener('pointercancel', () => {
@@ -4797,8 +4846,8 @@
       syncCircleSizeUI();
       applyCircle();
     } else if (cDragging) {
-      // 円の直径の10%だけ画面内に見えていればOK（＝90%まで画面外に隠れてよい）
-      const margin = cR * 0.8;
+      // 90%まで隠れてOKだが、最低44px（指1本分）は必ず見えるよう保証
+      const margin = Math.min(cR * 0.8, Math.max(0, cR - 44));
       cX = Math.max(-margin, Math.min(window.innerWidth  + margin, cCX0 + e.clientX - cDragStartX));
       cY = Math.max(-margin, Math.min(window.innerHeight + margin, cCY0 + e.clientY - cDragStartY));
       applyCircle();
@@ -4891,8 +4940,8 @@
       e.preventDefault();
       const t = e.touches[0];
       cTouchMoved = true;
-      // 円の直径の10%だけ画面内に見えていればOK（＝90%まで画面外に隠れてよい）
-      const margin = cR * 0.8;
+      // 90%まで隠れてOKだが、最低44px（指1本分）は必ず見えるよう保証
+      const margin = Math.min(cR * 0.8, Math.max(0, cR - 44));
       cX = Math.max(-margin, Math.min(window.innerWidth  + margin, cCX0 + t.clientX - cDragStartX));
       cY = Math.max(-margin, Math.min(window.innerHeight + margin, cCY0 + t.clientY - cDragStartY));
       applyCircle();
@@ -4907,6 +4956,11 @@
 
   circleCanvas.addEventListener('touchend', e => {
     if (cTouchMode === 'pinch' || cTouchMode === 'drag' || cTouchMode === 'rim') {
+      // ドラッグ後に強制クランプ：最低44px（指1本分）は必ず画面内に残す
+      const margin = Math.min(cR * 0.8, Math.max(0, cR - 44));
+      cX = Math.max(-margin, Math.min(window.innerWidth  + margin, cX));
+      cY = Math.max(-margin, Math.min(window.innerHeight + margin, cY));
+      applyCircle();
       saveCircleSettings();
     } else if (cTouchMode === 'viewer') {
       viewerTouchEnd(e);
@@ -5430,8 +5484,8 @@
       applySquare();
     } else if (sqDragging) {
       // 辺の10%だけ画面内に見えていればOK（＝90%まで画面外に隠れてよい）
-      const marginW = sqHalfW * 0.8;
-      const marginH = sqHalfH * 0.8;
+      const marginW = Math.min(sqHalfW * 0.8, Math.max(0, sqHalfW - 44));
+      const marginH = Math.min(sqHalfH * 0.8, Math.max(0, sqHalfH - 44));
       sqX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, sqCX0 + e.clientX - sqDragStartX));
       sqY = Math.max(-marginH, Math.min(window.innerHeight + marginH, sqCY0 + e.clientY - sqDragStartY));
       applySquare();
@@ -5531,8 +5585,8 @@
       const t = e.touches[0];
       sqTouchMoved = true;
       // 辺の10%だけ画面内に見えていればOK（＝90%まで画面外に隠れてよい）
-      const marginW = sqHalfW * 0.8;
-      const marginH = sqHalfH * 0.8;
+      const marginW = Math.min(sqHalfW * 0.8, Math.max(0, sqHalfW - 44));
+      const marginH = Math.min(sqHalfH * 0.8, Math.max(0, sqHalfH - 44));
       sqX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, sqCX0 + t.clientX - sqDragStartX));
       sqY = Math.max(-marginH, Math.min(window.innerHeight + marginH, sqCY0 + t.clientY - sqDragStartY));
       applySquare();
@@ -5545,6 +5599,12 @@
 
   squareCanvas.addEventListener('touchend', e => {
     if (sqTouchMode === 'pinch' || sqTouchMode === 'drag' || sqTouchMode === 'corner' || sqTouchMode === 'edge') {
+      // ドラッグ後に強制クランプ：最低44px（指1本分）は必ず画面内に残す
+      const marginW = Math.min(sqHalfW * 0.8, Math.max(0, sqHalfW - 44));
+      const marginH = Math.min(sqHalfH * 0.8, Math.max(0, sqHalfH - 44));
+      sqX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, sqX));
+      sqY = Math.max(-marginH, Math.min(window.innerHeight + marginH, sqY));
+      applySquare();
       saveSquareSettings();
     } else if (sqTouchMode === 'viewer') {
       viewerTouchEnd(e);
