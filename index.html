@@ -2134,7 +2134,7 @@
       const hVisible = Math.max(44, (rulerWidth / 100) * window.innerWidth * 0.1);
       const hVisiblePct = (hVisible / window.innerWidth) * 100;
       rulerTop  = Math.max(-(rulerHeight - vVisible), Math.min(window.innerHeight - vVisible, rulerTop));
-      rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - rulerWidth + hVisiblePct, rulerLeft));
+      rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - hVisiblePct, rulerLeft));
     } catch(e) {}
   }
 
@@ -2617,6 +2617,9 @@
       const dy = e.clientY - edgeStartY;
       const dxPct = (dx / window.innerWidth) * 100;
       const marginPct10px = (10 / window.innerWidth) * 100;
+      // 縦：現在位置で最低44px見えるための最小高さ
+      const vVisFromTop = Math.min(edgeStartTop + edgeStartHeight, window.innerHeight) - Math.max(edgeStartTop, 0);
+      const minH = Math.max(MIN_RULER_H, 44 + edgeStartHeight - vVisFromTop);
       if (side === 'right') {
         // 右辺を右へ伸ばす。画面右端から10pxだけ余白を残す
         rulerWidth = Math.max(5, Math.min((100 - edgeStartLeft) - marginPct10px, edgeStartWidth + dxPct));
@@ -2630,12 +2633,12 @@
       } else if (side === 'bottom') {
         // 下辺を下へ伸ばす。画面下端から10pxだけ余白を残す
         const maxH = (window.innerHeight - edgeStartTop) - 10;
-        rulerHeight = Math.max(MIN_RULER_H, Math.min(maxH, edgeStartHeight + dy));
+        rulerHeight = Math.max(minH, Math.min(maxH, edgeStartHeight + dy));
         rulerHeight = Math.round(rulerHeight);
       } else if (side === 'top') {
         const bottomEdge = edgeStartTop + edgeStartHeight;
         const tentativeTop = edgeStartTop + dy;
-        rulerTop    = Math.max(10, Math.min(bottomEdge - MIN_RULER_H, tentativeTop));
+        rulerTop    = Math.max(10, Math.min(bottomEdge - minH, tentativeTop));
         rulerTop    = Math.round(rulerTop);
         rulerHeight = Math.round(bottomEdge - rulerTop);
       }
@@ -2683,6 +2686,9 @@
       const dy = e.clientY - cornerStartY;
       const dxPct = (dx / window.innerWidth) * 100;
       const sw = window.innerWidth;
+      // 縦：現在位置で最低44px見えるための最小高さ
+      const vVisFromTop = Math.min(cornerStartTop + cornerStartHeight, window.innerHeight) - Math.max(cornerStartTop, 0);
+      const minH = Math.max(MIN_RULER_H, 44 + cornerStartHeight - vVisFromTop);
 
       // 横方向
       const marginPct10px = (10 / window.innerWidth) * 100;
@@ -2703,13 +2709,13 @@
       if (cornerSide === 'bl' || cornerSide === 'br') {
         // 下コーナー：下端を伸縮。画面下端から10pxだけ余白を残す
         const maxH = (window.innerHeight - cornerStartTop) - 10;
-        rulerHeight = Math.max(MIN_RULER_H, Math.min(maxH, cornerStartHeight + dy));
+        rulerHeight = Math.max(minH, Math.min(maxH, cornerStartHeight + dy));
         rulerHeight = Math.round(rulerHeight);
       } else {
         // 上コーナー：上端を伸縮
         const bottomEdge = cornerStartTop + cornerStartHeight;
         const tentativeTop = cornerStartTop + dy;
-        rulerTop    = Math.max(10, Math.min(bottomEdge - MIN_RULER_H, tentativeTop));
+        rulerTop    = Math.max(10, Math.min(bottomEdge - minH, tentativeTop));
         rulerTop    = Math.round(rulerTop);
         rulerHeight = Math.round(bottomEdge - rulerTop);
       }
@@ -2818,7 +2824,7 @@
       // 左方向：定規の右端がhVisiblePct分だけ画面内に残る（左に追いやれる限界）
       // 右方向：定規の右端がhVisiblePct分だけ画面内に残る（右に追いやれる限界）
       //   → 定規の左端の最大値 = 100 - rulerWidth + hVisiblePct（定規の左がhVisiblePct%だけ見える）
-      rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - rulerWidth + hVisiblePct, leftPct));
+      rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - hVisiblePct, leftPct));
       applyRulerPos();
       e.preventDefault();
     } else {
@@ -2844,7 +2850,7 @@
       const hVisible = Math.max(44, (rulerWidth / 100) * window.innerWidth * 0.1);
       const hVisiblePct = (hVisible / window.innerWidth) * 100;
       rulerTop  = Math.max(-(rulerHeight - vVisible), Math.min(window.innerHeight - vVisible, rulerTop));
-      rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - rulerWidth + hVisiblePct, rulerLeft));
+      rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - hVisiblePct, rulerLeft));
       applyRulerPos();
     }
     if (resizeDragging || rulerDragging) saveSettings();
@@ -2859,7 +2865,7 @@
       const hVisible = Math.max(44, (rulerWidth / 100) * window.innerWidth * 0.1);
       const hVisiblePct = (hVisible / window.innerWidth) * 100;
       rulerTop  = Math.max(-(rulerHeight - vVisible), Math.min(window.innerHeight - vVisible, rulerTop));
-      rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - rulerWidth + hVisiblePct, rulerLeft));
+      rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - hVisiblePct, rulerLeft));
       applyRulerPos();
       saveSettings();
     }
@@ -3117,7 +3123,7 @@
       const hVisible = Math.max(44, (rulerWidth / 100) * window.innerWidth * 0.1);
       const hVisiblePct = (hVisible / window.innerWidth) * 100;
       rulerTop  = Math.max(-(rulerHeight - vVisible), Math.min(window.innerHeight - vVisible, rulerTop));
-      rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - rulerWidth + hVisiblePct, rulerLeft));
+      rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - hVisiblePct, rulerLeft));
     }
     applyRulerPos();
     // Frame定規：再配置
@@ -4842,7 +4848,9 @@
     if (e.pointerType === 'touch' || e.pointerType === 'pen') return;
     const dx = e.clientX - cX, dy = e.clientY - cY;
     if (cResizing) {
-      cR = Math.max(25, Math.min(circleMaxRForScreen(), Math.round(Math.sqrt(dx * dx + dy * dy))));
+      // 最低44px（直径）は見えるよう、半径の下限を22pxに設定
+      const minR = Math.max(22, 44 - Math.min(cX, window.innerWidth - cX, cY, window.innerHeight - cY));
+      cR = Math.max(minR, Math.min(circleMaxRForScreen(), Math.round(Math.sqrt(dx * dx + dy * dy))));
       syncCircleSizeUI();
       applyCircle();
     } else if (cDragging) {
@@ -4927,14 +4935,16 @@
     if (cTouchMode === 'pinch' && e.touches.length === 2) {
       e.preventDefault();
       const ratio = pinchDist(e.touches) / cPinchDist0;
-      cR = Math.max(25, Math.min(circleMaxRForScreen(), Math.round(cR0 * ratio)));
+      const minR = Math.max(22, 44 - Math.min(cX, window.innerWidth - cX, cY, window.innerHeight - cY));
+      cR = Math.max(minR, Math.min(circleMaxRForScreen(), Math.round(cR0 * ratio)));
       syncCircleSizeUI(); applyCircle();
     } else if (cTouchMode === 'rim' && e.touches.length === 1) {
       e.preventDefault();
       const t = e.touches[0];
       const dx = t.clientX - cX, dy = t.clientY - cY;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      cR = Math.max(25, Math.min(circleMaxRForScreen(), Math.round(cTouchResizeR0 * dist / cTouchResizeDist0)));
+      const minR2 = Math.max(22, 44 - Math.min(cX, window.innerWidth - cX, cY, window.innerHeight - cY));
+      cR = Math.max(minR2, Math.min(circleMaxRForScreen(), Math.round(cTouchResizeR0 * dist / cTouchResizeDist0)));
       syncCircleSizeUI(); applyCircle();
     } else if (cTouchMode === 'drag' && e.touches.length === 1) {
       e.preventDefault();
@@ -5352,30 +5362,33 @@
   // リサイズ操作中：角は中心固定で正方形のまま拡大縮小、辺は片側のみ調整
   function applySquareResize(mode, dx, dy) {
     const MIN_HALF = 20, MAX_HALF = 400;
+    // 現在位置から計算した、最低44px見えるための最小半幅・半高
+    const minVisW = Math.max(MIN_HALF, 44 - Math.min(sqX, window.innerWidth  - sqX) + sqHalfW);
+    const minVisH = Math.max(MIN_HALF, 44 - Math.min(sqY, window.innerHeight - sqY) + sqHalfH);
     if (mode === 'corner-tl') {
-      const d = Math.max(-dx, -dy); // 左上へ離れるほど拡大
-      sqHalfW = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfW0 + d));
-      sqHalfH = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfH0 + d));
+      const d = Math.max(-dx, -dy);
+      sqHalfW = Math.max(minVisW, Math.min(MAX_HALF, sqHalfW0 + d));
+      sqHalfH = Math.max(minVisH, Math.min(MAX_HALF, sqHalfH0 + d));
     } else if (mode === 'corner-tr') {
       const d = Math.max(dx, -dy);
-      sqHalfW = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfW0 + d));
-      sqHalfH = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfH0 + d));
+      sqHalfW = Math.max(minVisW, Math.min(MAX_HALF, sqHalfW0 + d));
+      sqHalfH = Math.max(minVisH, Math.min(MAX_HALF, sqHalfH0 + d));
     } else if (mode === 'corner-bl') {
       const d = Math.max(-dx, dy);
-      sqHalfW = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfW0 + d));
-      sqHalfH = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfH0 + d));
+      sqHalfW = Math.max(minVisW, Math.min(MAX_HALF, sqHalfW0 + d));
+      sqHalfH = Math.max(minVisH, Math.min(MAX_HALF, sqHalfH0 + d));
     } else if (mode === 'corner-br') {
       const d = Math.max(dx, dy);
-      sqHalfW = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfW0 + d));
-      sqHalfH = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfH0 + d));
+      sqHalfW = Math.max(minVisW, Math.min(MAX_HALF, sqHalfW0 + d));
+      sqHalfH = Math.max(minVisH, Math.min(MAX_HALF, sqHalfH0 + d));
     } else if (mode === 'edge-t') {
-      sqHalfH = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfH0 - dy));
+      sqHalfH = Math.max(minVisH, Math.min(MAX_HALF, sqHalfH0 - dy));
     } else if (mode === 'edge-b') {
-      sqHalfH = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfH0 + dy));
+      sqHalfH = Math.max(minVisH, Math.min(MAX_HALF, sqHalfH0 + dy));
     } else if (mode === 'edge-l') {
-      sqHalfW = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfW0 - dx));
+      sqHalfW = Math.max(minVisW, Math.min(MAX_HALF, sqHalfW0 - dx));
     } else if (mode === 'edge-r') {
-      sqHalfW = Math.max(MIN_HALF, Math.min(MAX_HALF, sqHalfW0 + dx));
+      sqHalfW = Math.max(minVisW, Math.min(MAX_HALF, sqHalfW0 + dx));
     }
   }
 
