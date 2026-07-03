@@ -2620,14 +2620,20 @@
       // 縦：現在位置で最低44px見えるための最小高さ
       const vVisFromTop = Math.min(edgeStartTop + edgeStartHeight, window.innerHeight) - Math.max(edgeStartTop, 0);
       const minH = Math.max(MIN_RULER_H, 44 + edgeStartHeight - vVisFromTop);
+      // 横：現在位置で最低44px見えるための最小幅(%)
+      const leftPx  = (edgeStartLeft  / 100) * window.innerWidth;
+      const widthPx = (edgeStartWidth / 100) * window.innerWidth;
+      const hVisPx  = Math.min(leftPx + widthPx, window.innerWidth) - Math.max(leftPx, 0);
+      const minWPx  = Math.max(5, 44 + widthPx - hVisPx);
+      const minWPct = (minWPx / window.innerWidth) * 100;
       if (side === 'right') {
         // 右辺を右へ伸ばす。画面右端から10pxだけ余白を残す
-        rulerWidth = Math.max(5, Math.min((100 - edgeStartLeft) - marginPct10px, edgeStartWidth + dxPct));
+        rulerWidth = Math.max(minWPct, Math.min((100 - edgeStartLeft) - marginPct10px, edgeStartWidth + dxPct));
         rulerWidth = Math.round(rulerWidth * 10) / 10;
       } else if (side === 'left') {
         const rightEdge = edgeStartLeft + edgeStartWidth;
         const tentativeLeft = edgeStartLeft + dxPct;
-        rulerLeft  = Math.max(marginPct10px, Math.min(rightEdge - 5, tentativeLeft));
+        rulerLeft  = Math.max(marginPct10px, Math.min(rightEdge - minWPct, tentativeLeft));
         rulerLeft  = Math.round(rulerLeft * 10) / 10;
         rulerWidth = Math.round((rightEdge - rulerLeft) * 10) / 10;
       } else if (side === 'bottom') {
@@ -2689,18 +2695,23 @@
       // 縦：現在位置で最低44px見えるための最小高さ
       const vVisFromTop = Math.min(cornerStartTop + cornerStartHeight, window.innerHeight) - Math.max(cornerStartTop, 0);
       const minH = Math.max(MIN_RULER_H, 44 + cornerStartHeight - vVisFromTop);
+      // 横：現在位置で最低44px見えるための最小幅(%)
+      const cLeftPx  = (cornerStartLeft  / 100) * window.innerWidth;
+      const cWidthPx = (cornerStartWidth / 100) * window.innerWidth;
+      const cHVisPx  = Math.min(cLeftPx + cWidthPx, window.innerWidth) - Math.max(cLeftPx, 0);
+      const cMinWPct = ((Math.max(5, 44 + cWidthPx - cHVisPx)) / window.innerWidth) * 100;
 
       // 横方向
       const marginPct10px = (10 / window.innerWidth) * 100;
       if (cornerSide === 'tr' || cornerSide === 'br') {
         // 右コーナー：右端を伸縮。画面右端から10pxだけ余白を残す
-        rulerWidth = Math.max(5, Math.min((100 - cornerStartLeft) - marginPct10px, cornerStartWidth + dxPct));
+        rulerWidth = Math.max(cMinWPct, Math.min((100 - cornerStartLeft) - marginPct10px, cornerStartWidth + dxPct));
         rulerWidth = Math.round(rulerWidth * 10) / 10;
       } else {
         // 左コーナー：左端を伸縮
         const rightEdge = cornerStartLeft + cornerStartWidth;
         const tentativeLeft = cornerStartLeft + dxPct;
-        rulerLeft  = Math.max(marginPct10px, Math.min(rightEdge - 5, tentativeLeft));
+        rulerLeft  = Math.max(marginPct10px, Math.min(rightEdge - cMinWPct, tentativeLeft));
         rulerLeft  = Math.round(rulerLeft * 10) / 10;
         rulerWidth = Math.round((rightEdge - rulerLeft) * 10) / 10;
       }
@@ -2926,8 +2937,16 @@
     const cxPct  = rulerLeft + rulerWidth / 2;
     const cyPx   = rulerTop  + rulerHeight / 2;
     const cxPx   = (cxPct / 100) * window.innerWidth;
-    const newWidth  = Math.min(100, Math.max(5, rulerWidth  * factor));
-    const newHeight = Math.min(600, Math.max(MIN_RULER_H, rulerHeight * factor));
+    // 現在位置で最低44px見えるための最小幅・最小高さ
+    const leftPx2  = (rulerLeft  / 100) * window.innerWidth;
+    const widthPx2 = (rulerWidth / 100) * window.innerWidth;
+    const hVisPx2  = Math.min(leftPx2 + widthPx2, window.innerWidth) - Math.max(leftPx2, 0);
+    const minWPx2  = Math.max(5, 44 + widthPx2 - hVisPx2);
+    const minWPct2 = (minWPx2 / window.innerWidth) * 100;
+    const vVisPx2  = Math.min(rulerTop + rulerHeight, window.innerHeight) - Math.max(rulerTop, 0);
+    const minH2    = Math.max(MIN_RULER_H, 44 + rulerHeight - vVisPx2);
+    const newWidth  = Math.min(100, Math.max(minWPct2, rulerWidth  * factor));
+    const newHeight = Math.min(600, Math.max(minH2, rulerHeight * factor));
     rulerWidth  = Math.round(newWidth * 10) / 10;
     rulerHeight = Math.round(newHeight);
     // 画面端から少し余白(10px相当)を残して、それ以上は止める
