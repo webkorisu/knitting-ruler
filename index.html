@@ -345,6 +345,24 @@
       flex: 1;
       min-width: 0;
     }
+    .upload-clear-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      border: 1.5px solid var(--border);
+      color: var(--text-sub);
+      font-size: 11px;
+      cursor: pointer;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity .15s, transform .1s;
+    }
+    .upload-clear-btn:hover { opacity: 0.75; }
+    .upload-clear-btn:active { transform: scale(.9); }
     /* アップロード画像の取り扱いに関する注意書き */
     .upload-caution {
       font-family: 'Zen Maru Gothic', sans-serif;
@@ -558,6 +576,29 @@
       justify-content: flex-start;
       gap: 10px;
     }
+    /* Line定規のみ試験的に縦積みレイアウトに（ラベルを上、内容を下に） */
+    #ruler-card .ruler-control {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 13px;
+    }
+    #ruler-card .ruler-color-row .color-presets {
+      margin-left: 0;
+      max-width: none;
+    }
+    #ruler-card .ruler-slider-row {
+      width: 100%;
+    }
+    #ruler-card .ruler-slider-row input[type=range] {
+      margin-left: 0 !important;
+      width: 100% !important;
+      flex: 1 1 auto !important;
+    }
+    #ruler-card .ruler-control > div {
+      width: 100%;
+      padding-left: 14px;
+      box-sizing: border-box;
+    }
     .ruler-control label {
       display: inline-flex;
       align-items: center;
@@ -571,7 +612,7 @@
       padding: 5px 11px;
       border-radius: 12px;
       flex-shrink: 0;
-      min-width: 4.8em;
+      width: 70px;
       box-sizing: border-box;
     }
     .ruler-control input[type=range] {
@@ -1718,6 +1759,7 @@
     <div class="upload-btn" onclick="document.getElementById('file-input').click()">
       <span class="upload-btn-label">📂 編み図を開く</span>
       <span class="upload-filename" id="filename-label">ファイルを選んでください</span>
+      <button type="button" class="upload-clear-btn" id="upload-clear-btn" title="画像を消す" onclick="event.stopPropagation(); if(window.confirmClearChartImage) window.confirmClearChartImage();">✕</button>
     </div>
     <div class="upload-caution">
       <span class="flower">✿</span> 使い方・注意事項等は下部の説明欄をご覧ください
@@ -1745,21 +1787,25 @@
         </button>
         <div class="card-accordion-body" style="padding:28px 12px 18px; gap:24px;">
           <div class="ruler-control ruler-color-row">
-            <label>色</label>
+            <label>カラー</label>
             <div class="color-presets" id="color-presets">
-              <button class="color-dot" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
-              <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
-              <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
-              <button class="color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
-              <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="ラベンダー"></button>
+              <button class="color-dot" data-color="#E8A8AC" style="background:#E8A8AC;" title="赤"></button>
+              <button class="color-dot" data-color="#F0C29C" style="background:#F0C29C;" title="橙"></button>
+              <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="黄"></button>
+              <button class="color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="緑"></button>
+              <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="青"></button>
+              <button class="color-dot" data-color="#A8AEDC" style="background:#A8AEDC;" title="藍"></button>
+              <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="紫"></button>
               <input type="color" id="ruler-color" value="#b2aaaa" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
               <label for="ruler-color" class="color-custom-label" title="カラーを選ぶ"></label>
             </div>
           </div>
           <div class="ruler-control ruler-slider-row">
             <label for="ruler-opacity">濃度</label>
-            <input type="range" id="ruler-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
-            <span id="ruler-opacity-label">70%</span>
+            <div style="display:flex; align-items:center; gap:10px; width:100%;">
+              <input type="range" id="ruler-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
+              <span id="ruler-opacity-label">70%</span>
+            </div>
           </div>
           <div class="ruler-control">
             <label>リサイズ</label>
@@ -1840,13 +1886,15 @@
         </button>
         <div class="card-accordion-body" style="padding:28px 12px 18px; gap:24px;">
           <div class="ruler-control ruler-color-row">
-            <label>色</label>
+            <label>カラー</label>
             <div class="color-presets" id="frame-color-presets">
-              <button class="frame-color-dot" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
-              <button class="frame-color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
-              <button class="frame-color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
-              <button class="frame-color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
-              <button class="frame-color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="ラベンダー"></button>
+              <button class="frame-color-dot" data-color="#E8A8AC" style="background:#E8A8AC;" title="赤"></button>
+              <button class="frame-color-dot" data-color="#F0C29C" style="background:#F0C29C;" title="橙"></button>
+              <button class="frame-color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="黄"></button>
+              <button class="frame-color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="緑"></button>
+              <button class="frame-color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="青"></button>
+              <button class="frame-color-dot" data-color="#A8AEDC" style="background:#A8AEDC;" title="藍"></button>
+              <button class="frame-color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="紫"></button>
               <input type="color" id="frame-color" value="#b2aaaa" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
               <label for="frame-color" class="color-custom-label" title="カラーを選ぶ"></label>
             </div>
@@ -1935,13 +1983,15 @@
         </button>
         <div class="card-accordion-body" style="padding:28px 12px 18px; gap:24px;">
           <div class="ruler-control ruler-color-row">
-            <label>色</label>
+            <label>カラー</label>
             <div class="color-presets" id="circle-color-presets">
-              <button class="color-dot" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
-              <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
-              <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
-              <button class="color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
-              <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="ラベンダー"></button>
+              <button class="color-dot" data-color="#E8A8AC" style="background:#E8A8AC;" title="赤"></button>
+              <button class="color-dot" data-color="#F0C29C" style="background:#F0C29C;" title="橙"></button>
+              <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="黄"></button>
+              <button class="color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="緑"></button>
+              <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="青"></button>
+              <button class="color-dot" data-color="#A8AEDC" style="background:#A8AEDC;" title="藍"></button>
+              <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="紫"></button>
               <input type="color" id="circle-color" value="#b2aaaa" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
               <label for="circle-color" class="color-custom-label" title="カラーを選ぶ"></label>
             </div>
@@ -2030,13 +2080,15 @@
         </button>
         <div class="card-accordion-body" style="padding:28px 12px 18px; gap:24px;">
           <div class="ruler-control ruler-color-row">
-            <label>色</label>
+            <label>カラー</label>
             <div class="color-presets" id="square-color-presets">
-              <button class="color-dot" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
-              <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
-              <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
-              <button class="color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
-              <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="ラベンダー"></button>
+              <button class="color-dot" data-color="#E8A8AC" style="background:#E8A8AC;" title="赤"></button>
+              <button class="color-dot" data-color="#F0C29C" style="background:#F0C29C;" title="橙"></button>
+              <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="黄"></button>
+              <button class="color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="緑"></button>
+              <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="青"></button>
+              <button class="color-dot" data-color="#A8AEDC" style="background:#A8AEDC;" title="藍"></button>
+              <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="紫"></button>
               <input type="color" id="square-color" value="#b2aaaa" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
               <label for="square-color" class="color-custom-label" title="カラーを選ぶ"></label>
             </div>
@@ -2125,9 +2177,9 @@
         <div class="data-note-body">
           <p>① 「📂 編み図を開く」から画像を読み込みます（PDFは非対応）。対応ファイル形式は下記をご覧ください。</p>
           <p>② 編み図はドラッグで移動、ピンチ（スマホ・トラックパッド）やマウスホイール（PC）で拡大・縮小できます。</p>
-          <p>③ タブで定規の種類を切り替えられます（Line／Frame／Square／Circle）。</p>
+          <p>③ タブで定規の種類を切り替えられます（Line／Frame／Square／Circle）。各タブごとに別々の編み図を読み込めます。</p>
           <p>④ 各定規は色・濃度・サイズをカスタマイズでき、ドラッグで動かせます。よく使う設定はお気に入り定規に保存できます。</p>
-          <p>⑤ 段数カウンターや、定規を自動で動かせる段ガイド機能は、各定規の段数カウンターメニューをご覧ください。</p>
+          <p>⑤ 段数カウンター、段ガイド機能は、各定規ごとに設定できます。詳しい設定・使用方法は各定規のメニューをご覧ください。</p>
           <p>⑥ メニューパネルと段数カウンターは、ドラッグで移動できます。</p>
         </div>
       </div>
@@ -2138,7 +2190,9 @@
           <span class="data-note-arrow">▼</span>
         </button>
         <div class="data-note-body">
-          <p>JPG / PNG / WebP / GIF・HEIC（iPhoneの写真）など、ブラウザが対応している画像形式が読み込めます。</p>
+          <p>JPG / PNG / WebP / GIFなど、ブラウザが対応している画像形式が読み込めます。HEIC（iPhoneの写真）はSafariでは開けますが、他のブラウザでは開けないことがあります。</p>
+          <p>📱 HEICが開けない時は、写真をスクリーンショットで撮り直すと読み込めます（PDFの時と同じ方法です）。</p>
+          <p>⚙️ もしくは、iPhoneの「設定 → カメラ → フォーマット」を「互換性優先」にすると、今後撮る写真が自動的にJPEGで保存され、この問題自体が起きなくなります（すでに撮った写真は変わりません）。</p>
           <p>⚠️ PDFはそのままでは開けません。スクリーンショットで画像に変換してからお使いください。</p>
           <p>📱 スマホ：PDFアプリで全画面表示 → スクリーンショット → そのまま読み込めます。</p>
           <p>💻 Mac：Shift+⌘+4 で切り取り。Windows：Snipping Toolで切り取り。</p>
@@ -2282,21 +2336,39 @@
   fileInput.addEventListener('change', e => {
     const file = e.target.files[0];
     if (!file) return;
-    filenameLabel.textContent = file.name;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const image = new Image();
-      image.onload = () => {
-        img = image;
-        canvas.style.display = 'block';
-        viewer.classList.add('has-image');
-        fitImage();
-        drawImage();
-        switchRulerTab(currentRulerTab);
+    const hadImageBefore = !!img;
+    fileInput.value = ''; // 同じファイルを選び直しても反応できるようにリセット
+
+    const doLoad = () => {
+      filenameLabel.textContent = file.name;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const image = new Image();
+        image.onload = () => {
+          img = image;
+          canvas.style.display = 'block';
+          viewer.classList.add('has-image');
+          updateUploadClearBtn();
+          fitImage();
+          drawImage();
+          switchRulerTab(currentRulerTab);
+        };
+        image.onerror = () => {
+          showModal('この画像は開けませんでした。\nお使いのブラウザがこのファイル形式に対応していない可能性があります（特にHEICはSafari以外では開けないことが多いです）。\n別の形式（JPG・PNGなど）でお試しください。', 'OK', () => {}, false);
+        };
+        image.src = ev.target.result;
       };
-      image.src = ev.target.result;
+      reader.onerror = () => {
+        showModal('ファイルの読み込みに失敗しました。もう一度お試しください。', 'OK', () => {}, false);
+      };
+      reader.readAsDataURL(file);
     };
-    reader.readAsDataURL(file);
+
+    if (hadImageBefore) {
+      showModal('画像を変更しますか？', '変更する', doLoad);
+    } else {
+      doLoad();
+    }
   });
 
   function fitImage() {
@@ -3720,6 +3792,31 @@
     chartTabStates[tab].filename = filenameLabel.textContent;
   }
 
+  // 「画像を消す」ボタンの表示・非表示を、今アップロード済みかどうかに合わせる
+  function updateUploadClearBtn() {
+    const btn = document.getElementById('upload-clear-btn');
+    if (!btn) return;
+    btn.style.display = viewer.classList.contains('has-image') ? 'flex' : 'none';
+  }
+
+  // 現在のタブの編み図画像を消す（他のタブの画像には影響しない）
+  window.clearChartImage = function() {
+    img = null;
+    scale = 1.0; offsetX = 0; offsetY = 0;
+    canvas.style.display = 'none';
+    viewer.classList.remove('has-image');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    filenameLabel.textContent = 'ファイルを選んでください';
+    fileInput.value = '';
+    updateUploadClearBtn();
+    saveChartStateForTab(currentRulerTab);
+  };
+  window.confirmClearChartImage = function() {
+    showModal('表示されている画像を取り消しますか？', '取り消す', () => {
+      window.clearChartImage();
+    });
+  };
+
   // 保存領域から img/scale/offsetX/offsetY を読み出して反映し、表示を更新する
   function loadChartStateForTab(tab) {
     const s = chartTabStates[tab] || makeEmptyChartState();
@@ -3735,6 +3832,7 @@
       canvas.style.display = 'none';
       viewer.classList.remove('has-image');
     }
+    updateUploadClearBtn();
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     // Line/Frame/Circle定規：このタブ自身のscaleに合わせて段ガイドのステップを再計算する
