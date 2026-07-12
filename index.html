@@ -110,8 +110,6 @@
     #save-hint-center span { white-space: nowrap; }
     #square-edge-toast {
       position: fixed;
-      top: 70px;
-      left: 50%;
       transform: translateX(-50%) translateY(-6px);
       font-family: 'Zen Maru Gothic', sans-serif;
       font-size: 12px;
@@ -347,6 +345,20 @@
       flex: 1;
       min-width: 0;
     }
+    /* アップロード画像の取り扱いに関する注意書き */
+    .upload-caution {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 10px;
+      color: rgba(79,113,105,0.75);
+      line-height: 1.6;
+      text-align: center;
+      letter-spacing: .02em;
+      margin-top: -14px;
+    }
+    .upload-caution .flower {
+      font-weight: 700;
+      color: var(--text-sub);
+    }
 
     /* 汎用ボタン */
     .btn {
@@ -370,67 +382,8 @@
     .btn.primary:hover { background: #a8d4cb; }
 
     /* ズームバー */
-    /* ===== ズームフローティングパネル ===== */
-    #zoom-panel {
-      position: fixed;
-      z-index: 200;
-      bottom: 24px;
-      left: 20px;
-      background: rgba(255,255,255,0.92);
-      border: 1.5px solid rgba(195,216,210,0.6);
-      border-radius: 40px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-      user-select: none;
-      touch-action: none;
-      display: none;
-      align-items: center;
-      overflow: hidden;
-      cursor: grab;
-      -webkit-tap-highlight-color: transparent;
-    }
-    #zoom-panel:active { cursor: grabbing; }
-    #zoom-panel.dragging {
-      box-shadow: 0 16px 40px rgba(0,0,0,0.22), 0 4px 12px rgba(0,0,0,0.12);
-      opacity: 0.95;
-    }
-    .zp-btn {
-      background: none;
-      border: none;
-      width: 44px;
-      height: 44px;
-      font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--text);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background .12s;
-      -webkit-tap-highlight-color: transparent;
-      flex-shrink: 0;
-    }
-    .zp-btn:hover  { background: rgba(180,220,212,0.25); }
-    .zp-btn:active { background: rgba(180,220,212,0.5); transform: scale(.9); }
-    .zp-btn.reset  { font-size: 14px; color: var(--text-sub); width: 40px; }
-    #zoom-label {
-      font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text-sub);
-      min-width: 40px;
-      text-align: center;
-      pointer-events: none;
-      letter-spacing: .04em;
-    }
-    .zp-divider {
-      width: 1px;
-      height: 24px;
-      background: var(--border);
-      flex-shrink: 0;
-    }
 
-    .zp-caption, .cp-caption {
+    .cp-caption {
       font-family: 'Zen Maru Gothic', sans-serif;
       font-size: 10px;
       font-weight: 700;
@@ -590,7 +543,7 @@
       letter-spacing: .04em;
       opacity: 0.8;
       padding-left: 0;
-      margin-top: -2px;
+      margin-top: 8px;
       overflow-wrap: break-word;
     }
     .ruler-control > div {
@@ -602,16 +555,24 @@
     .ruler-control {
       display: flex;
       align-items: flex-start;
-      gap: 8px;
+      justify-content: flex-start;
+      gap: 10px;
     }
     .ruler-control label {
-      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10.5px;
       font-weight: 700;
-      color: var(--text-sub);
+      color: var(--text);
       letter-spacing: .05em;
       white-space: nowrap;
-      min-width: 4em;
-      line-height: 1.5; /* .ruler-op-descと同じline-height・font-sizeにして、説明の1行目とラベルの高さを揃える */
+      background: #E8F4F1;
+      padding: 5px 11px;
+      border-radius: 12px;
+      flex-shrink: 0;
+      min-width: 4.8em;
+      box-sizing: border-box;
     }
     .ruler-control input[type=range] {
       flex: 1;
@@ -630,15 +591,18 @@
     /* カラー行 */
     .ruler-color-row { flex-wrap: wrap; gap: 6px; align-items: center; }
     .ruler-slider-row { align-items: center; }
-    .color-presets { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; max-width: 160px; }
+    .ruler-slider-row input[type=range] { margin-left: 6px; }
+    .ruler-slider-row span { margin-left: -4px; }
+    .color-presets { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; max-width: 210px; margin-left: 10px; }
     .color-col { display: flex; flex-direction: column; gap: 5px; align-items: stretch; }
     .color-dot {
-      width: 22px; height: 22px;
+      width: 19px; height: 19px;
       border-radius: 50%;
       border: 2px solid transparent;
       cursor: pointer;
       transition: transform .15s, border-color .15s;
       padding: 0;
+      box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
     }
     .color-dot:hover  { transform: scale(1.15); }
@@ -647,20 +611,21 @@
     .color-custom-label {
       box-sizing: border-box !important;
       display: inline-block !important;
-      width: 22px !important;
-      height: 22px !important;
-      min-width: 22px !important;
-      max-width: 22px !important;
-      min-height: 22px !important;
-      max-height: 22px !important;
-      border-radius: 50%;
-      border: 2px dashed var(--border);
-      background: transparent;
+      width: 19px !important;
+      height: 19px !important;
+      min-width: 19px !important;
+      max-width: 19px !important;
+      min-height: 19px !important;
+      max-height: 19px !important;
+      aspect-ratio: 1 / 1 !important;
+      border-radius: 50% !important;
+      border: 2px dashed #B8B8B8 !important;
+      background: transparent !important;
       cursor: pointer;
       transition: transform .15s, border-color .15s, background .15s;
       flex-shrink: 0;
       align-self: center;
-      padding: 0;
+      padding: 0 !important;
       position: relative;
       vertical-align: middle;
     }
@@ -668,8 +633,8 @@
     .color-custom-label::after {
       content: '';
       position: absolute;
-      background: var(--text-sub);
-      opacity: 0.6;
+      background: #8A8A8A;
+      opacity: 0.7;
       border-radius: 1px;
     }
     .color-custom-label::before {
@@ -682,7 +647,7 @@
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
     }
-    .color-custom-label:hover { transform: scale(1.15); background: #f0f8f5; }
+    .color-custom-label:hover { transform: scale(1.15); background: #f2f2f2 !important; }
 
     /* トグル行 */
     .sec-div {
@@ -923,12 +888,13 @@
     }
 
     .frame-color-dot {
-      width: 22px; height: 22px;
+      width: 19px; height: 19px;
       border-radius: 50%;
       border: 2px solid transparent;
       cursor: pointer;
       transition: transform .15s, border-color .15s;
       padding: 0;
+      box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
     }
     .frame-color-dot:hover  { transform: scale(1.15); }
@@ -1027,7 +993,7 @@
       min-height: 28px;
       box-sizing: content-box;
       border-bottom: 1px solid var(--border);
-      background: var(--primary);
+      background: #cce8e2;
       flex-wrap: wrap;
       row-gap: 6px;
     }
@@ -1056,16 +1022,16 @@
       white-space: nowrap;
       pointer-events: none;
       margin-left: 8px;
-      min-width: 78px;
+      min-width: 68px;
       transition: opacity .15s;
     }
     #gp-measure-btn {
       background: #f8fdfc;
       border: 1.5px solid var(--border);
-      border-radius: 14px;
-      padding: 3px 10px;
+      border-radius: 15px;
+      padding: 5px 13px;
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--text);
       cursor: pointer;
@@ -1204,12 +1170,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background .12s;
+      transition: transform .12s, color .1s;
       -webkit-tap-highlight-color: transparent;
       flex-shrink: 0;
     }
-    .cp-btn:hover  { background: rgba(180,220,212,0.25); }
-    .cp-btn:active { background: rgba(180,220,212,0.5); transform: scale(.9); }
+    .cp-btn:active { transform: scale(.9); }
+    #cp-plus:active  { color: #D992A8; }
+    #cp-minus:active { color: #8CB8DC; }
     .cp-btn.reset  { font-size: 18px; color: var(--text-sub); width: 44px; }
     #cp-num {
       font-family: 'Zen Maru Gothic', sans-serif;
@@ -1728,13 +1695,6 @@
 
 
 
-<!-- ===== ズームフローティングパネル ===== -->
-<div id="zoom-panel">
-  <button class="zp-btn" id="btn-zoom-in"  title="拡大">＋</button>
-  <span id="zoom-label">100%</span>
-  <button class="zp-btn" id="btn-zoom-out" title="縮小">−</button>
-</div>
-
 
 <div id="float-panel">
   <!-- ドラッグハンドル兼ヘッダー -->
@@ -1759,6 +1719,9 @@
       <span class="upload-btn-label">📂 編み図を開く</span>
       <span class="upload-filename" id="filename-label">ファイルを選んでください</span>
     </div>
+    <div class="upload-caution">
+      <span class="flower">✿</span> 使い方・注意事項等は下部の説明欄をご覧ください
+    </div>
 
     <!-- ズームボタンはフローティングパネルに移動 -->
 
@@ -1773,47 +1736,43 @@
 
     <!-- 定規カスタマイズ -->
     <div class="ruler-card" id="ruler-card">
-      <div class="ruler-usage-hint">💡 <span>（仮）まっすぐな段の、横一列のカウントに向いています</span></div>
+      <div class="ruler-usage-hint">💡 <span>往復編み・輪編みの編み図用</span></div>
       <!-- アコーディオン①カスタマイズ -->
-      <div class="card-accordion open" id="band-acc-custom">
+      <div class="card-accordion" id="band-acc-custom">
         <button class="card-accordion-btn" onclick="toggleCardAcc('band-acc-custom')">
           <span>ライン定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:18px 12px 10px; gap:14px;">
-          <div class="ruler-control">
-            <label>リサイズ</label>
-            <div>
-              <div class="ruler-op-desc">枠の辺や角をドラッグ／ピンチ</div>
-            </div>
-          </div>
-          <div class="ruler-control">
-            <label>移動</label>
-            <div class="ruler-op-desc">長押し＆ドラッグ</div>
-          </div>
+        <div class="card-accordion-body" style="padding:28px 12px 18px; gap:24px;">
           <div class="ruler-control ruler-color-row">
             <label>色</label>
             <div class="color-presets" id="color-presets">
               <button class="color-dot" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
+              <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
+              <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
               <button class="color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
               <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="ラベンダー"></button>
-              <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
-              <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
               <input type="color" id="ruler-color" value="#b2aaaa" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
               <label for="ruler-color" class="color-custom-label" title="カラーを選ぶ"></label>
             </div>
           </div>
           <div class="ruler-control ruler-slider-row">
             <label for="ruler-opacity">濃度</label>
-            <input type="range" id="ruler-opacity" min="10" max="90" value="70" step="5" style="width:127px; flex:none;">
+            <input type="range" id="ruler-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
             <span id="ruler-opacity-label">70%</span>
+          </div>
+          <div class="ruler-control">
+            <label>リサイズ</label>
+            <div>
+              <div class="ruler-op-desc">枠の辺や角を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ・ピンチ</span></div>
+            </div>
           </div>
           <button class="reset-default-btn" id="band-reset-btn" onclick="resetBandDefault()">リセット</button>
         </div>
       </div>
 
       <!-- アコーディオン②お気に入り -->
-      <div class="card-accordion open" id="band-acc-preset">
+      <div class="card-accordion" id="band-acc-preset">
         <button class="card-accordion-btn" onclick="toggleCardAcc('band-acc-preset')">
           <span>お気に入り定規　<span id="preset-count">0</span>/5</span>
           <span class="card-accordion-arrow">▼</span>
@@ -1828,20 +1787,40 @@
       </div>
 
       <!-- アコーディオン③段数カウンター -->
-      <div class="card-accordion open" id="band-acc-counter">
+      <div class="card-accordion" id="band-acc-counter">
         <button class="card-accordion-btn" onclick="toggleCardAcc('band-acc-counter')">
           <span>段数カウンター</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
           <div style="display:flex; align-items:center; gap:6px;">
-            <span class="toggle-label" style="width:5.5em;">カウンター</span>
+            <span class="toggle-label" style="width:7.5em;">段数カウンター</span>
             <label class="toggle-switch">
               <input type="checkbox" id="toggle-counter" checked>
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">編み図エリアに表示される「カウンター」では、段数を数えながら<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">定規を1段ずつ自動で動かせます</span>（<strong style="font-weight:700; color:var(--text);">段ガイド機能</strong>）。段ガイド機能のON/OFFや1段の高さの計測もここから行えます。</p>
+          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。<br>
+          <strong style="font-weight:700; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
+        </div>
+      </div>
+
+      <!-- アコーディオン④段ガイド機能 -->
+      <div class="card-accordion" id="band-acc-guide">
+        <button class="card-accordion-btn" onclick="toggleCardAcc('band-acc-guide')">
+          <span>段ガイド機能</span>
+          <span class="card-accordion-arrow">▼</span>
+        </button>
+        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。</p>
+          <p style="margin-top:2px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに合わせて<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">ライン定規が1段ずつ自動で動きます</span>。使用するには1段の高さの計測が必要です。<br>
+          <strong style="font-weight:700; color:var(--text);">OFF</strong>：ライン定規をドラッグすると、手動で動かせます。<br>
+          ※ONの間も定規の位置をドラッグで微調整できます（編み図の歪みなどでズレた時に便利です）。</p>
+          <p style="margin-top:8px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
+          ①編み図をアップロード<br>
+          ②カウンターの「計測」ボタンを押す<br>
+          ③画面の案内に沿って、編み図の1段の高さを計測<br>
+          ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。</p>
         </div>
       </div>
       <input type="hidden" id="ruler-step" value="40">
@@ -1851,48 +1830,44 @@
 
     <!-- 窓定規カード -->
     <div class="ruler-card" id="frame-card" style="display:none;">
-      <div class="ruler-usage-hint">💡 <span>（仮）柄の繰り返し部分を枠で囲んで追いたい時に向いています</span></div>
+      <div class="ruler-usage-hint">💡 <span>1模様(○目○段)の繰り返し用</span></div>
       
       <!-- アコーディオン①カスタマイズ -->
-      <div class="card-accordion open" id="frame-acc-custom">
+      <div class="card-accordion" id="frame-acc-custom">
         <button class="card-accordion-btn" onclick="toggleCardAcc('frame-acc-custom')">
           <span>フレーム定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:18px 12px 10px; gap:14px;">
-          <div class="ruler-control">
-            <label>リサイズ</label>
-            <div>
-              <div class="ruler-op-desc">外枠・窓の辺や角をドラッグ／ピンチ</div>
-            </div>
-          </div>
-          <div class="ruler-control">
-            <label>移動</label>
-            <div class="ruler-op-desc">長押し＆ドラッグ</div>
-          </div>
+        <div class="card-accordion-body" style="padding:28px 12px 18px; gap:24px;">
           <div class="ruler-control ruler-color-row">
             <label>色</label>
             <div class="color-presets" id="frame-color-presets">
               <button class="frame-color-dot" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
+              <button class="frame-color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
+              <button class="frame-color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
               <button class="frame-color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
               <button class="frame-color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="ラベンダー"></button>
-              <button class="frame-color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
-              <button class="frame-color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
               <input type="color" id="frame-color" value="#b2aaaa" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
               <label for="frame-color" class="color-custom-label" title="カラーを選ぶ"></label>
             </div>
           </div>
           <div class="ruler-control ruler-slider-row">
             <label for="frame-opacity">濃度</label>
-            <input type="range" id="frame-opacity" min="10" max="90" value="70" step="5" style="width:127px; flex:none;">
+            <input type="range" id="frame-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
             <span id="frame-opacity-label">70%</span>
+          </div>
+          <div class="ruler-control">
+            <label>リサイズ</label>
+            <div>
+              <div class="ruler-op-desc">外枠・窓枠の辺や角を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ・ピンチ</span></div>
+            </div>
           </div>
           <button class="reset-default-btn" id="frame-reset-btn" onclick="resetFrameDefault()">リセット</button>
         </div>
       </div>
 
       <!-- アコーディオン②お気に入り -->
-      <div class="card-accordion open" id="frame-acc-preset">
+      <div class="card-accordion" id="frame-acc-preset">
         <button class="card-accordion-btn" onclick="toggleCardAcc('frame-acc-preset')">
           <span>お気に入り定規　<span id="frame-preset-count">0</span>/5</span>
           <span class="card-accordion-arrow">▼</span>
@@ -1907,20 +1882,40 @@
       </div>
 
       <!-- アコーディオン③段数カウンター -->
-      <div class="card-accordion open" id="frame-acc-counter">
+      <div class="card-accordion" id="frame-acc-counter">
         <button class="card-accordion-btn" onclick="toggleCardAcc('frame-acc-counter')">
           <span>段数カウンター</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
           <div style="display:flex; align-items:center; gap:6px;">
-            <span class="toggle-label" style="width:5.5em;">カウンター</span>
+            <span class="toggle-label" style="width:7.5em;">段数カウンター</span>
             <label class="toggle-switch">
               <input type="checkbox" id="toggle-frame-counter" checked>
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">編み図エリアに表示される「カウンター」では、段数を数えながら<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">枠を1段ずつ自動で動かせます</span>（<strong style="font-weight:700; color:var(--text);">段ガイド機能</strong>）。段ガイド機能のON/OFFや1段の高さの計測もここから行えます。</p>
+          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。<br>
+          <strong style="font-weight:700; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
+        </div>
+      </div>
+
+      <!-- アコーディオン④段ガイド機能 -->
+      <div class="card-accordion" id="frame-acc-guide">
+        <button class="card-accordion-btn" onclick="toggleCardAcc('frame-acc-guide')">
+          <span>段ガイド機能</span>
+          <span class="card-accordion-arrow">▼</span>
+        </button>
+        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。</p>
+          <p style="margin-top:2px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに合わせて、<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">フレーム定規の窓枠の上側は固定されたまま、窓枠の下側が1段ずつ自動で動きます</span>。使用するには1段の高さの計測が必要です。<br>
+          <strong style="font-weight:700; color:var(--text);">OFF</strong>：フレーム定規をドラッグすると、手動で動かせます。<br>
+          ※ONの間も定規の位置をドラッグで微調整できます（編み図の歪みなどでズレた時に便利です）。</p>
+          <p style="margin-top:8px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
+          ①編み図をアップロード<br>
+          ②カウンターの「計測」ボタンを押す<br>
+          ③画面の案内に沿って、編み図の1段の高さを計測<br>
+          ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。</p>
         </div>
       </div>
       <input type="hidden" id="frame-step" value="40">
@@ -1930,48 +1925,44 @@
 
     <!-- 丸定規カード -->
     <div class="ruler-card" id="circle-card" style="display:none;">
-      <div class="ruler-usage-hint">💡 <span>（仮）輪編み・円形モチーフのカウントに向いています</span></div>
+      <div class="ruler-usage-hint">💡 <span>円形モチーフの編み図用</span></div>
       
       <!-- アコーディオン①カスタマイズ -->
-      <div class="card-accordion open" id="circle-acc-custom">
+      <div class="card-accordion" id="circle-acc-custom">
         <button class="card-accordion-btn" onclick="toggleCardAcc('circle-acc-custom')">
           <span>サークル定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:18px 12px 10px; gap:14px;">
-          <div class="ruler-control">
-            <label>リサイズ</label>
-            <div>
-              <div class="ruler-op-desc">枠をドラッグ／ピンチ</div>
-            </div>
-          </div>
-          <div class="ruler-control">
-            <label>移動</label>
-            <div class="ruler-op-desc">長押し＆ドラッグ</div>
-          </div>
+        <div class="card-accordion-body" style="padding:28px 12px 18px; gap:24px;">
           <div class="ruler-control ruler-color-row">
             <label>色</label>
             <div class="color-presets" id="circle-color-presets">
               <button class="color-dot" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
+              <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
+              <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
               <button class="color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
               <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="ラベンダー"></button>
-              <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
-              <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
               <input type="color" id="circle-color" value="#b2aaaa" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
               <label for="circle-color" class="color-custom-label" title="カラーを選ぶ"></label>
             </div>
           </div>
           <div class="ruler-control ruler-slider-row">
             <label for="circle-opacity">濃度</label>
-            <input type="range" id="circle-opacity" min="10" max="90" value="70" step="5" style="width:127px; flex:none;">
+            <input type="range" id="circle-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
             <span id="circle-opacity-label">70%</span>
+          </div>
+          <div class="ruler-control">
+            <label>リサイズ</label>
+            <div>
+              <div class="ruler-op-desc">枠を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ・ピンチ</span></div>
+            </div>
           </div>
           <button class="reset-default-btn" id="circle-reset-btn" onclick="resetCircleDefault()">リセット</button>
         </div>
       </div>
 
       <!-- アコーディオン②お気に入り -->
-      <div class="card-accordion open" id="circle-acc-preset">
+      <div class="card-accordion" id="circle-acc-preset">
         <button class="card-accordion-btn" onclick="toggleCardAcc('circle-acc-preset')">
           <span>お気に入り定規　<span id="circle-preset-count">0</span>/5</span>
           <span class="card-accordion-arrow">▼</span>
@@ -1986,20 +1977,40 @@
       </div>
 
       <!-- アコーディオン③段数カウンター -->
-      <div class="card-accordion open" id="circle-acc-counter">
+      <div class="card-accordion" id="circle-acc-counter">
         <button class="card-accordion-btn" onclick="toggleCardAcc('circle-acc-counter')">
           <span>段数カウンター</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
           <div style="display:flex; align-items:center; gap:6px;">
-            <span class="toggle-label" style="width:5.5em;">カウンター</span>
+            <span class="toggle-label" style="width:7.5em;">段数カウンター</span>
             <label class="toggle-switch">
               <input type="checkbox" id="toggle-circle-counter" checked>
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">編み図エリアに表示される「カウンター」では、段数を数えながら<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">円を1段ずつ自動で広げ縮めできます</span>（<strong style="font-weight:700; color:var(--text);">段ガイド機能</strong>）。段ガイド機能のON/OFFや1段の幅の計測もここから行えます。</p>
+          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。<br>
+          <strong style="font-weight:700; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
+        </div>
+      </div>
+
+      <!-- アコーディオン④段ガイド機能 -->
+      <div class="card-accordion" id="circle-acc-guide">
+        <button class="card-accordion-btn" onclick="toggleCardAcc('circle-acc-guide')">
+          <span>段ガイド機能</span>
+          <span class="card-accordion-arrow">▼</span>
+        </button>
+        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。</p>
+          <p style="margin-top:2px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに合わせて<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">サークル定規が1段ずつ自動で拡大縮小します</span>。使用するには1段の高さの計測が必要です。<br>
+          <strong style="font-weight:700; color:var(--text);">OFF</strong>：サークル定規をドラッグすると、手動で動かせます。<br>
+          ※ONの間も定規の位置をドラッグで微調整できます（編み図の歪みなどでズレた時に便利です）。</p>
+          <p style="margin-top:8px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
+          ①編み図をアップロード<br>
+          ②カウンターの「計測」ボタンを押す<br>
+          ③画面の案内に沿って、編み図の1段の高さを計測<br>
+          ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。</p>
         </div>
       </div>
       <input type="hidden" id="circle-step" value="20">
@@ -2009,49 +2020,46 @@
 
     <!-- Square定規カード -->
     <div class="ruler-card" id="square-card" style="display:none;">
-      <div class="ruler-usage-hint">💡 <span>（仮）正方形に近いモチーフや模様のカウントに向いています</span></div>
+      <div class="ruler-usage-hint">💡 <span>四角モチーフの編み図用</span></div>
 
       <!-- アコーディオン①カスタマイズ -->
-      <div class="card-accordion open" id="square-acc-custom">
+      <div class="card-accordion" id="square-acc-custom">
         <button class="card-accordion-btn" onclick="toggleCardAcc('square-acc-custom')">
           <span>スクエア定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:18px 12px 10px; gap:14px;">
-          <div class="ruler-control">
-            <label>リサイズ</label>
-            <div>
-              <div class="ruler-op-desc">角をドラッグ／ピンチ</div>
-              <div class="ruler-op-pinch">※辺の中央をドラッグで長方形に／内側ダブルタップで正方形⇔長方形を切替</div>
-            </div>
-          </div>
-          <div class="ruler-control">
-            <label>移動</label>
-            <div class="ruler-op-desc">長押し＆ドラッグ</div>
-          </div>
+        <div class="card-accordion-body" style="padding:28px 12px 18px; gap:24px;">
           <div class="ruler-control ruler-color-row">
             <label>色</label>
             <div class="color-presets" id="square-color-presets">
               <button class="color-dot" data-color="#F2D6D6" style="background:#F2D6D6;" title="ローズ"></button>
+              <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
+              <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
               <button class="color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="ミント"></button>
               <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="ラベンダー"></button>
-              <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="クリーム"></button>
-              <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="スカイ"></button>
               <input type="color" id="square-color" value="#b2aaaa" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
               <label for="square-color" class="color-custom-label" title="カラーを選ぶ"></label>
             </div>
           </div>
           <div class="ruler-control ruler-slider-row">
             <label for="square-opacity">濃度</label>
-            <input type="range" id="square-opacity" min="10" max="90" value="70" step="5" style="width:127px; flex:none;">
+            <input type="range" id="square-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
             <span id="square-opacity-label">70%</span>
+          </div>
+          <div class="ruler-control">
+            <label>リサイズ</label>
+            <div>
+              <div class="ruler-op-desc">角を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ・ピンチ</span></div>
+              <div class="ruler-op-pinch">【正方形⇔長方形】<div style="padding-left:14px; margin-top:3px;"><span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ダブルタップ</span></div></div>
+              <div class="ruler-op-pinch">【長方形】<div style="padding-left:14px; margin-top:3px;">辺の中央を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ</span></div></div>
+            </div>
           </div>
           <button class="reset-default-btn" id="square-reset-btn" onclick="resetSquareDefault()">リセット</button>
         </div>
       </div>
 
       <!-- アコーディオン②お気に入り -->
-      <div class="card-accordion open" id="square-acc-preset">
+      <div class="card-accordion" id="square-acc-preset">
         <button class="card-accordion-btn" onclick="toggleCardAcc('square-acc-preset')">
           <span>お気に入り定規　<span id="square-preset-count">0</span>/5</span>
           <span class="card-accordion-arrow">▼</span>
@@ -2066,20 +2074,40 @@
       </div>
 
       <!-- アコーディオン③段数カウンター -->
-      <div class="card-accordion open" id="square-acc-counter">
+      <div class="card-accordion" id="square-acc-counter">
         <button class="card-accordion-btn" onclick="toggleCardAcc('square-acc-counter')">
           <span>段数カウンター</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
           <div style="display:flex; align-items:center; gap:6px;">
-            <span class="toggle-label" style="width:5.5em;">カウンター</span>
+            <span class="toggle-label" style="width:7.5em;">段数カウンター</span>
             <label class="toggle-switch">
               <input type="checkbox" id="toggle-square-counter" checked>
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">編み図エリアに表示される「カウンター」では、段数を数えながら<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">正方形を1段ずつ自動で広げ縮めできます</span>（<strong style="font-weight:700; color:var(--text);">段ガイド機能</strong>）。段ガイド機能のON/OFFや1段の幅の計測もここから行えます。</p>
+          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。<br>
+          <strong style="font-weight:700; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
+        </div>
+      </div>
+
+      <!-- アコーディオン④段ガイド機能 -->
+      <div class="card-accordion" id="square-acc-guide">
+        <button class="card-accordion-btn" onclick="toggleCardAcc('square-acc-guide')">
+          <span>段ガイド機能</span>
+          <span class="card-accordion-arrow">▼</span>
+        </button>
+        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。</p>
+          <p style="margin-top:2px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに合わせて<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">スクエア定規（正方形または長方形）が1段ずつ自動で拡大縮小します</span>。使用するには1段の高さの計測が必要です。<br>
+          <strong style="font-weight:700; color:var(--text);">OFF</strong>：スクエア定規をドラッグすると、手動で動かせます。<br>
+          ※ONの間も定規の位置をドラッグで微調整できます（編み図の歪みなどでズレた時に便利です）。</p>
+          <p style="margin-top:8px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
+          ①編み図をアップロード<br>
+          ②カウンターの「計測」ボタンを押す<br>
+          ③画面の案内に沿って、編み図の1段の高さを計測<br>
+          ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。</p>
         </div>
       </div>
       <input type="hidden" id="square-step" value="20">
@@ -2095,12 +2123,12 @@
           <span class="data-note-arrow">▼</span>
         </button>
         <div class="data-note-body">
-          <p>① 「📂 編み図を開く」から画像を読み込みます。JPG・PNG・WebPなどの画像ファイルに対応しています（PDFは非対応）。</p>
-          <p>② 編み図はドラッグで移動、ピンチまたはボタンで拡大・縮小できます。PCはマウスホイールでも可。</p>
-          <p>③ タブで定規の種類を切り替えられます。Line（帯）/ Frame（窓）/ Circle（丸）。</p>
-          <p>④ 各定規は色・濃度などをカスタマイズできます。よく使う設定はお気に入りに保存できます。</p>
-          <p>⑤ 段数カウンターをオンにすると画面端にカウンターが表示されます。＋／− で段数を増減、− の長押しで素早くゼロに戻せます。段ガイドをオンにすると定規の移動に合わせて自動でカウントします。</p>
-          <p>⑥ パネルはドラッグで移動、「−」で折りたためます。</p>
+          <p>① 「📂 編み図を開く」から画像を読み込みます（PDFは非対応）。対応ファイル形式は下記をご覧ください。</p>
+          <p>② 編み図はドラッグで移動、ピンチ（スマホ・トラックパッド）やマウスホイール（PC）で拡大・縮小できます。</p>
+          <p>③ タブで定規の種類を切り替えられます（Line／Frame／Square／Circle）。</p>
+          <p>④ 各定規は色・濃度・サイズをカスタマイズでき、ドラッグで動かせます。よく使う設定はお気に入り定規に保存できます。</p>
+          <p>⑤ 段数カウンターや、定規を自動で動かせる段ガイド機能は、各定規の段数カウンターメニューをご覧ください。</p>
+          <p>⑥ メニューパネルと段数カウンターは、ドラッグで移動できます。</p>
         </div>
       </div>
 
@@ -2125,6 +2153,7 @@
         <div class="data-note-body">
           <p>このアプリは、編み物や日々の暮らしをちょっと便利にするために作られた個人制作のツールです。</p>
           <p>編み図は端末内でのみ表示されます。外部への送信は一切行いません。</p>
+          <p>アップロードする画像は、ご自身が編むためだけにお使いください。編み図が写った画像のSNS投稿・配布はお控えください。画像のご利用に関する責任は、ご利用者ご自身に帰属するものとします。</p>
           <p>作者（YUCCHI）は、アプリの内容・結果によって生じたいかなる損害についても責任を負いかねます。あらかじめご了承ください。</p>
         </div>
       </div>
@@ -2154,7 +2183,6 @@
   const placeholder  = document.getElementById('placeholder');
   const fileInput    = document.getElementById('file-input');
   const filenameLabel= document.getElementById('filename-label');
-  const zoomLabel    = document.getElementById('zoom-label');
   const rulerOverlay = document.getElementById('ruler-overlay');
   const rulerHandle  = document.getElementById('ruler-handle');
   const rulerSizeInput    = document.getElementById('ruler-size');
@@ -2169,7 +2197,6 @@
   
   const counterPanel = document.getElementById('counter-panel');
   const cpGuideRow = document.getElementById('cp-guide-row');
-  const zoomPanel    = document.getElementById('zoom-panel');
   const cpNum   = document.getElementById('cp-num');
   const cpPlus  = document.getElementById('cp-plus');
   const cpMinus = document.getElementById('cp-minus');
@@ -2295,7 +2322,6 @@
       counterPanel.style.display = 'flex';
       cpGuideRow.style.display = 'flex';
     }
-    zoomPanel.style.display = 'flex';
     rulerTop  = Math.round(window.innerHeight * 0.75);
     rulerLeft = 0;
     applyRulerPos();
@@ -2666,36 +2692,6 @@
       updateCounter();
     }
   });
-
-  // −ボタン長押しで連続減少（帯定規のみ）
-  let minusHoldTimer = null;
-  let minusHoldInterval = null;
-  function startMinusHold() {
-    if (currentRulerTab !== 'band') return;
-    minusHoldTimer = setTimeout(() => {
-      minusHoldInterval = setInterval(() => {
-        if (rowCount > 0) {
-          rowCount--;
-          const effectiveStep = getEffectiveStep();
-          rulerTop = Math.min(window.innerHeight - 20, rulerTop + effectiveStep);
-          applyRulerPos();
-          updateCounter();
-        } else {
-          clearInterval(minusHoldInterval);
-        }
-      }, 80);
-    }, 1500);
-  }
-  function stopMinusHold() {
-    clearTimeout(minusHoldTimer);
-    clearInterval(minusHoldInterval);
-  }
-  cpMinus.addEventListener('mousedown', e => { e.stopPropagation(); startMinusHold(); });
-  cpMinus.addEventListener('touchstart', e => { e.stopPropagation(); startMinusHold(); }, { passive: true });
-  cpMinus.addEventListener('mouseup', stopMinusHold);
-  cpMinus.addEventListener('mouseleave', stopMinusHold);
-  cpMinus.addEventListener('touchend', stopMinusHold);
-  cpMinus.addEventListener('touchcancel', stopMinusHold);
 
   /* ========== 定規端リサイズ＋移動（統合） ========== */
   const EDGE_HIT = 40;
@@ -3230,13 +3226,8 @@
     return Math.sqrt(dx*dx + dy*dy);
   }
 
-  /* ========== ズームボタン ========== */
-  document.getElementById('btn-zoom-in').addEventListener('click',  () => { if(img) zoomAt(canvas.width/2, canvas.height/2, 1.2); });
-  document.getElementById('btn-zoom-out').addEventListener('click', () => { if(img) zoomAt(canvas.width/2, canvas.height/2, 1/1.2); });
-
-  function updateZoomLabel() {
-    zoomLabel.textContent = Math.round(scale * 100) + '%';
-  }
+  /* ========== ズームボタン(削除済み。update関数は他箇所から呼ばれているため空実装のまま残す) ========== */
+  function updateZoomLabel() {}
 
   /* ========== リサイズ・向き変更対応 ========== */
   function onResize() {
@@ -3284,34 +3275,6 @@
     // orientationchange後にサイズが確定するまで少し待つ
     setTimeout(onResize, 200);
   });
-
-  /* ========== ズームパネル ドラッグ ========== */
-  let zpDragging = false, zpStartX = 0, zpStartY = 0, zpPanelX = 0, zpPanelY = 0;
-
-  function getZpPos() { const r = zoomPanel.getBoundingClientRect(); return { x: r.left, y: r.top }; }
-  function setZpPos(x, y) {
-    const cx = Math.max(0, Math.min(window.innerWidth  - zoomPanel.offsetWidth,  x));
-    const cy = Math.max(0, Math.min(window.innerHeight - zoomPanel.offsetHeight, y));
-    zoomPanel.style.left = cx + 'px'; zoomPanel.style.top = cy + 'px';
-    zoomPanel.style.right = 'auto';   zoomPanel.style.bottom = 'auto';
-  }
-  zoomPanel.addEventListener('pointerdown', e => {
-    if (e.target.closest('.zp-btn')) return;
-    zpDragging = true;
-    const pos = getZpPos();
-    zpStartX = e.clientX; zpStartY = e.clientY;
-    zpPanelX = pos.x;     zpPanelY = pos.y;
-    zoomPanel.setPointerCapture(e.pointerId);
-    zoomPanel.classList.add('dragging');
-    e.preventDefault();
-  });
-  zoomPanel.addEventListener('pointermove', e => {
-    if (!zpDragging) return;
-    setZpPos(zpPanelX + e.clientX - zpStartX, zpPanelY + e.clientY - zpStartY);
-    e.preventDefault();
-  });
-  zoomPanel.addEventListener('pointerup',     () => { zpDragging = false; zoomPanel.classList.remove('dragging'); });
-  zoomPanel.addEventListener('pointercancel', () => { zpDragging = false; zoomPanel.classList.remove('dragging'); });
 
   /* モーダル制御 */
   const modalOverlay = document.getElementById('preset-modal-overlay');
@@ -3691,7 +3654,6 @@
   viewer.addEventListener('pointerdown', e => {
     if (e.target.closest('#float-panel')) return;
     if (e.target.closest('#counter-panel')) return;
-    if (e.target.closest('#zoom-panel')) return;
     if (e.target.closest('#ruler-handle')) return;
     if (e.target.closest('#frame-win-wrap')) return;
     if (!floatPanel.classList.contains('collapsed')) {
@@ -3705,9 +3667,34 @@
   }
 
   /* カードアコーディオン */
+  const CARD_ACC_STATE_KEY = 'yucchi_ruler_acc_state';
+  function loadCardAccStates() {
+    try {
+      const raw = localStorage.getItem(CARD_ACC_STATE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+  function saveCardAccState(id, isOpen) {
+    try {
+      const states = loadCardAccStates();
+      states[id] = isOpen;
+      localStorage.setItem(CARD_ACC_STATE_KEY, JSON.stringify(states));
+    } catch (e) {}
+  }
   window.toggleCardAcc = function(id) {
-    document.getElementById(id).classList.toggle('open');
+    const el = document.getElementById(id);
+    el.classList.toggle('open');
+    saveCardAccState(id, el.classList.contains('open'));
   };
+  // ページ読み込み時：前回の開閉状態があれば復元する（初回訪問時は何も保存されていないので、HTML側の初期状態＝全部閉じたまま）
+  (function restoreCardAccStates() {
+    const states = loadCardAccStates();
+    Object.keys(states).forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.toggle('open', !!states[id]);
+    });
+  })();
 
   /* ========== 定規タブ切り替え ========== */
   let currentRulerTab = 'band'; // 'band' | 'frame'
@@ -5231,9 +5218,12 @@
     }
   };
   window.deleteCirclePreset = function(i) {
-    circlePresets.splice(i, 1);
-    if (activeCirclePresetIdx >= circlePresets.length) activeCirclePresetIdx = -1;
-    saveCirclePresets(); renderCirclePresets();
+    const p = circlePresets[i];
+    showModal(`「${p.name}」を削除しますか？`, '削除する', () => {
+      circlePresets.splice(i, 1);
+      if (activeCirclePresetIdx >= circlePresets.length) activeCirclePresetIdx = -1;
+      saveCirclePresets(); renderCirclePresets();
+    });
   };
 
   /* ========== Square定規 ========== */
@@ -5419,6 +5409,7 @@
   // リセット
   window.resetSquareDefault = function() {
     sqHalfW = 50; sqHalfH = 50; sqColor = '#b2aaaa'; sqAlpha = 0.70;
+    sqRectHalfW = null; sqRectHalfH = null; // 記憶していた長方形サイズもリセット
     squareStep = 0; squareStepBase = 0; squareCount = 0; showSquareCounter = true;
     sqX = Math.round(window.innerWidth  / 2);
     const sh = window.innerHeight;
@@ -5474,9 +5465,14 @@
   // 操作の結果（長方形/正方形になる）をふわっと知らせるトースト
   const squareEdgeToastEl = document.getElementById('square-edge-toast');
   let squareEdgeToastTimer = null;
-  function showSquareToast(text) {
+  function showSquareToast(html) {
     if (!squareEdgeToastEl) return;
-    squareEdgeToastEl.textContent = text;
+    squareEdgeToastEl.innerHTML = html;
+    // 定規の上端の少し上に表示する（画面外に出ないよう調整）
+    const toastLeft = Math.max(60, Math.min(window.innerWidth - 60, sqX));
+    const toastTop  = Math.max(30, sqY - sqHalfH - 48);
+    squareEdgeToastEl.style.left = toastLeft + 'px';
+    squareEdgeToastEl.style.top  = toastTop + 'px';
     squareEdgeToastEl.classList.add('show');
     clearTimeout(squareEdgeToastTimer);
     squareEdgeToastTimer = setTimeout(() => {
@@ -5485,11 +5481,11 @@
   }
   // 辺を掴んだ瞬間：「長方形になります」
   function showSquareEdgeToast() {
-    showSquareToast('▭ 長方形になります');
+    showSquareToast('<span style="display:inline-block; width:15px; height:10px; border:1px solid currentColor; border-radius:0; vertical-align:-1px; margin-right:5px;"></span>長方形になります');
   }
   // 内側ダブルタップで正方形に切り替わった瞬間：「正方形になります」
   function showSquareToSquareToast() {
-    showSquareToast('■ 正方形になります');
+    showSquareToast('<span style="display:inline-block; width:10px; height:10px; border:1px solid currentColor; border-radius:0; vertical-align:-1px; margin-right:5px;"></span>正方形になります');
   }
   // リサイズ操作中：角は中心固定で正方形のまま拡大縮小、辺は片側のみ調整
   function applySquareResize(mode, dx, dy) {
@@ -5569,8 +5565,20 @@
   function toggleSquareShape() {
     const isSquareNow = (sqHalfW === sqHalfH);
     if (isSquareNow) {
-      // 正方形 → 長方形：記憶している直前の長方形サイズに戻す（記憶がなければ何もしない）
-      if (sqRectHalfW == null || sqRectHalfH == null) return false;
+      if (sqRectHalfW == null || sqRectHalfH == null) {
+        // 記憶している長方形サイズが無い場合（リセット直後など）：
+        // 正方形の横幅を2倍にした横長の長方形をデフォルトにする（画面外に出ない範囲で）
+        const margin = 5;
+        const wallHalfW = Math.min(sqX, window.innerWidth  - sqX) - margin;
+        const wallHalfH = Math.min(sqY, window.innerHeight - sqY) - margin;
+        sqHalfW = Math.max(10, Math.min(sqHalfW * 2, wallHalfW));
+        sqHalfH = Math.max(10, Math.min(sqHalfH,     wallHalfH));
+        showSquareEdgeToast();
+        applySquare();
+        saveSquareSettings();
+        return true;
+      }
+      // 正方形 → 長方形：記憶している直前の長方形サイズに戻す
       sqHalfW = sqRectHalfW;
       sqHalfH = sqRectHalfH;
       showSquareEdgeToast();
@@ -5887,9 +5895,12 @@
     }
   };
   window.deleteSquarePreset = function(i) {
-    squarePresets.splice(i, 1);
-    if (activeSquarePresetIdx >= squarePresets.length) activeSquarePresetIdx = -1;
-    saveSquarePresets(); renderSquarePresets();
+    const p = squarePresets[i];
+    showModal(`「${p.name}」を削除しますか？`, '削除する', () => {
+      squarePresets.splice(i, 1);
+      if (activeSquarePresetIdx >= squarePresets.length) activeSquarePresetIdx = -1;
+      saveSquarePresets(); renderSquarePresets();
+    });
   };
 
 
@@ -6037,17 +6048,26 @@
       const minTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--measure-bar-top')) || 8;
       let barLeft = x - barWidth / 2;
       barLeft = Math.max(8, Math.min(window.innerWidth - barWidth - 8, barLeft));
+      const GAP = 20;
+      const above = y - barHeight - GAP;
+      const below = y + GAP;
       let barTop;
       if (preferBelow) {
-        barTop = y + 24;
+        barTop = below;
         if (barTop + barHeight > window.innerHeight - 8) {
-          barTop = Math.max(minTop, y - barHeight - 24);
+          barTop = Math.max(minTop, above);
         }
       } else {
-        // 常にタップ位置の「上」に出す。パネルに近すぎて収まらない場合は
-        // タップ位置を仮想的に下げてから、その上に出す（バー自体は常に上側）
-        const effectiveY = Math.max(y, minTop + barHeight + 20);
-        barTop = effectiveY - barHeight - 20;
+        // タップした場所（点）に重ならないよう、まず上に置けるか試す。
+        // 上に置ききれない（パネルに近すぎる等）場合は、下側に回す。
+        if (above >= minTop) {
+          barTop = above;
+        } else if (below + barHeight <= window.innerHeight - 8) {
+          barTop = below;
+        } else {
+          // 上下どちらにも収まらない極端なケースのみ、画面内に収める
+          barTop = Math.max(minTop, Math.min(window.innerHeight - barHeight - 8, above));
+        }
       }
       bar.style.left = barLeft + 'px';
       bar.style.top  = barTop + 'px';
@@ -6330,6 +6350,9 @@
       // 拡大調整中は編み図側のピンチ/ホイール操作をそのまま通すため、overlay自体はクリックを拾わない。
       // バー（#measure-bar）にはpointer-events:allが個別指定済みなので、ボタン操作はできる。
       overlay.style.pointerEvents = 'none';
+      // 計測中は「タップでメニューを閉じられます」が実際の挙動と異なる（誤操作のもとになる）ので隠す
+      const tapHint = document.getElementById('tap-hint');
+      if (tapHint) tapHint.style.display = 'none';
     };
 
     function stopMeasure() {
@@ -6343,6 +6366,8 @@
       setRulerMoveMode(false);
       moveRulerBtn.style.display = 'none';
       document.getElementById('measure-float-btn').style.display = 'none';
+      const tapHint = document.getElementById('tap-hint');
+      if (tapHint) tapHint.style.display = '';
     }
     window.stopMeasureIfActive = function() {
       if (overlay.style.display !== 'none') stopMeasure();
