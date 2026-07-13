@@ -377,6 +377,31 @@
       font-weight: 700;
       color: var(--text-sub);
     }
+    .upload-caution-link {
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-underline-offset: 3px;
+      transition: opacity .15s;
+    }
+    .upload-caution-link:hover,
+    .upload-caution-link:active {
+      opacity: 0.7;
+    }
+    .upload-caution-arrow {
+      display: inline-block;
+      font-size: 8px;
+      opacity: 0.6;
+      transform: translateY(-1px);
+    }
+    /* 下部リンクをタップした時の着地ハイライト */
+    @keyframes howtoFlash {
+      0%   { background: #E8F4F1; }
+      100% { background: var(--surface); }
+    }
+    .data-note.howto-flash {
+      animation: howtoFlash 1.1s ease-out;
+    }
 
     /* 汎用ボタン */
     .btn {
@@ -576,25 +601,25 @@
       justify-content: flex-start;
       gap: 10px;
     }
-    /* Line定規のみ試験的に縦積みレイアウトに（ラベルを上、内容を下に） */
-    #ruler-card .ruler-control {
+    /* 全定規共通：縦積みレイアウト（ラベルを上、内容を下に） */
+    .ruler-card .ruler-control {
       flex-direction: column;
       align-items: flex-start;
-      gap: 13px;
+      gap: 14px;
     }
-    #ruler-card .ruler-color-row .color-presets {
+    .ruler-card .ruler-color-row .color-presets {
       margin-left: 0;
       max-width: none;
     }
-    #ruler-card .ruler-slider-row {
+    .ruler-card .ruler-slider-row {
       width: 100%;
     }
-    #ruler-card .ruler-slider-row input[type=range] {
+    .ruler-card .ruler-slider-row input[type=range] {
       margin-left: 0 !important;
       width: 100% !important;
       flex: 1 1 auto !important;
     }
-    #ruler-card .ruler-control > div {
+    .ruler-card .ruler-control > div {
       width: 100%;
       padding-left: 14px;
       box-sizing: border-box;
@@ -603,16 +628,16 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 10.5px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--text);
-      letter-spacing: .05em;
+      letter-spacing: .02em;
       white-space: nowrap;
       background: #E8F4F1;
-      padding: 5px 11px;
+      padding: 5px 10px;
       border-radius: 12px;
       flex-shrink: 0;
-      width: 70px;
+      width: 72px;
       box-sizing: border-box;
     }
     .ruler-control input[type=range] {
@@ -652,18 +677,22 @@
     .color-custom-label {
       box-sizing: border-box !important;
       display: inline-block !important;
-      width: 19px !important;
-      height: 19px !important;
-      min-width: 19px !important;
-      max-width: 19px !important;
-      min-height: 19px !important;
-      max-height: 19px !important;
+      width: 20px !important;
+      height: 20px !important;
+      min-width: 20px !important;
+      max-width: 20px !important;
+      min-height: 20px !important;
+      max-height: 20px !important;
       aspect-ratio: 1 / 1 !important;
       border-radius: 50% !important;
-      border: 2px dashed #B8B8B8 !important;
-      background: transparent !important;
+      border: none !important;
+      background-color: transparent !important;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='9' fill='none' stroke='%23B8B8B8' stroke-width='2' stroke-dasharray='2.5 2.5' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+      background-repeat: no-repeat !important;
+      background-size: 100% 100% !important;
+      background-position: center !important;
       cursor: pointer;
-      transition: transform .15s, border-color .15s, background .15s;
+      transition: transform .15s, background-color .15s;
       flex-shrink: 0;
       align-self: center;
       padding: 0 !important;
@@ -679,16 +708,16 @@
       border-radius: 1px;
     }
     .color-custom-label::before {
-      width: 1.5px; height: 9px;
+      width: 1.5px; height: 9.5px;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
     }
     .color-custom-label::after {
-      width: 9px; height: 1.5px;
+      width: 9.5px; height: 1.5px;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
     }
-    .color-custom-label:hover { transform: scale(1.15); background: #f2f2f2 !important; }
+    .color-custom-label:hover { transform: scale(1.15); background-color: #f2f2f2 !important; }
 
     /* トグル行 */
     .sec-div {
@@ -1448,8 +1477,8 @@
       font-family: 'Zen Maru Gothic', sans-serif;
       font-size: 11px;
       font-weight: 700;
-      color: #3a5c55;
-      background: var(--primary);
+      color: #FFFFFF;
+      background: #b2aaaa;
       border: none;
       border-radius: 20px;
       letter-spacing: .06em;
@@ -1464,6 +1493,43 @@
     .reset-default-btn:active {
       box-shadow: 0 1px 1px rgba(0,0,0,0.10);
       transform: scale(.95);
+    }
+    /* カスタマイズの戻る・進む */
+    .undo-redo-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      margin-top: 4px;
+    }
+    .undo-redo-btn {
+      position: relative;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: #f8fdfc;
+      color: var(--text-sub);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s, border-color .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .undo-redo-btn:hover .action-tooltip {
+      opacity: 1;
+    }
+    .undo-redo-btn:hover:not(:disabled) {
+      border-color: var(--primary);
+    }
+    .undo-redo-btn:active:not(:disabled) {
+      transform: scale(.92);
+    }
+    .undo-redo-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
     }
 
     /* ===== モーダル ===== */
@@ -1700,7 +1766,7 @@
 
     <!-- 常設：やり直す・閉じる・定規を動かす -->
     <div id="measure-action-col" style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-      <button id="measure-redo-btn" title="やり直す" style="display:none; position:relative; width:28px; height:28px; border-radius:50%; font-size:14px; color:var(--text-sub); background:#f8fdfc; border:1.5px solid var(--border); cursor:pointer; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent;">↺<span class="action-tooltip">やり直す</span></button>
+      <button id="measure-redo-btn" title="戻る" style="display:none; position:relative; width:28px; height:28px; border-radius:50%; font-size:14px; color:var(--text-sub); background:#f8fdfc; border:1.5px solid var(--border); cursor:pointer; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent;">↺<span class="action-tooltip">戻る</span></button>
       <button id="measure-close-btn" title="計測を中止する" style="position:relative; width:28px; height:28px; border-radius:50%; background:#f8fdfc; border:1.5px solid var(--border); color:var(--text-sub); font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent;">✕<span class="action-tooltip">計測を中止する</span></button>
       <button id="measure-move-ruler-btn" title="定規を動かす" style="display:none; position:relative; width:28px; height:28px; border-radius:50%; background:#f8fdfc; border:1.5px solid var(--border); cursor:pointer; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; flex-shrink:0; padding:0;">
         <span id="measure-move-ruler-icon" style="display:block;"></span>
@@ -1761,8 +1827,8 @@
       <span class="upload-filename" id="filename-label">ファイルを選んでください</span>
       <button type="button" class="upload-clear-btn" id="upload-clear-btn" title="画像を消す" onclick="event.stopPropagation(); if(window.confirmClearChartImage) window.confirmClearChartImage();">✕</button>
     </div>
-    <div class="upload-caution">
-      <span class="flower">✿</span> 使い方・注意事項等は下部の説明欄をご覧ください
+    <div class="upload-caution upload-caution-link" onclick="jumpToHowTo()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')jumpToHowTo()">
+      <span class="flower">✿</span> 使い方・注意事項等は下部の説明欄をご覧ください <span class="upload-caution-arrow">▼</span>
     </div>
 
     <!-- ズームボタンはフローティングパネルに移動 -->
@@ -1801,19 +1867,23 @@
             </div>
           </div>
           <div class="ruler-control ruler-slider-row">
-            <label for="ruler-opacity">濃度</label>
-            <div style="display:flex; align-items:center; gap:10px; width:100%;">
+            <label for="ruler-opacity">濃さ</label>
+            <div style="display:flex; align-items:center; gap:10px; width:100%; max-width:203px;">
               <input type="range" id="ruler-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
               <span id="ruler-opacity-label">70%</span>
             </div>
           </div>
-          <div class="ruler-control">
+          <div class="ruler-control" style="gap:12px; margin-bottom:-8px;">
             <label>リサイズ</label>
             <div>
               <div class="ruler-op-desc">枠の辺や角を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ・ピンチ</span></div>
             </div>
           </div>
-          <button class="reset-default-btn" id="band-reset-btn" onclick="resetBandDefault()">リセット</button>
+          <div class="undo-redo-row">
+            <button type="button" class="undo-redo-btn" id="band-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
+            <button type="button" class="undo-redo-btn" id="band-redo-btn" title="進む" aria-label="1つ先の状態に進む" disabled>↻<span class="action-tooltip">進む</span></button>
+          </div>
+          <button class="reset-default-btn" id="band-reset-btn" onclick="confirmResetBand()">リセット</button>
         </div>
       </div>
 
@@ -1900,17 +1970,23 @@
             </div>
           </div>
           <div class="ruler-control ruler-slider-row">
-            <label for="frame-opacity">濃度</label>
-            <input type="range" id="frame-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
-            <span id="frame-opacity-label">70%</span>
+            <label for="frame-opacity">濃さ</label>
+            <div style="display:flex; align-items:center; gap:10px; width:100%; max-width:203px;">
+              <input type="range" id="frame-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
+              <span id="frame-opacity-label">70%</span>
+            </div>
           </div>
-          <div class="ruler-control">
+          <div class="ruler-control" style="gap:12px; margin-bottom:-8px;">
             <label>リサイズ</label>
             <div>
               <div class="ruler-op-desc">外枠・窓枠の辺や角を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ・ピンチ</span></div>
             </div>
           </div>
-          <button class="reset-default-btn" id="frame-reset-btn" onclick="resetFrameDefault()">リセット</button>
+          <div class="undo-redo-row">
+            <button type="button" class="undo-redo-btn" id="frame-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
+            <button type="button" class="undo-redo-btn" id="frame-redo-btn" title="進む" aria-label="1つ先の状態に進む" disabled>↻<span class="action-tooltip">進む</span></button>
+          </div>
+          <button class="reset-default-btn" id="frame-reset-btn" onclick="confirmResetFrame()">リセット</button>
         </div>
       </div>
 
@@ -1997,17 +2073,23 @@
             </div>
           </div>
           <div class="ruler-control ruler-slider-row">
-            <label for="circle-opacity">濃度</label>
-            <input type="range" id="circle-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
-            <span id="circle-opacity-label">70%</span>
+            <label for="circle-opacity">濃さ</label>
+            <div style="display:flex; align-items:center; gap:10px; width:100%; max-width:203px;">
+              <input type="range" id="circle-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
+              <span id="circle-opacity-label">70%</span>
+            </div>
           </div>
-          <div class="ruler-control">
+          <div class="ruler-control" style="gap:12px; margin-bottom:-8px;">
             <label>リサイズ</label>
             <div>
               <div class="ruler-op-desc">枠を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ・ピンチ</span></div>
             </div>
           </div>
-          <button class="reset-default-btn" id="circle-reset-btn" onclick="resetCircleDefault()">リセット</button>
+          <div class="undo-redo-row">
+            <button type="button" class="undo-redo-btn" id="circle-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
+            <button type="button" class="undo-redo-btn" id="circle-redo-btn" title="進む" aria-label="1つ先の状態に進む" disabled>↻<span class="action-tooltip">進む</span></button>
+          </div>
+          <button class="reset-default-btn" id="circle-reset-btn" onclick="confirmResetCircle()">リセット</button>
         </div>
       </div>
 
@@ -2094,11 +2176,13 @@
             </div>
           </div>
           <div class="ruler-control ruler-slider-row">
-            <label for="square-opacity">濃度</label>
-            <input type="range" id="square-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
-            <span id="square-opacity-label">70%</span>
+            <label for="square-opacity">濃さ</label>
+            <div style="display:flex; align-items:center; gap:10px; width:100%; max-width:203px;">
+              <input type="range" id="square-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
+              <span id="square-opacity-label">70%</span>
+            </div>
           </div>
-          <div class="ruler-control">
+          <div class="ruler-control" style="gap:12px; margin-bottom:-8px;">
             <label>リサイズ</label>
             <div>
               <div class="ruler-op-desc">角を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ・ピンチ</span></div>
@@ -2106,7 +2190,11 @@
               <div class="ruler-op-pinch">【長方形】<div style="padding-left:14px; margin-top:3px;">辺の中央を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ</span></div></div>
             </div>
           </div>
-          <button class="reset-default-btn" id="square-reset-btn" onclick="resetSquareDefault()">リセット</button>
+          <div class="undo-redo-row">
+            <button type="button" class="undo-redo-btn" id="square-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
+            <button type="button" class="undo-redo-btn" id="square-redo-btn" title="進む" aria-label="1つ先の状態に進む" disabled>↻<span class="action-tooltip">進む</span></button>
+          </div>
+          <button class="reset-default-btn" id="square-reset-btn" onclick="confirmResetSquare()">リセット</button>
         </div>
       </div>
 
@@ -2178,7 +2266,7 @@
           <p>① 「📂 編み図を開く」から画像を読み込みます（PDFは非対応）。対応ファイル形式は下記をご覧ください。</p>
           <p>② 編み図はドラッグで移動、ピンチ（スマホ・トラックパッド）やマウスホイール（PC）で拡大・縮小できます。</p>
           <p>③ タブで定規の種類を切り替えられます（Line／Frame／Square／Circle）。各タブごとに別々の編み図を読み込めます。</p>
-          <p>④ 各定規は色・濃度・サイズをカスタマイズでき、ドラッグで動かせます。よく使う設定はお気に入り定規に保存できます。</p>
+          <p>④ 各定規は色・濃さ・サイズをカスタマイズでき、ドラッグで動かせます。よく使う設定はお気に入り定規に保存できます。</p>
           <p>⑤ 段数カウンター、段ガイド機能は、各定規ごとに設定できます。詳しい設定・使用方法は各定規のメニューをご覧ください。</p>
           <p>⑥ メニューパネルと段数カウンターは、ドラッグで移動できます。</p>
         </div>
@@ -2218,7 +2306,7 @@
           <span class="data-note-arrow">▼</span>
         </button>
         <div class="data-note-body">
-          <p>定規の設定（色・太さ・濃度・カウンター・段ガイド）はこの端末のブラウザに保存されます。次回開いたときも同じ設定で使えます。</p>
+          <p>定規の設定（色・太さ・濃さ・カウンター・段ガイド）はこの端末のブラウザに保存されます。次回開いたときも同じ設定で使えます。</p>
           <p>読み込んだ編み図画像はブラウザに保存されません。ページを閉じると消えます。</p>
           <p>外部サーバーへの通信は一切行っておらず、すべての処理はこの端末内で完結します。</p>
         </div>
@@ -3738,6 +3826,19 @@
     document.getElementById(id).classList.toggle('open');
   }
 
+  /* 上部の案内文タップ→下部「使い方」を開いてスクロール */
+  function jumpToHowTo() {
+    const note = document.getElementById('howtoNote');
+    if (!note) return;
+    note.classList.add('open');
+    note.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    note.classList.remove('howto-flash');
+    // reflow を挟んでアニメーションを再トリガー
+    void note.offsetWidth;
+    note.classList.add('howto-flash');
+    setTimeout(() => note.classList.remove('howto-flash'), 1200);
+  }
+
   /* カードアコーディオン */
   const CARD_ACC_STATE_KEY = 'yucchi_ruler_acc_state';
   function loadCardAccStates() {
@@ -4137,6 +4238,9 @@
     applyRulerPos();
     saveSettings();
   }
+  function confirmResetBand() {
+    showModal('定規を初期設定に戻しますか？', 'リセットする', () => resetBandDefault());
+  }
 
   function resetFrameDefault() {
     frameStep = 0; frameStepBase = 0; frameCount = 0; showFrameCounter = true;
@@ -4162,6 +4266,9 @@
     applyFrameOuterPos();
     applyFrameStyle();
     saveFrameSettings();
+  }
+  function confirmResetFrame() {
+    showModal('定規を初期設定に戻しますか？', 'リセットする', () => resetFrameDefault());
   }
 
   function saveFrameSettings() {
@@ -4952,6 +5059,9 @@
     syncGuideRowUI('circle');
     applyCircle(); saveCircleSettings();
   };
+  function confirmResetCircle() {
+    showModal('定規を初期設定に戻しますか？', 'リセットする', () => resetCircleDefault());
+  }
 
   /* ----- rim判定（外枠リサイズゾーン） ----- */
   function closeCirclePanelIfOpen() {
@@ -5520,6 +5630,9 @@
     syncGuideRowUI('square');
     applySquare(); saveSquareSettings();
   };
+  function confirmResetSquare() {
+    showModal('定規を初期設定に戻しますか？', 'リセットする', () => resetSquareDefault());
+  }
 
   /* ----- 角・辺判定（リサイズゾーン） ----- */
   function closeSquarePanelIfOpen() {
@@ -6017,6 +6130,162 @@
   loadSquareSettings();
   syncSquareUI();
   loadSquarePresets();
+
+  /* ========== カスタマイズのUndo/Redo ==========
+     対象は「色・濃さ・サイズ・位置」のみ（カウンター・段ガイドは対象外）。
+     セッション内のみメモリ保持。ページを閉じる/リロードするとリセットされる。 */
+  function makeUndoManager(getState, applyState, opts) {
+    opts = opts || {};
+    const debounceMs = opts.debounceMs != null ? opts.debounceMs : 500;
+    const maxSteps = opts.maxSteps != null ? opts.maxSteps : 200;
+    let stack = [getState()];
+    let idx = 0;
+    let applying = false;
+    let timer = null;
+    const onChange = opts.onChange || function() {};
+
+    function statesEqual(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+    function commitNow() {
+      if (applying) return;
+      const state = getState();
+      if (statesEqual(state, stack[idx])) return;
+      stack = stack.slice(0, idx + 1);
+      stack.push(state);
+      if (stack.length > maxSteps) stack.shift(); // 上限を超えたら一番古い履歴から捨てる
+      idx = stack.length - 1;
+      onChange();
+    }
+    function requestCommit() {
+      if (applying) return;
+      clearTimeout(timer);
+      timer = setTimeout(commitNow, debounceMs);
+    }
+    function undo() {
+      clearTimeout(timer);
+      commitNow();
+      if (idx <= 0) return;
+      idx--;
+      applying = true;
+      applyState(stack[idx]);
+      applying = false;
+      onChange();
+    }
+    function redo() {
+      if (idx >= stack.length - 1) return;
+      idx++;
+      applying = true;
+      applyState(stack[idx]);
+      applying = false;
+      onChange();
+    }
+    function canUndo() { return idx > 0; }
+    function canRedo() { return idx < stack.length - 1; }
+    return { requestCommit, undo, redo, canUndo, canRedo };
+  }
+
+  function wireUndoButtons(mgr, undoBtnId, redoBtnId) {
+    const undoBtn = document.getElementById(undoBtnId);
+    const redoBtn = document.getElementById(redoBtnId);
+    function refresh() {
+      if (undoBtn) undoBtn.disabled = !mgr.canUndo();
+      if (redoBtn) redoBtn.disabled = !mgr.canRedo();
+    }
+    if (undoBtn) undoBtn.addEventListener('click', () => { mgr.undo(); refresh(); });
+    if (redoBtn) redoBtn.addEventListener('click', () => { mgr.redo(); refresh(); });
+    refresh();
+    return refresh;
+  }
+
+  /* --- Line（band） --- */
+  function bandGetState() {
+    return { color: rulerColor, alpha: rulerAlpha, height: rulerHeight, width: rulerWidth, left: rulerLeft, top: rulerTop };
+  }
+  function bandApplyState(s) {
+    rulerColor = s.color; rulerAlpha = s.alpha; rulerHeight = s.height;
+    rulerWidth = s.width; rulerLeft = s.left; rulerTop = s.top;
+    rulerAlpha100 = Math.round(rulerAlpha * 100);
+    rulerColorInput.value = rulerColor;
+    document.querySelectorAll('.color-dot').forEach(d => d.classList.toggle('active', d.dataset.color === rulerColor));
+    rulerOpacityInput.value = rulerAlpha100;
+    rulerOpacityLabel.textContent = rulerAlpha100 + '%';
+    if (rulerSizeInput)  rulerSizeInput.value = rulerHeight;
+    if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
+    if (rulerWidthInput) rulerWidthInput.value = rulerWidth;
+    if (rulerWidthLabel) rulerWidthLabel.textContent = rulerWidth + '%';
+    applyRulerStyle();
+    applyRulerPos();
+    saveSettings();
+  }
+  let refreshBandUndoBtns;
+  const bandUndo = makeUndoManager(bandGetState, bandApplyState, { onChange: () => refreshBandUndoBtns() });
+  refreshBandUndoBtns = wireUndoButtons(bandUndo, 'band-undo-btn', 'band-redo-btn');
+  (function() {
+    const _origSaveSettings = saveSettings;
+    saveSettings = function() { _origSaveSettings(); bandUndo.requestCommit(); };
+  })();
+
+  /* --- Frame --- */
+  function frameGetState() {
+    return { fColor, fAlpha, fWin: { x: fWin.x, y: fWin.y, w: fWin.w, h: fWin.h }, fOuter: { top: fOuter.top, left: fOuter.left, bottom: fOuter.bottom, right: fOuter.right } };
+  }
+  function frameApplyState(s) {
+    fColor = s.fColor; fAlpha = s.fAlpha;
+    fWin = { x: s.fWin.x, y: s.fWin.y, w: s.fWin.w, h: s.fWin.h };
+    fOuter = { top: s.fOuter.top, left: s.fOuter.left, bottom: s.fOuter.bottom, right: s.fOuter.right };
+    document.getElementById('frame-opacity').value = Math.round(fAlpha * 100);
+    document.getElementById('frame-opacity-label').textContent = Math.round(fAlpha * 100) + '%';
+    frameColorInput.value = fColor;
+    document.querySelectorAll('.frame-color-dot').forEach(d => d.classList.toggle('active', d.dataset.color === fColor));
+    applyFrameOuterPos();
+    applyFrameStyle();
+    saveFrameSettings();
+  }
+  let refreshFrameUndoBtns;
+  const frameUndo = makeUndoManager(frameGetState, frameApplyState, { onChange: () => refreshFrameUndoBtns() });
+  refreshFrameUndoBtns = wireUndoButtons(frameUndo, 'frame-undo-btn', 'frame-redo-btn');
+  (function() {
+    const _origSaveFrameSettings = saveFrameSettings;
+    saveFrameSettings = function() { _origSaveFrameSettings(); frameUndo.requestCommit(); };
+  })();
+
+  /* --- Circle --- */
+  function circleGetState() {
+    return { cColor, cAlpha, cX, cY, cR };
+  }
+  function circleApplyState(s) {
+    cColor = s.cColor; cAlpha = s.cAlpha; cX = s.cX; cY = s.cY; cR = s.cR;
+    syncCircleUI();
+    applyCircle();
+    saveCircleSettings();
+  }
+  let refreshCircleUndoBtns;
+  const circleUndo = makeUndoManager(circleGetState, circleApplyState, { onChange: () => refreshCircleUndoBtns() });
+  refreshCircleUndoBtns = wireUndoButtons(circleUndo, 'circle-undo-btn', 'circle-redo-btn');
+  (function() {
+    const _origSaveCircleSettings = saveCircleSettings;
+    saveCircleSettings = function() { _origSaveCircleSettings(); circleUndo.requestCommit(); };
+  })();
+
+  /* --- Square --- */
+  function squareGetState() {
+    return { sqColor, sqAlpha, sqX, sqY, sqHalfW, sqHalfH, sqRectHalfW, sqRectHalfH };
+  }
+  function squareApplyState(s) {
+    sqColor = s.sqColor; sqAlpha = s.sqAlpha; sqX = s.sqX; sqY = s.sqY;
+    sqHalfW = s.sqHalfW; sqHalfH = s.sqHalfH;
+    sqRectHalfW = s.sqRectHalfW; sqRectHalfH = s.sqRectHalfH;
+    syncSquareUI();
+    applySquare();
+    saveSquareSettings();
+  }
+  let refreshSquareUndoBtns;
+  const squareUndo = makeUndoManager(squareGetState, squareApplyState, { onChange: () => refreshSquareUndoBtns() });
+  refreshSquareUndoBtns = wireUndoButtons(squareUndo, 'square-undo-btn', 'square-redo-btn');
+  (function() {
+    const _origSaveSquareSettings = saveSquareSettings;
+    saveSquareSettings = function() { _origSaveSquareSettings(); squareUndo.requestCommit(); };
+  })();
+
   // 初期タブをbandに統一（全定規の表示状態をリセット）
   switchRulerTab('band');
   // スマホ幅（680px未満）の場合は、画面を広く使えるよう最初からメニューパネルを閉じておく
@@ -6171,22 +6440,49 @@
       bar.style.top  = barTop + 'px';
     }
 
-    // 計測線の「左側・上下中央」にバーを配置する（px表示は線の右側に出るため、左に置けば重ならない）
-    // lineX: 計測線のX座標, midY: 1点目と2点目の中点Y座標
-    function positionBarLeftOf(lineX, midY, gap) {
+    // 計測線（の外接矩形）を避けて、線の左→右→上→下の順で置ける場所を探す。
+    // どこにも収まらない極端なケースのみ、画面内に収めるだけの配置にフォールバックする。
+    function positionBarAvoidingLine(minX, maxX, minY, maxY, gap) {
       bar.style.left = '0px';
       bar.style.transform = 'none';
       const barWidth  = bar.offsetWidth  || 220;
       const barHeight = bar.offsetHeight || 36;
       gap = gap || 20;
-      let barLeft = lineX - gap - barWidth;
-      let barTop  = midY - barHeight / 2;
-      // 左に置ききれない（画面が狭い等）場合は、右側に回す
-      if (barLeft < 8) {
-        barLeft = lineX + gap;
+      const screenL = 8;
+      const screenR = window.innerWidth - 8;
+      const screenT = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--measure-bar-top')) || 8;
+      const screenB = window.innerHeight - 8;
+      const midX = (minX + maxX) / 2;
+      const midY = (minY + maxY) / 2;
+
+      let barLeft, barTop;
+
+      // 候補1：線の左側
+      const leftCandidate = minX - gap - barWidth;
+      // 候補2：線の右側
+      const rightCandidate = maxX + gap;
+      // 候補3：線の上側
+      const aboveCandidate = minY - gap - barHeight;
+      // 候補4：線の下側
+      const belowCandidate = maxY + gap;
+
+      if (leftCandidate >= screenL) {
+        barLeft = leftCandidate;
+        barTop  = Math.max(screenT, Math.min(screenB - barHeight, midY - barHeight / 2));
+      } else if (rightCandidate + barWidth <= screenR) {
+        barLeft = rightCandidate;
+        barTop  = Math.max(screenT, Math.min(screenB - barHeight, midY - barHeight / 2));
+      } else if (aboveCandidate >= screenT) {
+        barTop  = aboveCandidate;
+        barLeft = Math.max(screenL, Math.min(screenR - barWidth, midX - barWidth / 2));
+      } else if (belowCandidate + barHeight <= screenB) {
+        barTop  = belowCandidate;
+        barLeft = Math.max(screenL, Math.min(screenR - barWidth, midX - barWidth / 2));
+      } else {
+        // 上下左右どこにも収まらない極端なケースのみ、画面内に収めるだけにする
+        barLeft = Math.max(screenL, Math.min(screenR - barWidth, midX - barWidth / 2));
+        barTop  = Math.max(screenT, Math.min(screenB - barHeight, midY - barHeight / 2));
       }
-      barLeft = Math.max(8, Math.min(window.innerWidth - barWidth - 8, barLeft));
-      barTop  = Math.max(8, Math.min(window.innerHeight - barHeight - 8, barTop));
       bar.style.left = barLeft + 'px';
       bar.style.top  = barTop + 'px';
     }
@@ -6198,17 +6494,12 @@
       if (isHorizontal) {
         // 横計測（Square横モード）は左右の概念がはっきりしないため、画面上部中央に固定
         resetBarToCenter();
-      } else if (currentRulerTab === 'circle') {
-        // 斜め計測：px表示は線の中点から右側に出るため、バーは線の左側に
-        // 2点のうちより左にある方の点を基準にすることで、線の角度に関わらず点と重ならないようにする
-        const lineX = Math.min(pt1.x, pt2.x);
-        const midY  = (pt1.y + pt2.y) / 2;
-        positionBarLeftOf(lineX, midY, 36);
       } else {
-        // 縦計測（Line/Frame/Square縦）：px表示は線の右側に出るため、バーは線の左側・中央に
-        const lineX = pt1.x;
-        const midY  = (pt1.y + pt2.y) / 2;
-        positionBarLeftOf(lineX, midY);
+        // 斜め計測（Circle）・縦計測（Line/Frame/Square縦）共通：
+        // 線の外接矩形を避けて、左→右→上→下の順で重ならない場所に配置する
+        const minX = Math.min(pt1.x, pt2.x), maxX = Math.max(pt1.x, pt2.x);
+        const minY = Math.min(pt1.y, pt2.y), maxY = Math.max(pt1.y, pt2.y);
+        positionBarAvoidingLine(minX, maxX, minY, maxY, currentRulerTab === 'circle' ? 36 : 20);
       }
     }
 
@@ -6414,7 +6705,7 @@
         draw();
         redoBtn.style.display = 'flex';
         measurePhase = 'pick2';
-        showHintMode('2点目をタップ');
+        showHintMode('2点目：次の境目をタップ');
         positionBar(x, y);
       } else if (measurePhase === 'pick2') {
         pt2 = { x, y };
@@ -6483,14 +6774,14 @@
         pt2 = null;
         draw();
         measurePhase = 'pick2';
-        showHintMode('2点目をタップ');
+        showHintMode('2点目：次の境目をタップ');
         if (pt1) positionBar(pt1.x, pt1.y);
       } else if (measurePhase === 'pick2') {
         // 1点目も取り消す（1点目をタップする段階に戻るので、やり直す・定規を動かすボタンはそのまま表示）
         pt1 = null;
         ctx.clearRect(0, 0, cvs.width, cvs.height);
         measurePhase = 'pick1';
-        showHintMode('1点目をタップ', false);
+        showHintMode('1点目：段の境目をタップ', false);
       } else {
         // 1点目待ち、または想定外の状態：拡大調整からやり直す
         pt1 = null; pt2 = null;
@@ -6622,7 +6913,7 @@
     zoomDoneBtn.addEventListener('click', e => {
       e.stopPropagation();
       measurePhase = 'pick1';
-      showHintMode('1点目をタップ', false);
+      showHintMode('1点目：段の境目をタップ', false);
       // ここからはタップで点を打つので、overlay自体でクリックを拾えるようにする
       overlay.style.pointerEvents = 'all';
       updateMoveRulerIcon();
