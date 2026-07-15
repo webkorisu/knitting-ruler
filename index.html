@@ -1127,11 +1127,158 @@
       font-weight: 700;
       color: var(--text);
       white-space: nowrap;
-      pointer-events: none;
+      pointer-events: auto;
+      cursor: pointer;
       margin-left: 8px;
       min-width: 68px;
-      transition: opacity .15s;
+      padding: 3px 9px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.55);
+      transition: opacity .15s, color .15s, background .15s, transform .1s;
     }
+    #gp-step-label:hover {
+      background: rgba(255,255,255,0.85);
+    }
+    #gp-step-label:active {
+      background: #FFFFFF;
+      transform: scale(0.94);
+    }
+    /* 未計測の間は、押せそうに見えないようにする（実際タップしても何も起きないため） */
+    #gp-step-label.unmeasured {
+      cursor: default;
+      background: transparent;
+    }
+    #gp-step-label.unmeasured:hover,
+    #gp-step-label.unmeasured:active {
+      background: transparent;
+      transform: none;
+    }
+    /* 1段の高さ微調整カード（浮き出るカード） */
+    #step-adjust-card {
+      position: fixed;
+      z-index: 260;
+      background: #FFFFFF;
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.08);
+      padding: 16px 18px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(6px);
+      transition: opacity .18s ease, transform .18s ease, visibility 0s linear .18s;
+    }
+    #step-adjust-card.show {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateY(0);
+      transition: opacity .18s ease, transform .18s ease, visibility 0s linear 0s;
+    }
+    /* 吹き出しの三角（下向き。JSでラベルの位置に合わせて --tail-right を設定する） */
+    #step-adjust-card::before,
+    #step-adjust-card::after {
+      content: '';
+      position: absolute;
+      right: var(--tail-right, 28px);
+      width: 0;
+      height: 0;
+      border-left: 9px solid transparent;
+      border-right: 9px solid transparent;
+    }
+    #step-adjust-card::before {
+      bottom: -10px;
+      border-top: 10px solid var(--border);
+    }
+    #step-adjust-card::after {
+      bottom: -7.5px;
+      border-top: 9px solid #FFFFFF;
+    }
+    #step-adjust-card-close {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      line-height: 1;
+      color: #8C8686;
+      opacity: 0.85;
+      background: #F2EFEF;
+      border: 1.5px solid #D8D3D3;
+      border-radius: 50%;
+      cursor: pointer;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #step-adjust-card-close:active { opacity: 1; transform: scale(.92); }
+    #step-adjust-card-title {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--text-sub);
+      letter-spacing: .04em;
+      white-space: nowrap;
+      margin-top: -2px;
+    }
+    #step-adjust-card-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .step-adjust-card-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: #f8fdfc;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .step-adjust-card-btn:active { transform: scale(.9); }
+    #step-adjust-card-value {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--text);
+      min-width: 56px;
+      text-align: center;
+      margin-top: -1px;
+    }
+    #step-adjust-card-reset {
+      margin-top: 4px;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 10px;
+      color: var(--text-sub);
+      opacity: 0.7;
+      background: none;
+      border: none;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-underline-offset: 2px;
+      cursor: pointer;
+      padding: 2px 4px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #step-adjust-card-reset:active { opacity: 1; }
     #gp-measure-btn {
       background: #f8fdfc;
       border: 1.5px solid var(--border);
@@ -1821,7 +1968,7 @@
       <input type="checkbox" id="gp-toggle-guide">
       <span class="toggle-knob"></span>
     </label>
-    <span id="gp-step-label" style="opacity:0;">未計測</span>
+    <span id="gp-step-label" style="opacity:0;" onclick="toggleStepAdjust(event)">未計測</span>
     <button id="gp-measure-btn" style="opacity:0; pointer-events:none;">計測</button>
   </div>
   <!-- 下段：カウンター行 -->
@@ -1832,6 +1979,18 @@
     <span id="cp-num">0</span>
     <button class="cp-btn" id="cp-plus" title="＋1">＋</button>
   </div>
+</div>
+
+<!-- 1段の高さ微調整カード（浮き出るカード） -->
+<div id="step-adjust-card">
+  <button type="button" id="step-adjust-card-close" onclick="closeStepAdjustCard()" aria-label="閉じる">✕</button>
+  <span id="step-adjust-card-title">1段の高さを調整</span>
+  <div id="step-adjust-card-row">
+    <button type="button" class="step-adjust-card-btn" onclick="adjustStepValue(-1)" aria-label="1段の高さを1px減らす">−</button>
+    <span id="step-adjust-card-value">0 px</span>
+    <button type="button" class="step-adjust-card-btn" onclick="adjustStepValue(1)" aria-label="1段の高さを1px増やす">＋</button>
+  </div>
+  <button type="button" id="step-adjust-card-reset" onclick="confirmResetStepValue()">未計測に戻す</button>
 </div>
 
 
@@ -2651,6 +2810,118 @@
   const gpStepLabel   = document.getElementById('gp-step-label');
   const gpMeasureBtn  = document.getElementById('gp-measure-btn');
 
+  // gpStepLabelの文字が変わるたびに、「未計測」かどうかで見た目（タップできそうな見た目かどうか）を自動的に切り替える
+  function refreshGpStepLabelLook() {
+    gpStepLabel.classList.toggle('unmeasured', gpStepLabel.textContent === '未計測');
+  }
+  new MutationObserver(refreshGpStepLabelLook).observe(gpStepLabel, { characterData: true, childList: true, subtree: true });
+  refreshGpStepLabelLook();
+
+  // 「1段：66px」をタップした時、微調整カードの表示を切り替える（未計測の時は開かない）
+  function toggleStepAdjust(e) {
+    if (e) e.stopPropagation();
+    if (gpStepLabel.textContent === '未計測') return;
+    const card = document.getElementById('step-adjust-card');
+    if (!card) return;
+    if (card.classList.contains('show')) {
+      closeStepAdjustCard();
+    } else {
+      positionStepAdjustCard();
+      updateStepAdjustCardValue();
+      card.classList.add('show');
+    }
+  }
+  // ✕ボタン・外側タップ共通：微調整カードを閉じる
+  function closeStepAdjustCard() {
+    const card = document.getElementById('step-adjust-card');
+    if (card) card.classList.remove('show');
+  }
+  // カウンターパネルのすぐ上に、微調整カードを配置する（パネルをドラッグして動かした場合にも追従する）
+  function positionStepAdjustCard() {
+    const card  = document.getElementById('step-adjust-card');
+    const panel = document.getElementById('counter-panel');
+    if (!card || !panel) return;
+    const rect = panel.getBoundingClientRect();
+    card.style.right  = Math.max(8, window.innerWidth - rect.right) + 'px';
+    card.style.bottom = Math.max(8, window.innerHeight - rect.top + 10) + 'px';
+    card.style.left = 'auto';
+    card.style.top  = 'auto';
+    // しっぽの位置を「1段：66px」ラベルの中心に合わせる
+    const label = document.getElementById('gp-step-label');
+    if (label) {
+      const labelRect = label.getBoundingClientRect();
+      const labelCenterX = labelRect.left + labelRect.width / 2;
+      let tailRight = rect.right - labelCenterX;
+      const cardWidth = card.offsetWidth || 160;
+      tailRight = Math.max(16, Math.min(cardWidth - 16, tailRight));
+      card.style.setProperty('--tail-right', tailRight + 'px');
+    }
+  }
+  function updateStepAdjustCardValue() {
+    const valEl = document.getElementById('step-adjust-card-value');
+    if (!valEl) return;
+    let step = 0;
+    if (currentRulerTab === 'frame') step = frameStep;
+    else if (currentRulerTab === 'circle') step = circleStep;
+    else if (currentRulerTab === 'square') step = squareStep;
+    else step = rulerStep;
+    valEl.textContent = step + ' px';
+  }
+  // カードの外側をタップしたら閉じる
+  document.addEventListener('pointerdown', e => {
+    const card = document.getElementById('step-adjust-card');
+    if (!card || !card.classList.contains('show')) return;
+    if (e.target.closest('#step-adjust-card') || e.target.closest('#gp-step-label')) return;
+    closeStepAdjustCard();
+  });
+  // ±ボタン：1段の高さを1pxだけ微調整する
+  function adjustStepValue(delta) {
+    if (currentRulerTab === 'frame') {
+      if (frameStep <= 0) return;
+      frameStep = Math.max(1, frameStep + delta);
+      frameStepBase = scale > 0 ? frameStep / scale : frameStep;
+      saveFrameSettings();
+    } else if (currentRulerTab === 'circle') {
+      if (circleStep <= 0) return;
+      circleStep = Math.max(1, circleStep + delta);
+      circleStepBase = scale > 0 ? circleStep / scale : circleStep;
+      saveCircleSettings();
+    } else if (currentRulerTab === 'square') {
+      if (squareStep <= 0) return;
+      squareStep = Math.max(1, squareStep + delta);
+      squareStepBase = scale > 0 ? squareStep / scale : squareStep;
+      saveSquareSettings();
+    } else {
+      if (rulerStep <= 0) return;
+      rulerStep = Math.max(1, rulerStep + delta);
+      rulerBaseStep = scale > 0 ? rulerStep / scale : rulerStep;
+      saveSettings();
+    }
+    syncGuideRowUI(currentRulerTab);
+    updateStepAdjustCardValue();
+  }
+  // 計測した1段の高さを未計測に戻す（段ガイドもOFFにする）
+  function resetStepValue() {
+    if (currentRulerTab === 'frame') {
+      frameStep = 0; frameStepBase = 0;
+      saveFrameSettings();
+    } else if (currentRulerTab === 'circle') {
+      circleStep = 0; circleStepBase = 0;
+      saveCircleSettings();
+    } else if (currentRulerTab === 'square') {
+      squareStep = 0; squareStepBase = 0;
+      saveSquareSettings();
+    } else {
+      rulerStep = 0; rulerBaseStep = 0; rulerGuideOn = false;
+      saveSettings();
+    }
+    syncGuideRowUI(currentRulerTab);
+    closeStepAdjustCard();
+  }
+  function confirmResetStepValue() {
+    showModal('計測した1段の高さを未計測に戻しますか？', '未計測に戻す', resetStepValue);
+  }
+
   // タブ切替時や設定読込時に、段ガイド行（トグル・ラベル・計測ボタン）の表示をそのタブの状態に同期する
   function syncGuideRowUI(tab) {
     let isOn, baseStep, effStep, scaledBase;
@@ -2749,18 +3020,23 @@
     }
   });
 
-  // 📏計測ボタン：押したときだけ計測モードを起動
+  // 📏計測ボタン：押したときだけ計測モードを起動（カウント中の誤タップ対策として確認モーダルを挟む）
   let measureBtnTouched = false;
+  function confirmStartMeasure() {
+    showModal('1段の高さを計測しますか？', '計測する', () => {
+      if (window.startMeasure) window.startMeasure();
+    });
+  }
   function triggerMeasure(e) {
     e.stopPropagation();
     if (e.type === 'touchend') {
       measureBtnTouched = true;
       if (e.cancelable) e.preventDefault();
-      if (window.startMeasure) window.startMeasure();
+      confirmStartMeasure();
       setTimeout(() => { measureBtnTouched = false; }, 400);
     } else {
       if (measureBtnTouched) return;
-      if (window.startMeasure) window.startMeasure();
+      confirmStartMeasure();
     }
   }
   gpMeasureBtn.addEventListener('click', triggerMeasure);
@@ -2790,11 +3066,28 @@
       squareCount++;
       if (squareStep > 0) {
         // サークル定規と同様、中心位置から画面を覆いきれる大きさまでは拡大できるようにする。
-        // 縦横それぞれ独立にstepぶん伸ばし、それぞれ自分の上限でクランプする
-        // （比率を保とうとすると、どちらか一方が先に上限へ達した時にもう一方まで止まってしまうため）
         const maxHalf = squareMaxHalfForScreen();
-        sqHalfW = Math.min(maxHalf.w, sqHalfW + squareStep);
-        sqHalfH = Math.min(maxHalf.h, sqHalfH + squareStep);
+        if (sqIsSquareMode) {
+          // 正方形モードは縦横同じ上限（余裕がある方）を共有して、形が崩れないようにする
+          const shared = Math.max(maxHalf.w, maxHalf.h);
+          sqHalfW = Math.min(shared, sqHalfW + squareStep);
+          sqHalfH = Math.min(shared, sqHalfH + squareStep);
+        } else {
+          // 長方形モードも、元の縦横比を保ったまま伸びるようにする。上限も縦横で余裕がある方を共有する
+          const shared = Math.max(maxHalf.w, maxHalf.h);
+          let newW, newH;
+          if (sqHalfW <= sqHalfH) {
+            const ratio = sqHalfH / sqHalfW;
+            newW = Math.min(shared, sqHalfW + squareStep);
+            newH = Math.min(shared, newW * ratio);
+          } else {
+            const ratio = sqHalfW / sqHalfH;
+            newH = Math.min(shared, sqHalfH + squareStep);
+            newW = Math.min(shared, newH * ratio);
+          }
+          sqHalfW = newW;
+          sqHalfH = newH;
+        }
         applySquare();
       }
       cpNum.textContent = squareCount;
@@ -3186,11 +3479,17 @@
     e.preventDefault();
     if (!rulerPinchActive || e.touches.length !== 2) return;
     const d = pinchDist(e.touches);
-    const ratio = d / rulerPinchDist0;
+    let ratio = d / rulerPinchDist0;
+    // 幅・高さそれぞれの上限/下限に達する比率を求め、両方が範囲内に収まる比率だけを使う
+    // （そうしないと、片方だけ先に上限/下限に達して、もう片方だけ動き続け、形が崩れてしまうため）
+    const RULER_MAX_W = 500, RULER_MIN_W = 20;   // 幅（%）
+    const RULER_MAX_H = 3000, RULER_MIN_H = 24;  // 高さ（px）
+    ratio = Math.min(ratio, RULER_MAX_W / rulerPinchW0, RULER_MAX_H / rulerPinchH0);
+    ratio = Math.max(ratio, RULER_MIN_W / rulerPinchW0, RULER_MIN_H / rulerPinchH0);
     // 横幅（%）
-    rulerWidth  = Math.min(100, Math.max(20, Math.round(rulerPinchW0 * ratio / 5) * 5));
+    rulerWidth  = Math.round((rulerPinchW0 * ratio) / 5) * 5;
     // 縦幅（px）
-    rulerHeight = Math.min(600, Math.max(24, Math.round(rulerPinchH0 * ratio / 4) * 4));
+    rulerHeight = Math.round((rulerPinchH0 * ratio) / 4) * 4;
     // UI反映
     if (rulerWidthInput) rulerWidthInput.value = rulerWidth;
     if (rulerWidthLabel) rulerWidthLabel.textContent = rulerWidth + '%';
@@ -3227,8 +3526,14 @@
     const minWPct2 = (minWPx2 / window.innerWidth) * 100;
     const vVisPx2  = Math.min(rulerTop + rulerHeight, window.innerHeight) - Math.max(rulerTop, 0);
     const minH2    = Math.max(MIN_RULER_H, 44 + rulerHeight - vVisPx2);
-    const newWidth  = Math.min(100, Math.max(minWPct2, rulerWidth  * factor));
-    const newHeight = Math.min(600, Math.max(minH2, rulerHeight * factor));
+    // 幅・高さそれぞれの上限/下限に達する倍率を求め、両方が範囲内に収まる倍率だけを使う
+    // （そうしないと片方だけ先に上限/下限に達して、もう片方だけ動き続け、形が崩れてしまうため）
+    const RULER_MAX_W = 500, RULER_MAX_H = 3000;
+    let f = factor;
+    f = Math.min(f, RULER_MAX_W / rulerWidth, RULER_MAX_H / rulerHeight);
+    f = Math.max(f, minWPct2 / rulerWidth, minH2 / rulerHeight);
+    const newWidth  = rulerWidth  * f;
+    const newHeight = rulerHeight * f;
     rulerWidth  = Math.round(newWidth * 10) / 10;
     rulerHeight = Math.round(newHeight);
     // 画面端から少し余白(10px相当)を残して、それ以上は止める
@@ -3706,6 +4011,8 @@
     if (e.target.closest('.cp-btn')) return;
     if (e.target.closest('#gp-toggle-wrap')) return;
     if (e.target.closest('#gp-measure-btn')) return;
+    if (e.target.closest('#gp-step-label')) return;
+    if (e.target.closest('#step-adjust-card')) return;
     cpDragging = true;
     const pos = getCpPos();
     cpDragStartX = e.clientX; cpDragStartY = e.clientY;
@@ -5636,8 +5943,8 @@
       if (s.showSquareCounter != null) showSquareCounter = s.showSquareCounter;
       if (s.sqRectHalfW != null) sqRectHalfW = s.sqRectHalfW;
       if (s.sqRectHalfH != null) sqRectHalfH = s.sqRectHalfH;
-      // 旧データ（sqIsSquareModeを持たない）は、その時点の縦横の数字が一致しているかで推測する
-      sqIsSquareMode = (s.sqIsSquareMode != null) ? s.sqIsSquareMode : (sqHalfW === sqHalfH);
+      // 寸法が一致していれば常に正方形モードとして扱う（保存されたモードのフラグが古い/ズレていても、実際の寸法を優先する）
+      sqIsSquareMode = (sqHalfW === sqHalfH) ? true : !!s.sqIsSquareMode;
       return true;
     } catch(e) { return false; }
   }
@@ -5781,63 +6088,68 @@
     const MIN_HALF = 20;
     const maxHalf = squareMaxHalfForScreen();
     const MAX_HALF_W = maxHalf.w, MAX_HALF_H = maxHalf.h;
+    // 正方形モードの間は縦横で上限を共有する（片方だけ先に頭打ちになって形が崩れないように）。
+    // 長方形モードの時はこれまで通り、縦横それぞれ独立の上限を使う
+    const sharedMax = Math.max(MAX_HALF_W, MAX_HALF_H);
+    const capW = sqIsSquareMode ? sharedMax : MAX_HALF_W;
+    const capH = sqIsSquareMode ? sharedMax : MAX_HALF_H;
     // 現在位置から計算した、最低44px見えるための最小半幅・半高
     const minVisW = Math.max(MIN_HALF, 44 - Math.min(sqX, window.innerWidth  - sqX) + sqHalfW);
     const minVisH = Math.max(MIN_HALF, 44 - Math.min(sqY, window.innerHeight - sqY) + sqHalfH);
     if (mode === 'corner-tl') {
       const d = Math.max(-dx, -dy);
-      sqHalfW = Math.max(minVisW, Math.min(MAX_HALF_W, sqHalfW0 + d));
-      sqHalfH = Math.max(minVisH, Math.min(MAX_HALF_H, sqHalfH0 + d));
+      sqHalfW = Math.max(minVisW, Math.min(capW, sqHalfW0 + d));
+      sqHalfH = Math.max(minVisH, Math.min(capH, sqHalfH0 + d));
     } else if (mode === 'corner-tr') {
       const d = Math.max(dx, -dy);
-      sqHalfW = Math.max(minVisW, Math.min(MAX_HALF_W, sqHalfW0 + d));
-      sqHalfH = Math.max(minVisH, Math.min(MAX_HALF_H, sqHalfH0 + d));
+      sqHalfW = Math.max(minVisW, Math.min(capW, sqHalfW0 + d));
+      sqHalfH = Math.max(minVisH, Math.min(capH, sqHalfH0 + d));
     } else if (mode === 'corner-bl') {
       const d = Math.max(-dx, dy);
-      sqHalfW = Math.max(minVisW, Math.min(MAX_HALF_W, sqHalfW0 + d));
-      sqHalfH = Math.max(minVisH, Math.min(MAX_HALF_H, sqHalfH0 + d));
+      sqHalfW = Math.max(minVisW, Math.min(capW, sqHalfW0 + d));
+      sqHalfH = Math.max(minVisH, Math.min(capH, sqHalfH0 + d));
     } else if (mode === 'corner-br') {
       const d = Math.max(dx, dy);
-      sqHalfW = Math.max(minVisW, Math.min(MAX_HALF_W, sqHalfW0 + d));
-      sqHalfH = Math.max(minVisH, Math.min(MAX_HALF_H, sqHalfH0 + d));
+      sqHalfW = Math.max(minVisW, Math.min(capW, sqHalfW0 + d));
+      sqHalfH = Math.max(minVisH, Math.min(capH, sqHalfH0 + d));
     } else if (mode === 'edge-t') {
       if (sqIsSquareMode) {
         // 正方形の状態から辺だけドラッグした場合は、コーナーと同じく両辺を一緒に動かして正方形を保つ
         const d = -dy;
-        sqHalfH = Math.max(minVisH, Math.min(MAX_HALF_H, sqHalfH0 + d));
-        sqHalfW = Math.max(minVisW, Math.min(MAX_HALF_W, sqHalfW0 + d));
+        sqHalfH = Math.max(minVisH, Math.min(capH, sqHalfH0 + d));
+        sqHalfW = Math.max(minVisW, Math.min(capW, sqHalfW0 + d));
       } else {
-        let newH = Math.max(minVisH, Math.min(MAX_HALF_H, sqHalfH0 - dy));
+        let newH = Math.max(minVisH, Math.min(capH, sqHalfH0 - dy));
         if (Math.abs(newH - sqHalfW) <= SQ_SNAP_TOLERANCE) newH = sqHalfW; // 幅に近づいたら正方形にスナップ
         sqHalfH = newH;
       }
     } else if (mode === 'edge-b') {
       if (sqIsSquareMode) {
         const d = dy;
-        sqHalfH = Math.max(minVisH, Math.min(MAX_HALF_H, sqHalfH0 + d));
-        sqHalfW = Math.max(minVisW, Math.min(MAX_HALF_W, sqHalfW0 + d));
+        sqHalfH = Math.max(minVisH, Math.min(capH, sqHalfH0 + d));
+        sqHalfW = Math.max(minVisW, Math.min(capW, sqHalfW0 + d));
       } else {
-        let newH = Math.max(minVisH, Math.min(MAX_HALF_H, sqHalfH0 + dy));
+        let newH = Math.max(minVisH, Math.min(capH, sqHalfH0 + dy));
         if (Math.abs(newH - sqHalfW) <= SQ_SNAP_TOLERANCE) newH = sqHalfW;
         sqHalfH = newH;
       }
     } else if (mode === 'edge-l') {
       if (sqIsSquareMode) {
         const d = -dx;
-        sqHalfW = Math.max(minVisW, Math.min(MAX_HALF_W, sqHalfW0 + d));
-        sqHalfH = Math.max(minVisH, Math.min(MAX_HALF_H, sqHalfH0 + d));
+        sqHalfW = Math.max(minVisW, Math.min(capW, sqHalfW0 + d));
+        sqHalfH = Math.max(minVisH, Math.min(capH, sqHalfH0 + d));
       } else {
-        let newW = Math.max(minVisW, Math.min(MAX_HALF_W, sqHalfW0 - dx));
+        let newW = Math.max(minVisW, Math.min(capW, sqHalfW0 - dx));
         if (Math.abs(newW - sqHalfH) <= SQ_SNAP_TOLERANCE) newW = sqHalfH; // 高さに近づいたら正方形にスナップ
         sqHalfW = newW;
       }
     } else if (mode === 'edge-r') {
       if (sqIsSquareMode) {
         const d = dx;
-        sqHalfW = Math.max(minVisW, Math.min(MAX_HALF_W, sqHalfW0 + d));
-        sqHalfH = Math.max(minVisH, Math.min(MAX_HALF_H, sqHalfH0 + d));
+        sqHalfW = Math.max(minVisW, Math.min(capW, sqHalfW0 + d));
+        sqHalfH = Math.max(minVisH, Math.min(capH, sqHalfH0 + d));
       } else {
-        let newW = Math.max(minVisW, Math.min(MAX_HALF_W, sqHalfW0 + dx));
+        let newW = Math.max(minVisW, Math.min(capW, sqHalfW0 + dx));
         if (Math.abs(newW - sqHalfH) <= SQ_SNAP_TOLERANCE) newW = sqHalfH;
         sqHalfW = newW;
       }
@@ -5855,11 +6167,12 @@
         const factor = Math.exp(-e.deltaY * 0.01);
         // サークル定規と同様、中心位置から画面を覆いきれる大きさまでは拡大できるようにする
         const maxHalf = squareMaxHalfForScreen();
+        const sharedMax = Math.max(maxHalf.w, maxHalf.h); // 正方形を保つ時は縦横で上限を共有（片方だけ頭打ちで形が崩れないように）
         if (hit === 'edge-t' || hit === 'edge-b') {
           if (sqIsSquareMode) {
             // 正方形の間は辺のピンチでもコーナーと同じく両辺一緒に動かして正方形を保つ
-            sqHalfH = Math.max(20, Math.min(maxHalf.h, Math.round(sqHalfH * factor)));
-            sqHalfW = Math.max(20, Math.min(maxHalf.w, Math.round(sqHalfW * factor)));
+            sqHalfH = Math.max(20, Math.min(sharedMax, Math.round(sqHalfH * factor)));
+            sqHalfW = Math.max(20, Math.min(sharedMax, Math.round(sqHalfW * factor)));
           } else {
             let newH = Math.max(20, Math.min(maxHalf.h, Math.round(sqHalfH * factor)));
             if (Math.abs(newH - sqHalfW) <= SQ_SNAP_TOLERANCE) newH = sqHalfW; // 幅に近づいたら正方形にスナップ
@@ -5867,17 +6180,21 @@
           }
         } else if (hit === 'edge-l' || hit === 'edge-r') {
           if (sqIsSquareMode) {
-            sqHalfW = Math.max(20, Math.min(maxHalf.w, Math.round(sqHalfW * factor)));
-            sqHalfH = Math.max(20, Math.min(maxHalf.h, Math.round(sqHalfH * factor)));
+            sqHalfW = Math.max(20, Math.min(sharedMax, Math.round(sqHalfW * factor)));
+            sqHalfH = Math.max(20, Math.min(sharedMax, Math.round(sqHalfH * factor)));
           } else {
             let newW = Math.max(20, Math.min(maxHalf.w, Math.round(sqHalfW * factor)));
             if (Math.abs(newW - sqHalfH) <= SQ_SNAP_TOLERANCE) newW = sqHalfH; // 高さに近づいたら正方形にスナップ
             sqHalfW = newW;
           }
+        } else if (sqIsSquareMode) {
+          // 角または内側・正方形モード：縦横で上限を共有して正方形を保つ
+          sqHalfW = Math.max(20, Math.min(sharedMax, Math.round(sqHalfW * factor)));
+          sqHalfH = Math.max(20, Math.min(sharedMax, Math.round(sqHalfH * factor)));
         } else {
-          // 角または内側：正方形を保ったまま拡大・縮小
-          sqHalfW = Math.max(20, Math.min(maxHalf.w, Math.round(sqHalfW * factor)));
-          sqHalfH = Math.max(20, Math.min(maxHalf.h, Math.round(sqHalfH * factor)));
+          // 角または内側・長方形モード：比率は保ったまま拡大縮小するので、上限も縦横で共有する
+          sqHalfW = Math.max(20, Math.min(sharedMax, Math.round(sqHalfW * factor)));
+          sqHalfH = Math.max(20, Math.min(sharedMax, Math.round(sqHalfH * factor)));
         }
         applySquare();
         clearTimeout(squareWheelPinchTimer);
@@ -6039,8 +6356,17 @@
       e.preventDefault();
       const ratio = pinchDist(e.touches) / sqPinchDist0;
       const maxHalf = squareMaxHalfForScreen();
-      sqHalfW = Math.max(20, Math.min(maxHalf.w, Math.round(sqHalfW00 * ratio)));
-      sqHalfH = Math.max(20, Math.min(maxHalf.h, Math.round(sqHalfH00 * ratio)));
+      if (sqIsSquareMode) {
+        // 正方形モードは縦横で上限を共有して、片方だけ頭打ちで形が崩れないようにする
+        const sharedMax = Math.max(maxHalf.w, maxHalf.h);
+        sqHalfW = Math.max(20, Math.min(sharedMax, Math.round(sqHalfW00 * ratio)));
+        sqHalfH = Math.max(20, Math.min(sharedMax, Math.round(sqHalfH00 * ratio)));
+      } else {
+        // 長方形モードも、比率は保ったままなので上限も縦横で共有する（片方だけ頭打ちで比率が崩れないように）
+        const sharedMax = Math.max(maxHalf.w, maxHalf.h);
+        sqHalfW = Math.max(20, Math.min(sharedMax, Math.round(sqHalfW00 * ratio)));
+        sqHalfH = Math.max(20, Math.min(sharedMax, Math.round(sqHalfH00 * ratio)));
+      }
       applySquare();
     } else if ((sqTouchMode === 'corner' || sqTouchMode === 'edge') && e.touches.length === 1) {
       e.preventDefault();
@@ -6189,8 +6515,8 @@
   function doApplySquarePreset(p, idx) {
     sqColor = p.color; sqAlpha = p.alpha;
     sqHalfW = p.halfW; sqHalfH = p.halfH;
-    // 旧データ（isSquareModeを持たない）は、寸法が一致しているかで推測する
-    sqIsSquareMode = (p.isSquareMode != null) ? p.isSquareMode : (p.halfW === p.halfH);
+    // 寸法が一致していれば常に正方形モードとして扱う（保存されたモードのフラグが古い/ズレていても、実際の寸法を優先する）
+    sqIsSquareMode = (p.halfW === p.halfH) ? true : !!p.isSquareMode;
     activeSquarePresetIdx = idx;
     activeSquarePresetSnapshot = { ...currentSquareSnapshot() };
     syncSquareUI(); applySquare(); saveSquareSettings(); renderSquarePresets();
