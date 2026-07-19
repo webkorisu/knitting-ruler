@@ -471,7 +471,7 @@
       pointer-events: none;
       white-space: nowrap;
     }
-    .cp-caption { font-size: 12px; padding: 0 12px 0 16px; }
+    .cp-caption { font-size: 12px; padding: 0 16px 0 12px; }
 
     /* ===== 定規タブ ===== */
     .ruler-tabs {
@@ -707,7 +707,7 @@
       padding: 5px 10px;
       border-radius: 12px;
       flex-shrink: 0;
-      width: 72px;
+      min-width: 72px;
       box-sizing: border-box;
     }
     .ruler-control input[type=range] {
@@ -1244,12 +1244,12 @@
       position: absolute;
       top: 5px;
       right: 5px;
-      width: 18px;
-      height: 18px;
+      width: 15px;
+      height: 15px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 9px;
+      font-size: 7px;
       line-height: 1;
       color: #7A7575;
       opacity: 0.9;
@@ -1283,9 +1283,9 @@
       border-radius: 50%;
       border: 1.5px solid var(--border);
       background: #f8fdfc;
-      font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 17px;
+      font-weight: 400;
       line-height: 1;
       color: var(--text);
       cursor: pointer;
@@ -1293,16 +1293,17 @@
       align-items: center;
       justify-content: center;
       padding: 0;
+      margin-top: 4px;
       -webkit-tap-highlight-color: transparent;
     }
     .step-adjust-card-btn:active { transform: scale(.9); }
     #step-adjust-card-value {
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 13px;
+      font-size: 16px;
       font-weight: 700;
       line-height: 1;
       color: var(--text);
-      min-width: 46px;
+      min-width: 56px;
       text-align: center;
     }
     #step-adjust-card-reset {
@@ -1447,19 +1448,18 @@
     #cp-counter-row {
       display: flex;
       align-items: center;
-      gap: 0;
+      justify-content: center;
+      gap: 6px;
       transform: translateY(-3px);
     }
     #cp-counter-row .cp-divider { margin-left: 0; }
-    #cp-counter-row #cp-minus { margin-left: 20px; }
-    #cp-counter-row #cp-plus { margin-right: 14px; }
     .cp-btn {
       background: none;
       border: none;
       width: 58px;
       height: 58px;
-      font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 26px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 30px;
       font-weight: 700;
       color: var(--text);
       cursor: pointer;
@@ -1683,11 +1683,20 @@
       transition: opacity .15s, transform .15s;
       z-index: 20;
     }
+    /* ✎は右端に寄っていることが多いので、右端基準で左に伸ばして見切れを防ぐ */
+    .preset-overwrite-item-btn[data-tip]::after {
+      left: auto;
+      right: 0;
+      transform: translateY(2px);
+    }
     @media (hover: hover) {
       .preset-del-btn[data-tip]:hover::after,
       .preset-overwrite-item-btn[data-tip]:hover::after {
         opacity: 0.92;
         transform: translateX(-50%) translateY(0);
+      }
+      .preset-overwrite-item-btn[data-tip]:hover::after {
+        transform: translateY(0);
       }
     }
     .preset-empty {
@@ -1707,7 +1716,7 @@
       font-size: 11px;
       font-weight: 700;
       color: #FFFFFF;
-      background: #b2aaaa;
+      background: #c2baba;
       border: none;
       border-radius: 20px;
       letter-spacing: .06em;
@@ -1723,13 +1732,30 @@
       box-shadow: 0 1px 1px rgba(0,0,0,0.10);
       transform: scale(.95);
     }
+    /* カスタマイズの中身を2グループ（設定系／リセット）の箱で分ける */
+    .ruler-settings-group {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .ruler-reset-group {
+      display: flex;
+      justify-content: center;
+    }
+    .ruler-reset-group .reset-default-btn {
+      width: 100%;
+      margin: 0;
+      padding: 12px 20px;
+      font-size: 12px;
+      border-radius: 24px;
+    }
     /* カスタマイズの戻る・進む */
     .undo-redo-row {
       display: flex;
       gap: 10px;
       align-items: center;
       justify-content: center;
-      margin-top: 4px;
+      margin-top: 0;
     }
     .undo-redo-btn {
       position: relative;
@@ -1793,6 +1819,7 @@
       letter-spacing: .05em;
       line-height: 1.7;
       text-align: center;
+      white-space: pre-line;
     }
     .modal-btns {
       display: flex;
@@ -2018,11 +2045,9 @@
   </div>
   <!-- 下段：カウンター行 -->
   <div id="cp-counter-row">
-    <span class="cp-caption">段</span>
-    <div class="cp-divider"></div>
     <button class="cp-btn" id="cp-minus" title="−1">−</button>
     <span id="cp-num">0</span>
-    <button class="cp-btn" id="cp-plus" title="＋1">＋</button>
+    <button class="cp-btn" id="cp-plus" title="＋1">+</button>
   </div>
 </div>
 
@@ -2033,7 +2058,7 @@
   <div id="step-adjust-card-row">
     <button type="button" class="step-adjust-card-btn" onclick="adjustStepValue(-1)" aria-label="1段の高さを1px減らす">−</button>
     <span id="step-adjust-card-value">0 px</span>
-    <button type="button" class="step-adjust-card-btn" onclick="adjustStepValue(1)" aria-label="1段の高さを1px増やす">＋</button>
+    <button type="button" class="step-adjust-card-btn" onclick="adjustStepValue(1)" aria-label="1段の高さを1px増やす">+</button>
   </div>
   <button type="button" id="step-adjust-card-reset" onclick="confirmResetStepValue()">未計測に戻す</button>
 </div>
@@ -2093,7 +2118,8 @@
           <span>ライン定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:28px 12px 18px; gap:24px;">
+        <div class="card-accordion-body" style="padding:28px 12px 18px; gap:20px;">
+          <div class="ruler-settings-group">
           <div class="ruler-control ruler-color-row">
             <label>カラー</label>
             <div class="color-presets" id="color-presets">
@@ -2115,17 +2141,25 @@
               <span id="ruler-opacity-label">70%</span>
             </div>
           </div>
-          <div class="ruler-control" style="gap:12px; margin-bottom:-8px;">
+          <div class="ruler-control" style="gap:12px;">
             <label>リサイズ</label>
             <div>
               <div class="ruler-op-desc">枠の辺や角を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ・ピンチ</span></div>
             </div>
           </div>
-          <div class="undo-redo-row">
-            <button type="button" class="undo-redo-btn" id="band-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
-            <button type="button" class="undo-redo-btn" id="band-redo-btn" title="進む" aria-label="1つ先の状態に進む" disabled>↻<span class="action-tooltip">進む</span></button>
+          <div class="ruler-control" style="gap:10px;">
+            <label>戻る・進む</label>
+            <div style="padding-left:0;">
+              <div class="undo-redo-row">
+                <button type="button" class="undo-redo-btn" id="band-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
+                <button type="button" class="undo-redo-btn" id="band-redo-btn" title="進む" aria-label="1つ先の状態に進む" disabled>↻<span class="action-tooltip">進む</span></button>
+              </div>
+            </div>
           </div>
-          <button class="reset-default-btn" id="band-reset-btn" onclick="confirmResetBand()">リセット</button>
+          </div>
+          <div class="ruler-reset-group">
+            <button class="reset-default-btn" id="band-reset-btn" onclick="confirmResetBand()">リセット</button>
+          </div>
         </div>
       </div>
 
@@ -2196,7 +2230,8 @@
           <span>フレーム定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:28px 12px 18px; gap:24px;">
+        <div class="card-accordion-body" style="padding:28px 12px 18px; gap:20px;">
+          <div class="ruler-settings-group">
           <div class="ruler-control ruler-color-row">
             <label>カラー</label>
             <div class="color-presets" id="frame-color-presets">
@@ -2218,17 +2253,25 @@
               <span id="frame-opacity-label">70%</span>
             </div>
           </div>
-          <div class="ruler-control" style="gap:12px; margin-bottom:-8px;">
+          <div class="ruler-control" style="gap:12px;">
             <label>リサイズ</label>
             <div>
               <div class="ruler-op-desc">外枠・窓枠の辺や角を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ・ピンチ</span></div>
             </div>
           </div>
-          <div class="undo-redo-row">
-            <button type="button" class="undo-redo-btn" id="frame-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
-            <button type="button" class="undo-redo-btn" id="frame-redo-btn" title="進む" aria-label="1つ先の状態に進む" disabled>↻<span class="action-tooltip">進む</span></button>
+          <div class="ruler-control" style="gap:10px;">
+            <label>戻る・進む</label>
+            <div style="padding-left:0;">
+              <div class="undo-redo-row">
+                <button type="button" class="undo-redo-btn" id="frame-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
+                <button type="button" class="undo-redo-btn" id="frame-redo-btn" title="進む" aria-label="1つ先の状態に進む" disabled>↻<span class="action-tooltip">進む</span></button>
+              </div>
+            </div>
           </div>
-          <button class="reset-default-btn" id="frame-reset-btn" onclick="confirmResetFrame()">リセット</button>
+          </div>
+          <div class="ruler-reset-group">
+            <button class="reset-default-btn" id="frame-reset-btn" onclick="confirmResetFrame()">リセット</button>
+          </div>
         </div>
       </div>
 
@@ -2299,7 +2342,8 @@
           <span>サークル定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:28px 12px 18px; gap:24px;">
+        <div class="card-accordion-body" style="padding:28px 12px 18px; gap:20px;">
+          <div class="ruler-settings-group">
           <div class="ruler-control ruler-color-row">
             <label>カラー</label>
             <div class="color-presets" id="circle-color-presets">
@@ -2321,17 +2365,25 @@
               <span id="circle-opacity-label">70%</span>
             </div>
           </div>
-          <div class="ruler-control" style="gap:12px; margin-bottom:-8px;">
+          <div class="ruler-control" style="gap:12px;">
             <label>リサイズ</label>
             <div>
               <div class="ruler-op-desc">枠を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ・ピンチ</span></div>
             </div>
           </div>
-          <div class="undo-redo-row">
-            <button type="button" class="undo-redo-btn" id="circle-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
-            <button type="button" class="undo-redo-btn" id="circle-redo-btn" title="進む" aria-label="1つ先の状態に進む" disabled>↻<span class="action-tooltip">進む</span></button>
+          <div class="ruler-control" style="gap:10px;">
+            <label>戻る・進む</label>
+            <div style="padding-left:0;">
+              <div class="undo-redo-row">
+                <button type="button" class="undo-redo-btn" id="circle-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
+                <button type="button" class="undo-redo-btn" id="circle-redo-btn" title="進む" aria-label="1つ先の状態に進む" disabled>↻<span class="action-tooltip">進む</span></button>
+              </div>
+            </div>
           </div>
-          <button class="reset-default-btn" id="circle-reset-btn" onclick="confirmResetCircle()">リセット</button>
+          </div>
+          <div class="ruler-reset-group">
+            <button class="reset-default-btn" id="circle-reset-btn" onclick="confirmResetCircle()">リセット</button>
+          </div>
         </div>
       </div>
 
@@ -2402,7 +2454,8 @@
           <span>Box定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:28px 12px 18px; gap:24px;">
+        <div class="card-accordion-body" style="padding:28px 12px 18px; gap:20px;">
+          <div class="ruler-settings-group">
           <div class="ruler-control ruler-color-row">
             <label>カラー</label>
             <div class="color-presets" id="square-color-presets">
@@ -2424,7 +2477,7 @@
               <span id="square-opacity-label">70%</span>
             </div>
           </div>
-          <div class="ruler-control" style="gap:10px; margin-bottom:-8px;">
+          <div class="ruler-control" style="gap:10px;">
             <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; width:100%; padding-left:0;">
               <label>リサイズ</label>
               <div class="square-shape-switcher" id="square-shape-switcher" style="margin-left:3px;">
@@ -2436,11 +2489,19 @@
               <div class="ruler-op-desc">枠の辺や角を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ・ピンチ</span></div>
             </div>
           </div>
-          <div class="undo-redo-row">
-            <button type="button" class="undo-redo-btn" id="square-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
-            <button type="button" class="undo-redo-btn" id="square-redo-btn" title="進む" aria-label="1つ先の状態に進む" disabled>↻<span class="action-tooltip">進む</span></button>
+          <div class="ruler-control" style="gap:10px;">
+            <label>戻る・進む</label>
+            <div style="padding-left:0;">
+              <div class="undo-redo-row">
+                <button type="button" class="undo-redo-btn" id="square-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
+                <button type="button" class="undo-redo-btn" id="square-redo-btn" title="進む" aria-label="1つ先の状態に進む" disabled>↻<span class="action-tooltip">進む</span></button>
+              </div>
+            </div>
           </div>
-          <button class="reset-default-btn" id="square-reset-btn" onclick="confirmResetSquare()">リセット</button>
+          </div>
+          <div class="ruler-reset-group">
+            <button class="reset-default-btn" id="square-reset-btn" onclick="confirmResetSquare()">リセット</button>
+          </div>
         </div>
       </div>
 
@@ -2950,7 +3011,7 @@
     syncGuideRowUI(currentRulerTab);
     updateStepAdjustCardValue();
   }
-  // 計測した1段の高さを未計測に戻す（段ガイドもOFFにする）
+  // 計測した1段の高さを未計測に戻す（段ガイドのON/OFFはそのまま維持する）
   function resetStepValue() {
     if (currentRulerTab === 'frame') {
       frameStep = 0; frameStepBase = 0;
@@ -2962,31 +3023,31 @@
       squareStep = 0; squareStepBase = 0;
       saveSquareSettings();
     } else {
-      rulerStep = 0; rulerBaseStep = 0; rulerGuideOn = false;
+      rulerStep = 0; rulerBaseStep = 0;
       saveSettings();
     }
     syncGuideRowUI(currentRulerTab);
     closeStepAdjustCard();
   }
   function confirmResetStepValue() {
-    showModal('計測した1段の高さを未計測に戻しますか？', '未計測に戻す', resetStepValue);
+    showModal('計測した1段の高さを\n未計測に戻しますか？', '未計測に戻す', resetStepValue);
   }
 
   // タブ切替時や設定読込時に、段ガイド行（トグル・ラベル・計測ボタン）の表示をそのタブの状態に同期する
   function syncGuideRowUI(tab) {
     let isOn, baseStep, effStep, scaledBase;
     if (tab === 'frame') {
-      isOn = frameStep > 0;
+      isOn = frameGuideOn;
       baseStep = frameStepBase;
       effStep = frameStep;
       scaledBase = baseStep > 0 ? Math.max(1, Math.round(baseStep * scale)) : 0;
     } else if (tab === 'circle') {
-      isOn = circleStep > 0;
+      isOn = circleGuideOn;
       baseStep = circleStepBase;
       effStep = circleStep;
       scaledBase = baseStep > 0 ? Math.max(1, Math.round(baseStep * scale)) : 0;
     } else if (tab === 'square') {
-      isOn = squareStep > 0;
+      isOn = squareGuideOn;
       baseStep = squareStepBase;
       effStep = squareStep;
       scaledBase = baseStep > 0 ? Math.max(1, Math.round(baseStep * scale)) : 0;
@@ -3014,6 +3075,7 @@
     gpMeasureBtn.style.opacity = isOn ? '1' : '0';
     gpMeasureBtn.style.pointerEvents = isOn ? 'auto' : 'none';
     if (currentRulerTab === 'frame') {
+      frameGuideOn = isOn;
       if (isOn) {
         if (frameStepBase > 0) {
           frameStep = Math.max(1, Math.round(frameStepBase * scale));
@@ -3027,6 +3089,7 @@
       }
       saveFrameSettings();
     } else if (currentRulerTab === 'circle') {
+      circleGuideOn = isOn;
       if (isOn) {
         if (circleStepBase > 0) {
           circleStep = Math.max(1, Math.round(circleStepBase * scale));
@@ -3040,6 +3103,7 @@
       }
       saveCircleSettings();
     } else if (currentRulerTab === 'square') {
+      squareGuideOn = isOn;
       if (isOn) {
         if (squareStepBase > 0) {
           squareStep = Math.max(1, Math.round(squareStepBase * scale));
@@ -3916,62 +3980,9 @@
       item.innerHTML = `
         <div class="preset-swatch" style="background:${p.color};opacity:${Math.min(1, p.alpha + 0.3)};border:1.5px solid ${p.color}"></div>
         <span class="preset-item-name">${p.name}</span>
-        <button class="preset-overwrite-item-btn" data-i="${i}" data-tip="上書き" style="margin-left:auto">✎</button>
+        <button class="preset-overwrite-item-btn" data-i="${i}" data-tip="上書き（長押しで名前変更）" style="margin-left:auto">✎</button>
         <button class="preset-del-btn" data-i="${i}" data-tip="削除">✕</button>
       `;
-
-      // 名前ダブルタップで編集
-      const nameEl = item.querySelector('.preset-item-name');
-      let tapTimer = null;
-      nameEl.addEventListener('click', e => {
-        e.stopPropagation();
-        if (tapTimer) {
-          clearTimeout(tapTimer);
-          tapTimer = null;
-          // ダブルタップ → 編集モード
-          const input = document.createElement('input');
-          input.type = 'text';
-          input.className = 'preset-name-edit';
-          input.value = p.name;
-          input.maxLength = 10;
-          nameEl.replaceWith(input);
-          input.focus();
-          input.select();
-          const save = () => {
-            const newName = input.value.trim() || p.name;
-            const ps = loadPresets();
-            ps[i].name = newName;
-            savePresets(ps);
-            renderPresets();
-          };
-          input.addEventListener('blur', save);
-          input.addEventListener('keydown', e => {
-            if (e.key === 'Enter') { input.blur(); }
-            if (e.key === 'Escape') { renderPresets(); }
-          });
-        } else {
-          // シングルタップ → プリセット切り替え（400ms後にダブルタップでなければ実行）
-          tapTimer = setTimeout(() => {
-            tapTimer = null;
-            const doSwitch = () => applyPreset(p, i);
-            if (isPresetDirty() && activePresetIndex !== -1) {
-              const ps = loadPresets();
-              showModal(
-                `「${ps[activePresetIndex].name}」を上書き保存しますか？`,
-                '上書き保存',
-                () => {
-                  ps[activePresetIndex] = { name: ps[activePresetIndex].name, ...currentRulerSnapshot() };
-                  savePresets(ps);
-                  doSwitch();
-                }
-              );
-              modalCancel.onclick = () => { closeModal(); doSwitch(); };
-            } else {
-              doSwitch();
-            }
-          }, 400);
-        }
-      });
 
       item.addEventListener('click', e => {
         if (e.target.closest('.preset-del-btn')) return;
@@ -3993,15 +4004,21 @@
           doSwitch();
         }
       });
-      item.querySelector('.preset-overwrite-item-btn').addEventListener('click', e => {
+      const overwriteBtnLine = item.querySelector('.preset-overwrite-item-btn');
+      overwriteBtnLine.addEventListener('pointerdown', () => pencilPressStart('line', i));
+      overwriteBtnLine.addEventListener('pointerup', pencilPressEnd);
+      overwriteBtnLine.addEventListener('pointerleave', pencilPressEnd);
+      overwriteBtnLine.addEventListener('pointercancel', pencilPressEnd);
+      overwriteBtnLine.addEventListener('click', e => {
         e.stopPropagation();
+        if (pencilLongPressed) { pencilLongPressed = false; return; }
         if (activePresetIndex !== i) {
           // 選んでいない項目 → まずその項目に切り替えるだけ（値はそのプリセットのものになるので保存は不要）
           applyPreset(p, i);
           return;
         }
         // 選択中の項目 → 今の設定で上書き保存
-        showModal(`「${p.name}」を今の設定で上書き保存しますか？`, '上書き保存', () => {
+        showModal(`「${p.name}」を今の設定で\n上書き保存しますか？`, '上書き保存', () => {
           const ps = loadPresets();
           ps[i] = { name: p.name, ...currentRulerSnapshot() };
           savePresets(ps);
@@ -4055,6 +4072,96 @@
   });
 
   renderPresets();
+
+  /* ========== お気に入り(プリセット)：✎長押しで名前変更（4定規共通） ========== */
+  function presetListElId(kind) {
+    if (kind === 'line')   return 'preset-list';
+    if (kind === 'frame')  return 'frame-preset-list';
+    if (kind === 'circle') return 'circle-preset-list';
+    return 'square-preset-list';
+  }
+  function getPresetArrByKind(kind) {
+    if (kind === 'line')   return loadPresets();
+    if (kind === 'frame')  return framePresets;
+    if (kind === 'circle') return circlePresets;
+    return squarePresets;
+  }
+  function commitPresetRename(kind, i, newName) {
+    if (kind === 'line') {
+      const ps = loadPresets();
+      if (!ps[i]) return;
+      ps[i].name = newName;
+      savePresets(ps);
+      renderPresets();
+    } else if (kind === 'frame') {
+      if (!framePresets[i]) return;
+      framePresets[i].name = newName;
+      saveFramePresets();
+      renderFramePresets();
+    } else if (kind === 'circle') {
+      if (!circlePresets[i]) return;
+      circlePresets[i].name = newName;
+      saveCirclePresets();
+      renderCirclePresets();
+    } else if (kind === 'square') {
+      if (!squarePresets[i]) return;
+      squarePresets[i].name = newName;
+      saveSquarePresets();
+      renderSquarePresets();
+    }
+  }
+  function cancelPresetRename(kind) {
+    if (kind === 'line') renderPresets();
+    else if (kind === 'frame') renderFramePresets();
+    else if (kind === 'circle') renderCirclePresets();
+    else renderSquarePresets();
+  }
+  function startPresetRename(kind, i) {
+    const arr = getPresetArrByKind(kind);
+    const p = arr && arr[i];
+    if (!p) return;
+    const listEl = document.getElementById(presetListElId(kind));
+    if (!listEl) return;
+    const item = listEl.querySelectorAll('.preset-item')[i];
+    if (!item) return;
+    const nameEl = item.querySelector('.preset-item-name');
+    if (!nameEl) return;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'preset-name-edit';
+    input.value = p.name;
+    input.maxLength = 10;
+    nameEl.replaceWith(input);
+    input.focus();
+    input.select();
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      const newName = input.value.trim() || p.name;
+      commitPresetRename(kind, i, newName);
+    };
+    input.addEventListener('click', e => e.stopPropagation());
+    input.addEventListener('blur', finish);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { input.blur(); }
+      if (e.key === 'Escape') { done = true; cancelPresetRename(kind); }
+    });
+  }
+  // ✎ボタンの長押し（0.5秒）で名前変更モードに入る。タップ（短押し）は今まで通り上書き保存
+  let pencilLongPressed = false;
+  let pencilPressTimer = null;
+  function pencilPressStart(kind, i) {
+    pencilLongPressed = false;
+    clearTimeout(pencilPressTimer);
+    pencilPressTimer = setTimeout(() => {
+      pencilLongPressed = true;
+      startPresetRename(kind, i);
+    }, 500);
+  }
+  function pencilPressEnd() {
+    clearTimeout(pencilPressTimer);
+  }
 
   /* ========== カウンターパネル ドラッグ ========== */
   let cpDragging = false, cpDragStartX = 0, cpDragStartY = 0;
@@ -4442,6 +4549,7 @@
   let fWin = { x: 0, y: 0, w: 0, h: 0 };
   let frameStep  = 0;      // 段ガイドON時に有効な1段の幅（OFF時は0）
   let frameStepBase = 0;   // 計測した実寸（段ガイドOFFでも保持、未計測なら0）
+  let frameGuideOn = false; // Frame定規の段ガイドON/OFF状態（タブ切替時もこの値が真実の源）
   let frameCount = 0;
   let showFrameCounter = true;
   let fColor = '#b2aaaa';
@@ -4698,7 +4806,7 @@
   function saveFrameSettings() {
     try {
       localStorage.setItem('yucchi_ruler_frame', JSON.stringify({
-        fWin, fOuter, fColor, fAlpha, frameStep, frameStepBase, frameCount, showFrameCounter
+        fWin, fOuter, fColor, fAlpha, frameStep, frameStepBase, frameCount, showFrameCounter, guideOn: frameGuideOn
       }));
     } catch(e) {}
   }
@@ -4714,6 +4822,8 @@
       // frameStepBaseが未保存の旧データの場合、旧frameStepの値を引き継ぐ
       if (s.frameStepBase != null) frameStepBase = s.frameStepBase;
       else if (s.frameStep != null) frameStepBase = s.frameStep;
+      frameGuideOn = !!s.guideOn;
+      if (!frameGuideOn) frameStep = 0;
       if (s.frameCount != null) frameCount = s.frameCount;
       if (s.showFrameCounter != null) showFrameCounter = s.showFrameCounter;
       document.getElementById('frame-opacity').value = Math.round(fAlpha * 100);
@@ -4834,11 +4944,12 @@
           <div class="preset-item-name">${p.name}</div>
 
         </div>
-        <button class="preset-overwrite-item-btn" data-i="${i}" data-tip="上書き">✎</button>
+        <button class="preset-overwrite-item-btn" data-i="${i}" data-tip="上書き（長押しで名前変更）">✎</button>
         <button class="preset-del-btn" data-i="${i}" data-tip="削除" style="margin-left:4px">✕</button>
       `;
       item.addEventListener('click', e => {
         if (e.target.closest('.preset-del-btn') || e.target.closest('.preset-overwrite-item-btn')) return;
+        if (e.target.classList.contains('preset-name-edit')) return;
         const doSwitch = () => applyFramePreset(p, i);
         if (isFramePresetDirty()) {
           const ps = framePresets;
@@ -4856,14 +4967,20 @@
           doSwitch();
         }
       });
-      item.querySelector('.preset-overwrite-item-btn').addEventListener('click', e => {
+      const overwriteBtnFrame = item.querySelector('.preset-overwrite-item-btn');
+      overwriteBtnFrame.addEventListener('pointerdown', () => pencilPressStart('frame', i));
+      overwriteBtnFrame.addEventListener('pointerup', pencilPressEnd);
+      overwriteBtnFrame.addEventListener('pointerleave', pencilPressEnd);
+      overwriteBtnFrame.addEventListener('pointercancel', pencilPressEnd);
+      overwriteBtnFrame.addEventListener('click', e => {
         e.stopPropagation();
+        if (pencilLongPressed) { pencilLongPressed = false; return; }
         if (activeFramePresetIdx !== i) {
           // 選んでいない項目 → まずその項目に切り替えるだけ
           applyFramePreset(p, i);
           return;
         }
-        showModal(`「${p.name}」を今の設定で上書き保存しますか？`, '上書き保存', () => {
+        showModal(`「${p.name}」を今の設定で\n上書き保存しますか？`, '上書き保存', () => {
           framePresets[i] = { name: p.name, ...currentFrameSnapshot() };
           saveFramePresets();
           activeFramePresetSnapshot = { ...currentFrameSnapshot() };
@@ -5331,6 +5448,7 @@
   let cAlpha = 0.70;
   let circleStep  = 0;       // 段ガイドON時に有効な1段の幅（OFF時は0）
   let circleStepBase = 0;    // 計測した実寸（段ガイドOFFでも保持、未計測なら0）
+  let circleGuideOn = false; // Circle定規の段ガイドON/OFF状態（タブ切替時もこの値が真実の源）
   let circleCount = 0;
   let showCircleCounter = true;
   // 中心(cX,cY)から画面の最も遠い角までの距離。これを半径の上限にすれば、画面の四隅まで円で埋め尽くせる
@@ -5372,13 +5490,13 @@
     // 見た目専用レイヤー：円がちょうど収まる正方形のSVGをその位置に配置する（Frame/Line定規と同じ仕組み）
     const left = cX - cR, top = cY - cR;
     const size = cR * 2;
-    const hiW  = Math.min(cR * 0.18, 12); // ハイライトの太さ
+    const hiW  = Math.min(cR * 0.22, 14); // ハイライトの太さ（他の3定規と統一感を出すため少し広め）
 
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
       <defs>
         <radialGradient id="clg_hi" cx="50%" cy="50%" r="50%">
           <stop offset="${Math.max(0, (1 - hiW / cR) * 100)}%" stop-color="rgba(255,255,255,0)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0.25)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0.35)"/>
         </radialGradient>
         <filter id="cdrop" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
           <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(${r},${g},${b},0.25)"/>
@@ -5399,7 +5517,7 @@
   }
 
   function saveCircleSettings() {
-    try { localStorage.setItem(CIRCLE_KEY, JSON.stringify({ cX, cY, cR, cColor, cAlpha, circleStep, circleStepBase, circleCount, showCircleCounter })); } catch(e) {}
+    try { localStorage.setItem(CIRCLE_KEY, JSON.stringify({ cX, cY, cR, cColor, cAlpha, circleStep, circleStepBase, circleCount, showCircleCounter, guideOn: circleGuideOn })); } catch(e) {}
   }
   function loadCircleSettings() {
     try {
@@ -5420,6 +5538,8 @@
       // circleStepBaseが未保存の旧データの場合、旧circleStepの値を引き継ぐ
       if (s.circleStepBase != null) circleStepBase = s.circleStepBase;
       else if (s.circleStep != null) circleStepBase = s.circleStep;
+      circleGuideOn = !!s.guideOn;
+      if (!circleGuideOn) circleStep = 0;
       if (s.circleCount != null) circleCount = s.circleCount;
       if (s.showCircleCounter != null) showCircleCounter = s.showCircleCounter;
       return true;
@@ -5796,13 +5916,14 @@
   };
   // プリセット項目の上書きボタン：選択中ならその場で上書き保存、未選択ならまず切り替えるだけ
   window.overwriteCirclePresetItem = function(i) {
+    if (pencilLongPressed) { pencilLongPressed = false; return; }
     const p = circlePresets[i];
     if (!p) return;
     if (activeCirclePresetIdx !== i) {
       doApplyCirclePreset(p, i);
       return;
     }
-    showModal(`「${p.name}」を今の設定で上書き保存しますか？`, '上書き保存', () => {
+    showModal(`「${p.name}」を今の設定で\n上書き保存しますか？`, '上書き保存', () => {
       circlePresets[i] = { name: p.name, ...currentCircleSnapshot(), diameter: cR * 2 };
       saveCirclePresets();
       activeCirclePresetSnapshot = { ...currentCircleSnapshot() };
@@ -5824,7 +5945,7 @@
           <div class="preset-item-name">${p.name}</div>
 
         </div>
-        <button class="preset-overwrite-item-btn" data-tip="上書き" onclick="overwriteCirclePresetItem(${i})">✎</button>
+        <button class="preset-overwrite-item-btn" data-tip="上書き（長押しで名前変更）" onpointerdown="pencilPressStart('circle', ${i})" onpointerup="pencilPressEnd()" onpointerleave="pencilPressEnd()" onpointercancel="pencilPressEnd()" onclick="overwriteCirclePresetItem(${i})">✎</button>
         <button class="preset-del-btn" data-tip="削除" onclick="deleteCirclePreset(${i})">✕</button>
       </div>`).join('');
   }
@@ -5891,6 +6012,7 @@
   let sqAlpha = 0.70;
   let squareStep  = 0;       // 段ガイドON時に有効な1段の幅（OFF時は0）
   let squareStepBase = 0;    // 計測した実寸（段ガイドOFFでも保持、未計測なら0）
+  let squareGuideOn = false; // Square定規の段ガイドON/OFF状態（タブ切替時もこの値が真実の源）
   let squareCount = 0;
   let showSquareCounter = true;
   // サークル定規のcircleMaxRForScreen()と同じ考え方：中心位置から画面を覆いきれる大きさまでは拡大できるようにする
@@ -6072,7 +6194,7 @@
   }
 
   function saveSquareSettings() {
-    try { localStorage.setItem(SQUARE_KEY, JSON.stringify({ sqX, sqY, sqHalfW, sqHalfH, sqColor, sqAlpha, squareStep, squareStepBase, squareCount, showSquareCounter, sqRectHalfW, sqRectHalfH, sqSquareSide, sqSquareColor, sqSquareAlpha, sqRectColor, sqRectAlpha, sqIsSquareMode })); } catch(e) {}
+    try { localStorage.setItem(SQUARE_KEY, JSON.stringify({ sqX, sqY, sqHalfW, sqHalfH, sqColor, sqAlpha, squareStep, squareStepBase, squareCount, showSquareCounter, sqRectHalfW, sqRectHalfH, sqSquareSide, sqSquareColor, sqSquareAlpha, sqRectColor, sqRectAlpha, sqIsSquareMode, guideOn: squareGuideOn })); } catch(e) {}
   }
   function loadSquareSettings() {
     try {
@@ -6097,6 +6219,8 @@
       if (s.squareStep  != null) squareStep  = s.squareStep;
       if (s.squareStepBase != null) squareStepBase = s.squareStepBase;
       else if (s.squareStep != null) squareStepBase = s.squareStep;
+      squareGuideOn = !!s.guideOn;
+      if (!squareGuideOn) squareStep = 0;
       if (s.squareCount != null) squareCount = s.squareCount;
       if (s.showSquareCounter != null) showSquareCounter = s.showSquareCounter;
       if (s.sqRectHalfW != null) sqRectHalfW = s.sqRectHalfW;
@@ -6621,13 +6745,14 @@
   };
   // プリセット項目の上書きボタン：選択中ならその場で上書き保存、未選択ならまず切り替えるだけ
   window.overwriteSquarePresetItem = function(i) {
+    if (pencilLongPressed) { pencilLongPressed = false; return; }
     const p = squarePresets[i];
     if (!p) return;
     if (activeSquarePresetIdx !== i) {
       doApplySquarePreset(p, i);
       return;
     }
-    showModal(`「${p.name}」を今の設定で上書き保存しますか？`, '上書き保存', () => {
+    showModal(`「${p.name}」を今の設定で\n上書き保存しますか？`, '上書き保存', () => {
       lockSquareModeIfSquareShaped();
       squarePresets[i] = { name: p.name, ...currentSquareSnapshot() };
       saveSquarePresets();
@@ -6650,7 +6775,7 @@
           <div class="preset-item-name">${p.name}</div>
 
         </div>
-        <button class="preset-overwrite-item-btn" data-tip="上書き" onclick="overwriteSquarePresetItem(${i})">✎</button>
+        <button class="preset-overwrite-item-btn" data-tip="上書き（長押しで名前変更）" onpointerdown="pencilPressStart('square', ${i})" onpointerup="pencilPressEnd()" onpointerleave="pencilPressEnd()" onpointercancel="pencilPressEnd()" onclick="overwriteSquarePresetItem(${i})">✎</button>
         <button class="preset-del-btn" data-tip="削除" onclick="deleteSquarePreset(${i})">✕</button>
       </div>`).join('');
   }
@@ -7401,14 +7526,17 @@
       if (currentRulerTab === 'frame') {
         frameStep = dist;
         frameStepBase = scale > 0 ? dist / scale : dist;
+        frameGuideOn = true;
         saveFrameSettings();
       } else if (currentRulerTab === 'circle') {
         circleStep = dist;
         circleStepBase = scale > 0 ? dist / scale : dist;
+        circleGuideOn = true;
         saveCircleSettings();
       } else if (currentRulerTab === 'square') {
         squareStep = dist;
         squareStepBase = scale > 0 ? dist / scale : dist;
+        squareGuideOn = true;
         saveSquareSettings();
       } else {
         rulerStep = dist;
