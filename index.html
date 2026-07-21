@@ -108,7 +108,7 @@
       user-select: none;
     }
     #save-hint-center span { white-space: nowrap; }
-    #square-edge-toast {
+    #box-edge-toast {
       position: fixed;
       transform: translateX(-50%) translateY(-6px);
       font-family: 'Zen Maru Gothic', sans-serif;
@@ -125,7 +125,7 @@
       opacity: 0;
       transition: opacity .25s ease, transform .25s ease;
     }
-    #square-edge-toast.show {
+    #box-edge-toast.show {
       opacity: 0.94;
       transform: translateX(-50%) translateY(0);
     }
@@ -628,7 +628,7 @@
       min-width: 0;
       flex: 1;
     }
-    .square-shape-switcher {
+    .box-shape-switcher {
       display: flex;
       width: fit-content;
       margin: 0;
@@ -636,7 +636,7 @@
       border-radius: 6px;
       background: #EFE6E6;
     }
-    .square-shape-switch-btn {
+    .box-shape-switch-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -653,10 +653,10 @@
       transition: background .2s, color .2s, box-shadow .2s, font-weight .2s, transform .1s;
       -webkit-tap-highlight-color: transparent;
     }
-    .square-shape-switch-btn:active {
+    .box-shape-switch-btn:active {
       transform: scale(0.92);
     }
-    .square-shape-switch-btn.active {
+    .box-shape-switch-btn.active {
       background: #D4B5C4;
       color: #FFFFFF;
       font-weight: 700;
@@ -886,10 +886,10 @@
     #circle-canvas.dragging { opacity: 0.6; transition: opacity .1s; }
     #circle-canvas.rim { cursor: nwse-resize !important; }
     #circle-3d-layer.dragging { opacity: 0.6; transition: opacity .1s; }
-    #square-canvas { cursor: grab; }
-    #square-canvas:active { cursor: grabbing; }
-    #square-canvas.dragging { opacity: 0.6; transition: opacity .1s; }
-    #square-3d-layer.dragging { opacity: 0.6; transition: opacity .1s; }
+    #box-canvas { cursor: grab; }
+    #box-canvas:active { cursor: grabbing; }
+    #box-canvas.dragging { opacity: 0.6; transition: opacity .1s; }
+    #box-3d-layer.dragging { opacity: 0.6; transition: opacity .1s; }
     .frame-panel.dragging { opacity: 0.6; transition: opacity .15s; }
     #frame-3d-border.dragging { opacity: 0.6; transition: opacity .15s; }
     #frame-3d-border:hover { filter: brightness(1.06); transition: filter .2s; }
@@ -1456,10 +1456,10 @@
     .cp-btn {
       background: none;
       border: none;
-      width: 58px;
-      height: 58px;
+      width: 62px;
+      height: 62px;
       font-family: Arial, Helvetica, sans-serif;
-      font-size: 30px;
+      font-size: 34px;
       font-weight: 700;
       color: var(--text);
       cursor: pointer;
@@ -1469,6 +1469,8 @@
       transition: transform .12s, color .1s;
       -webkit-tap-highlight-color: transparent;
       flex-shrink: 0;
+      padding-top: 4px;
+      box-sizing: border-box;
     }
     .cp-btn:active { transform: scale(.9); }
     #cp-plus:active  { color: #D992A8; }
@@ -1476,10 +1478,10 @@
     .cp-btn.reset  { font-size: 18px; color: var(--text-sub); width: 44px; }
     #cp-num {
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 30px;
+      font-size: 34px;
       font-weight: 700;
       color: var(--text);
-      width: 76px;
+      width: 82px;
       box-sizing: border-box;
       text-align: center;
       overflow: hidden;
@@ -1979,15 +1981,15 @@
   <canvas id="circle-canvas" style="position:absolute;top:0;left:0;pointer-events:all;touch-action:none;cursor:grab;"></canvas>
 </div>
 
-<!-- ===== Square定規オーバーレイ ===== -->
-<div id="square-overlay" style="position:fixed;inset:0;pointer-events:none;z-index:100;display:none;">
+<!-- ===== Box定規オーバーレイ ===== -->
+<div id="box-overlay" style="position:fixed;inset:0;pointer-events:none;z-index:100;display:none;">
   <!-- 見た目専用（SVG）。操作判定は下のcanvasが担当 -->
-  <div id="square-3d-layer" style="position:absolute;top:0;left:0;pointer-events:none;"></div>
-  <canvas id="square-canvas" style="position:absolute;top:0;left:0;pointer-events:all;touch-action:none;cursor:grab;"></canvas>
+  <div id="box-3d-layer" style="position:absolute;top:0;left:0;pointer-events:none;"></div>
+  <canvas id="box-canvas" style="position:absolute;top:0;left:0;pointer-events:all;touch-action:none;cursor:grab;"></canvas>
 </div>
 
-<!-- ===== Square定規：辺を掴んだ時のお知らせトースト ===== -->
-<div id="square-edge-toast">▭ 長方形になります</div>
+<!-- ===== Box定規：辺を掴んだ時のお知らせトースト ===== -->
+<div id="box-edge-toast">▭ 長方形になります</div>
 
 <!-- ===== 段ガイド計測フロートバナー（未使用） ===== -->
 <div id="measure-float-btn" style="display:none;"></div>
@@ -2005,7 +2007,7 @@
     <!-- 拡大調整フェーズ専用：拡大完了ボタン -->
     <button id="measure-zoomdone-btn" style="display:none; background:var(--primary); border:none; border-radius:16px; padding:6px 14px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; color:var(--text); cursor:pointer; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.10); flex-shrink:0; -webkit-tap-highlight-color:transparent;">完了</button>
 
-    <!-- Square定規専用：計測前に縦/横を選ぶトグル -->
+    <!-- Box定規専用：計測前に縦/横を選ぶトグル -->
     <div id="measure-axis-toggle" style="display:none; align-items:center; gap:4px; flex-shrink:0; background:var(--bg); border-radius:14px; padding:3px;">
       <button id="measure-axis-v" class="measure-axis-btn active" data-axis="v" style="border:none; border-radius:11px; padding:5px 10px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; -webkit-tap-highlight-color:transparent;">↕ 縦</button>
       <button id="measure-axis-h" class="measure-axis-btn" data-axis="h" style="border:none; border-radius:11px; padding:5px 10px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; -webkit-tap-highlight-color:transparent;">↔ 横</button>
@@ -2105,7 +2107,7 @@
     <div class="ruler-tabs">
       <button class="ruler-tab active" id="tab-band"   onclick="switchRulerTab('band')"><span class="tab-main">Line<span class="tab-sub">定規</span></span></button>
       <button class="ruler-tab"        id="tab-frame"  onclick="switchRulerTab('frame')"><span class="tab-main">Frame<span class="tab-sub">定規</span></span></button>
-      <button class="ruler-tab"        id="tab-square" onclick="switchRulerTab('square')"><span class="tab-main">Box<span class="tab-sub">定規</span></span></button>
+      <button class="ruler-tab"        id="tab-box" onclick="switchRulerTab('box')"><span class="tab-main">Box<span class="tab-sub">定規</span></span></button>
       <button class="ruler-tab"        id="tab-circle" onclick="switchRulerTab('circle')"><span class="tab-main">Circle<span class="tab-sub">定規</span></span></button>
     </div>
 
@@ -2144,7 +2146,7 @@
           <div class="ruler-control" style="gap:12px;">
             <label>リサイズ</label>
             <div>
-              <div class="ruler-op-desc">枠の辺や角を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ・ピンチ</span></div>
+              <div class="ruler-op-desc">枠の辺や角をドラッグ<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">またはピンチ</span></div>
             </div>
           </div>
           <div class="ruler-control" style="gap:10px;">
@@ -2256,7 +2258,7 @@
           <div class="ruler-control" style="gap:12px;">
             <label>リサイズ</label>
             <div>
-              <div class="ruler-op-desc">外枠・窓枠の辺や角を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ・ピンチ</span></div>
+              <div class="ruler-op-desc">外枠・窓枠の辺や角をドラッグ<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">またはピンチ</span></div>
             </div>
           </div>
           <div class="ruler-control" style="gap:10px;">
@@ -2368,7 +2370,7 @@
           <div class="ruler-control" style="gap:12px;">
             <label>リサイズ</label>
             <div>
-              <div class="ruler-op-desc">枠を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ・ピンチ</span></div>
+              <div class="ruler-op-desc">枠をドラッグ<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">またはピンチ</span></div>
             </div>
           </div>
           <div class="ruler-control" style="gap:10px;">
@@ -2444,13 +2446,13 @@
 
     </div>
 
-    <!-- Square定規カード -->
-    <div class="ruler-card" id="square-card" style="display:none;">
+    <!-- Box定規カード -->
+    <div class="ruler-card" id="box-card" style="display:none;">
       <div class="ruler-usage-hint">💡 <span>四角モチーフの編み図用</span></div>
 
       <!-- アコーディオン①カスタマイズ -->
-      <div class="card-accordion" id="square-acc-custom">
-        <button class="card-accordion-btn" onclick="toggleCardAcc('square-acc-custom')">
+      <div class="card-accordion" id="box-acc-custom">
+        <button class="card-accordion-btn" onclick="toggleCardAcc('box-acc-custom')">
           <span>Box定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
@@ -2458,7 +2460,7 @@
           <div class="ruler-settings-group">
           <div class="ruler-control ruler-color-row">
             <label>カラー</label>
-            <div class="color-presets" id="square-color-presets">
+            <div class="color-presets" id="box-color-presets">
               <button class="color-dot" data-color="#E8A8AC" style="background:#E8A8AC;" title="赤"></button>
               <button class="color-dot" data-color="#F0C29C" style="background:#F0C29C;" title="橙"></button>
               <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="黄"></button>
@@ -2466,63 +2468,63 @@
               <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="青"></button>
               <button class="color-dot" data-color="#A8AEDC" style="background:#A8AEDC;" title="藍"></button>
               <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="紫"></button>
-              <input type="color" id="square-color" value="#b2aaaa" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
-              <label for="square-color" class="color-custom-label" title="カラーを選ぶ"></label>
+              <input type="color" id="box-color" value="#b2aaaa" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
+              <label for="box-color" class="color-custom-label" title="カラーを選ぶ"></label>
             </div>
           </div>
           <div class="ruler-control ruler-slider-row">
-            <label for="square-opacity">濃さ</label>
+            <label for="box-opacity">濃さ</label>
             <div style="display:flex; align-items:center; gap:10px; width:100%; max-width:203px;">
-              <input type="range" id="square-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
-              <span id="square-opacity-label">70%</span>
+              <input type="range" id="box-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
+              <span id="box-opacity-label">70%</span>
             </div>
           </div>
-          <div class="ruler-control" style="gap:10px;">
+          <div class="ruler-control" style="gap:12px;">
             <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; width:100%; padding-left:0;">
               <label>リサイズ</label>
-              <div class="square-shape-switcher" id="square-shape-switcher" style="margin-left:3px;">
-                <button type="button" class="square-shape-switch-btn" id="square-shape-btn-square" onclick="setSquareShapeMode(true)">正方形</button>
-                <button type="button" class="square-shape-switch-btn" id="square-shape-btn-rect" onclick="setSquareShapeMode(false)">長方形</button>
+              <div class="box-shape-switcher" id="box-shape-switcher" style="margin-left:3px;">
+                <button type="button" class="box-shape-switch-btn" id="box-shape-btn-square" onclick="setSquareShapeMode(true)">正方形</button>
+                <button type="button" class="box-shape-switch-btn" id="box-shape-btn-rect" onclick="setSquareShapeMode(false)">長方形</button>
               </div>
             </div>
             <div>
-              <div class="ruler-op-desc">枠の辺や角を<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">ドラッグ・ピンチ</span></div>
+              <div class="ruler-op-desc">枠の辺や角をドラッグ<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">またはピンチ</span></div>
             </div>
           </div>
           <div class="ruler-control" style="gap:10px;">
             <label>戻る・進む</label>
             <div style="padding-left:0;">
               <div class="undo-redo-row">
-                <button type="button" class="undo-redo-btn" id="square-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
-                <button type="button" class="undo-redo-btn" id="square-redo-btn" title="進む" aria-label="1つ先の状態に進む" disabled>↻<span class="action-tooltip">進む</span></button>
+                <button type="button" class="undo-redo-btn" id="box-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
+                <button type="button" class="undo-redo-btn" id="box-redo-btn" title="進む" aria-label="1つ先の状態に進む" disabled>↻<span class="action-tooltip">進む</span></button>
               </div>
             </div>
           </div>
           </div>
           <div class="ruler-reset-group">
-            <button class="reset-default-btn" id="square-reset-btn" onclick="confirmResetSquare()">リセット</button>
+            <button class="reset-default-btn" id="box-reset-btn" onclick="confirmResetBox()">リセット</button>
           </div>
         </div>
       </div>
 
       <!-- アコーディオン②お気に入り -->
-      <div class="card-accordion" id="square-acc-preset">
-        <button class="card-accordion-btn" onclick="toggleCardAcc('square-acc-preset')">
-          <span>お気に入り定規　<span id="square-preset-count">0</span>/5</span>
+      <div class="card-accordion" id="box-acc-preset">
+        <button class="card-accordion-btn" onclick="toggleCardAcc('box-acc-preset')">
+          <span>お気に入り定規　<span id="box-preset-count">0</span>/5</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
           <div class="preset-save-row">
-            <input type="text" id="square-preset-name" class="preset-name-input" placeholder="名前をつけて保存…" maxlength="10">
-            <button class="preset-save-btn" onclick="saveSquarePreset()">保存</button>
+            <input type="text" id="box-preset-name" class="preset-name-input" placeholder="名前をつけて保存…" maxlength="10">
+            <button class="preset-save-btn" onclick="saveBoxPreset()">保存</button>
           </div>
-          <div id="square-preset-list" class="preset-list"></div>
+          <div id="box-preset-list" class="preset-list"></div>
         </div>
       </div>
 
       <!-- アコーディオン③段数カウンター -->
-      <div class="card-accordion" id="square-acc-counter">
-        <button class="card-accordion-btn" onclick="toggleCardAcc('square-acc-counter')">
+      <div class="card-accordion" id="box-acc-counter">
+        <button class="card-accordion-btn" onclick="toggleCardAcc('box-acc-counter')">
           <span>段数カウンター</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
@@ -2530,7 +2532,7 @@
           <div style="display:flex; align-items:center; gap:6px;">
             <span class="toggle-label" style="width:7.5em;">段数カウンター</span>
             <label class="toggle-switch">
-              <input type="checkbox" id="toggle-square-counter" checked>
+              <input type="checkbox" id="toggle-box-counter" checked>
               <span class="toggle-knob"></span>
             </label>
           </div>
@@ -2540,8 +2542,8 @@
       </div>
 
       <!-- アコーディオン④段ガイド機能 -->
-      <div class="card-accordion" id="square-acc-guide">
-        <button class="card-accordion-btn" onclick="toggleCardAcc('square-acc-guide')">
+      <div class="card-accordion" id="box-acc-guide">
+        <button class="card-accordion-btn" onclick="toggleCardAcc('box-acc-guide')">
           <span>段ガイド機能</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
@@ -2557,8 +2559,8 @@
           ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。</p>
         </div>
       </div>
-      <input type="hidden" id="square-step" value="20">
-      <span id="square-step-label" style="display:none;">20 px</span>
+      <input type="hidden" id="box-step" value="20">
+      <span id="box-step-label" style="display:none;">20 px</span>
 
     </div>
     </div><!-- /定規タブ＋カードラッパー -->
@@ -2660,7 +2662,7 @@
   let rulerTop    = 200;
   let rulerLeft   = 0;
   let rulerHeight = 172;
-  const MIN_RULER_H = 12;
+  const MIN_RULER_H = 30;
   let rulerColor  = '#b2aaaa';
   let rulerAlpha  = 0.85;
   let rulerWidth  = 80;
@@ -2794,6 +2796,29 @@
     applyRulerPos();
   }
 
+  // 定規が薄い/細い時、角の当たり判定(固定サイズ)が辺の当たり判定を飲み込んでしまわないよう、
+  // 現在の高さ・幅に応じて角のサイズと辺の除外幅を動的に縮める（Box定規のcornerR方式と同じ考え方）
+  function updateRulerHandleGeometry(widthPx, heightPx) {
+    const isTouch = window.matchMedia('(pointer: coarse)').matches;
+    const baseCorner = isTouch ? 28 : 18;
+    const baseThick  = isTouch ? 18 : 10;
+    const cornerSize = Math.max(8, Math.min(baseCorner, heightPx / 2 - 3, widthPx / 2 - 3));
+    document.querySelectorAll('.ruler-corner').forEach(el => {
+      el.style.width  = cornerSize + 'px';
+      el.style.height = cornerSize + 'px';
+    });
+    document.querySelectorAll('.ruler-edge.top, .ruler-edge.bottom').forEach(el => {
+      el.style.left   = cornerSize + 'px';
+      el.style.right  = cornerSize + 'px';
+      el.style.height = Math.min(baseThick, Math.max(4, heightPx - 6)) + 'px';
+    });
+    document.querySelectorAll('.ruler-edge.left, .ruler-edge.right').forEach(el => {
+      el.style.top    = cornerSize + 'px';
+      el.style.bottom = cornerSize + 'px';
+      el.style.width  = Math.min(baseThick, Math.max(4, widthPx - 6)) + 'px';
+    });
+  }
+
   function applyRulerPos() {
     const sw = window.innerWidth;
     const sh = window.innerHeight;
@@ -2804,6 +2829,7 @@
     rulerHandle.style.height = rulerHeight + 'px';
     rulerHandle.style.left   = leftPx  + 'px';
     rulerHandle.style.width  = widthPx + 'px';
+    updateRulerHandleGeometry(widthPx, rulerHeight);
     // 位置・サイズが変わったら見た目（SVG）も必ず更新する（Frame定規と同じ構造）
     applyRulerStyle();
   }
@@ -2973,7 +2999,7 @@
     let step = 0;
     if (currentRulerTab === 'frame') step = frameStep;
     else if (currentRulerTab === 'circle') step = circleStep;
-    else if (currentRulerTab === 'square') step = squareStep;
+    else if (currentRulerTab === 'box') step = boxStep;
     else step = rulerStep;
     valEl.textContent = step + ' px';
   }
@@ -2997,11 +3023,11 @@
       circleStep = Math.min(MAX_STEP, Math.max(1, circleStep + delta));
       circleStepBase = scale > 0 ? circleStep / scale : circleStep;
       saveCircleSettings();
-    } else if (currentRulerTab === 'square') {
-      if (squareStep <= 0) return;
-      squareStep = Math.min(MAX_STEP, Math.max(1, squareStep + delta));
-      squareStepBase = scale > 0 ? squareStep / scale : squareStep;
-      saveSquareSettings();
+    } else if (currentRulerTab === 'box') {
+      if (boxStep <= 0) return;
+      boxStep = Math.min(MAX_STEP, Math.max(1, boxStep + delta));
+      boxStepBase = scale > 0 ? boxStep / scale : boxStep;
+      saveBoxSettings();
     } else {
       if (rulerStep <= 0) return;
       rulerStep = Math.min(MAX_STEP, Math.max(1, rulerStep + delta));
@@ -3019,9 +3045,9 @@
     } else if (currentRulerTab === 'circle') {
       circleStep = 0; circleStepBase = 0;
       saveCircleSettings();
-    } else if (currentRulerTab === 'square') {
-      squareStep = 0; squareStepBase = 0;
-      saveSquareSettings();
+    } else if (currentRulerTab === 'box') {
+      boxStep = 0; boxStepBase = 0;
+      saveBoxSettings();
     } else {
       rulerStep = 0; rulerBaseStep = 0;
       saveSettings();
@@ -3046,10 +3072,10 @@
       baseStep = circleStepBase;
       effStep = circleStep;
       scaledBase = baseStep > 0 ? Math.max(1, Math.round(baseStep * scale)) : 0;
-    } else if (tab === 'square') {
-      isOn = squareGuideOn;
-      baseStep = squareStepBase;
-      effStep = squareStep;
+    } else if (tab === 'box') {
+      isOn = boxGuideOn;
+      baseStep = boxStepBase;
+      effStep = boxStep;
       scaledBase = baseStep > 0 ? Math.max(1, Math.round(baseStep * scale)) : 0;
     } else {
       isOn = rulerGuideOn;
@@ -3102,20 +3128,20 @@
         circleStep = 0;
       }
       saveCircleSettings();
-    } else if (currentRulerTab === 'square') {
-      squareGuideOn = isOn;
+    } else if (currentRulerTab === 'box') {
+      boxGuideOn = isOn;
       if (isOn) {
-        if (squareStepBase > 0) {
-          squareStep = Math.max(1, Math.round(squareStepBase * scale));
-          gpStepLabel.textContent = '1段：' + squareStep + ' px';
+        if (boxStepBase > 0) {
+          boxStep = Math.max(1, Math.round(boxStepBase * scale));
+          gpStepLabel.textContent = '1段：' + boxStep + ' px';
         } else {
-          squareStep = 0;
+          boxStep = 0;
           gpStepLabel.textContent = '未計測';
         }
       } else {
-        squareStep = 0;
+        boxStep = 0;
       }
-      saveSquareSettings();
+      saveBoxSettings();
     } else {
       // 既に計測済みの実寸があればそれを使う。なければ未計測のまま（ステップ移動はしない）
       rulerGuideOn = isOn;
@@ -3176,37 +3202,25 @@
       }
       cpNum.textContent = circleCount;
       saveCircleSettings();
-    } else if (currentRulerTab === 'square') {
-      squareCount++;
-      if (squareStep > 0) {
+    } else if (currentRulerTab === 'box') {
+      boxCount++;
+      if (boxStep > 0) {
         // サークル定規と同様、中心位置から画面を覆いきれる大きさまでは拡大できるようにする。
-        const maxHalf = squareMaxHalfForScreen();
-        if (sqIsSquareMode) {
+        const maxHalf = boxMaxHalfForScreen();
+        if (bxIsSquareMode) {
           // 正方形モードは縦横同じ上限（余裕がある方）を共有して、形が崩れないようにする
           const shared = Math.max(maxHalf.w, maxHalf.h);
-          sqHalfW = Math.min(shared, sqHalfW + squareStep);
-          sqHalfH = Math.min(shared, sqHalfH + squareStep);
+          bxHalfW = Math.min(shared, bxHalfW + boxStep);
+          bxHalfH = Math.min(shared, bxHalfH + boxStep);
         } else {
-          // 長方形モードも、元の縦横比を保ったまま伸びる。
-          // 縦横それぞれ独立の上限まで許しつつ、どちらかが上限に達したらそこで縦横同時に止める（比率が崩れないように）
-          let newW, newH;
-          if (sqHalfW <= sqHalfH) {
-            const ratio = sqHalfH / sqHalfW;
-            newW = sqHalfW + squareStep;
-            newH = newW * ratio;
-          } else {
-            const ratio = sqHalfW / sqHalfH;
-            newH = sqHalfH + squareStep;
-            newW = newH * ratio;
-          }
-          const shrinkFactor = Math.min(1, maxHalf.w / newW, maxHalf.h / newH);
-          sqHalfW = newW * shrinkFactor;
-          sqHalfH = newH * shrinkFactor;
+          // 長方形モードも、正方形と同じく縦横それぞれ均等にstep分だけ伸びる（比率維持の計算は極端な形で破綻するためやめた）
+          bxHalfW = Math.min(maxHalf.w, bxHalfW + boxStep);
+          bxHalfH = Math.min(maxHalf.h, bxHalfH + boxStep);
         }
-        applySquare();
+        applyBox();
       }
-      cpNum.textContent = squareCount;
-      saveSquareSettings();
+      cpNum.textContent = boxCount;
+      saveBoxSettings();
     } else if (currentRulerTab === 'frame') {
       frameCount++;
       if (frameStep > 0 && fWin.h - frameStep >= 20) {
@@ -3239,35 +3253,23 @@
         cpNum.textContent = circleCount;
         saveCircleSettings();
       }
-    } else if (currentRulerTab === 'square') {
-      if (squareCount > 0) {
-        squareCount--;
-        if (squareStep > 0) {
-          const MIN_HALF = 25;
-          if (sqIsSquareMode) {
-            sqHalfW = Math.max(MIN_HALF, sqHalfW - squareStep);
-            sqHalfH = Math.max(MIN_HALF, sqHalfH - squareStep);
+    } else if (currentRulerTab === 'box') {
+      if (boxCount > 0) {
+        boxCount--;
+        if (boxStep > 0) {
+          const MIN_HALF = BX_MIN_HALF;
+          if (bxIsSquareMode) {
+            bxHalfW = Math.max(MIN_HALF, bxHalfW - boxStep);
+            bxHalfH = Math.max(MIN_HALF, bxHalfH - boxStep);
           } else {
-            // 長方形モードは、元の縦横比を保ったまま縮む。
-            // どちらかが下限を割り込みそうになったら、そこで縦横同時に止める（比率が崩れないように）
-            let newW, newH;
-            if (sqHalfW <= sqHalfH) {
-              const ratio = sqHalfH / sqHalfW;
-              newW = sqHalfW - squareStep;
-              newH = newW * ratio;
-            } else {
-              const ratio = sqHalfW / sqHalfH;
-              newH = sqHalfH - squareStep;
-              newW = newH * ratio;
-            }
-            const growFactor = Math.max(1, MIN_HALF / newW, MIN_HALF / newH);
-            sqHalfW = newW * growFactor;
-            sqHalfH = newH * growFactor;
+            // 長方形モードも、正方形と同じく縦横それぞれ均等にstep分だけ縮む（比率維持の計算は極端な形で破綻するためやめた）
+            bxHalfW = Math.max(MIN_HALF, bxHalfW - boxStep);
+            bxHalfH = Math.max(MIN_HALF, bxHalfH - boxStep);
           }
-          applySquare();
+          applyBox();
         }
-        cpNum.textContent = squareCount;
-        saveSquareSettings();
+        cpNum.textContent = boxCount;
+        saveBoxSettings();
       }
     } else if (currentRulerTab === 'frame') {
       if (frameCount > 0) {
@@ -3325,8 +3327,9 @@
       const dxPct = (dx / window.innerWidth) * 100;
       const marginPct10px = (10 / window.innerWidth) * 100;
       // 縦：現在位置で最低44px見えるための最小高さ
-      const vVisFromTop = Math.min(edgeStartTop + edgeStartHeight, window.innerHeight) - Math.max(edgeStartTop, 0);
-      const minH = Math.max(MIN_RULER_H, 44 + edgeStartHeight - vVisFromTop);
+      const distTop = Math.max(0, edgeStartTop);
+      const distBottom = Math.max(0, window.innerHeight - (edgeStartTop + edgeStartHeight));
+      const minH = Math.max(MIN_RULER_H, 44 - Math.min(distTop, distBottom));
       // 横：現在位置で最低44px見えるための最小幅(%)
       const leftPx  = (edgeStartLeft  / 100) * window.innerWidth;
       const widthPx = (edgeStartWidth / 100) * window.innerWidth;
@@ -3400,8 +3403,9 @@
       const dxPct = (dx / window.innerWidth) * 100;
       const sw = window.innerWidth;
       // 縦：現在位置で最低44px見えるための最小高さ
-      const vVisFromTop = Math.min(cornerStartTop + cornerStartHeight, window.innerHeight) - Math.max(cornerStartTop, 0);
-      const minH = Math.max(MIN_RULER_H, 44 + cornerStartHeight - vVisFromTop);
+      const distTop = Math.max(0, cornerStartTop);
+      const distBottom = Math.max(0, window.innerHeight - (cornerStartTop + cornerStartHeight));
+      const minH = Math.max(MIN_RULER_H, 44 - Math.min(distTop, distBottom));
       // 横：現在位置で最低44px見えるための最小幅(%)
       const cLeftPx  = (cornerStartLeft  / 100) * window.innerWidth;
       const cWidthPx = (cornerStartWidth / 100) * window.innerWidth;
@@ -3656,8 +3660,9 @@
     const hVisPx2  = Math.min(leftPx2 + widthPx2, window.innerWidth) - Math.max(leftPx2, 0);
     const minWPx2  = Math.max(5, 44 + widthPx2 - hVisPx2);
     const minWPct2 = (minWPx2 / window.innerWidth) * 100;
-    const vVisPx2  = Math.min(rulerTop + rulerHeight, window.innerHeight) - Math.max(rulerTop, 0);
-    const minH2    = Math.max(MIN_RULER_H, 44 + rulerHeight - vVisPx2);
+    const distTop2 = Math.max(0, rulerTop);
+    const distBottom2 = Math.max(0, window.innerHeight - (rulerTop + rulerHeight));
+    const minH2    = Math.max(MIN_RULER_H, 44 - Math.min(distTop2, distBottom2));
     // 幅・高さそれぞれの上限/下限に達する倍率を求め、両方が範囲内に収まる倍率だけを使う
     // （そうしないと片方だけ先に上限/下限に達して、もう片方だけ動き続け、形が崩れてしまうため）
     const RULER_MAX_W = 500, RULER_MAX_H = 3000;
@@ -3764,12 +3769,12 @@
       } else if (gpStep) {
         gpStep.textContent = '1段：' + scaledStep + ' px';
       }
-    } else if (currentRulerTab === 'square' && squareStepBase > 0) {
-      const scaledStep = Math.min(999, Math.max(1, Math.round(squareStepBase * scale)));
+    } else if (currentRulerTab === 'box' && boxStepBase > 0) {
+      const scaledStep = Math.min(999, Math.max(1, Math.round(boxStepBase * scale)));
       const gpStep = document.getElementById('gp-step-label');
-      if (squareStep > 0) {
-        squareStep = scaledStep;
-        if (gpStep) gpStep.textContent = '1段：' + squareStep + ' px';
+      if (boxStep > 0) {
+        boxStep = scaledStep;
+        if (gpStep) gpStep.textContent = '1段：' + boxStep + ' px';
       } else if (gpStep) {
         gpStep.textContent = '1段：' + scaledStep + ' px';
       }
@@ -3868,13 +3873,13 @@
       cY = Math.max(-margin, Math.min(window.innerHeight + margin, cY));
       resizeCircleCanvas();
     }
-    // Square定規：位置だけ画面内に収まるようクランプ（サイズは変えない。10%だけ画面内に見えていればOK）
-    if (typeof applySquare === 'function') {
-      const marginW = sqHalfW * 0.8;
-      const marginH = sqHalfH * 0.8;
-      sqX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, sqX));
-      sqY = Math.max(-marginH, Math.min(window.innerHeight + marginH, sqY));
-      resizeSquareCanvas();
+    // Box定規：位置だけ画面内に収まるようクランプ（サイズは変えない。10%だけ画面内に見えていればOK）
+    if (typeof applyBox === 'function') {
+      const marginW = bxHalfW * 0.8;
+      const marginH = bxHalfH * 0.8;
+      bxX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, bxX));
+      bxY = Math.max(-marginH, Math.min(window.innerHeight + marginH, bxY));
+      resizeBoxCanvas();
     }
     // パネルが画面外に出ないようにクランプ
     clampPanel();
@@ -4078,13 +4083,13 @@
     if (kind === 'line')   return 'preset-list';
     if (kind === 'frame')  return 'frame-preset-list';
     if (kind === 'circle') return 'circle-preset-list';
-    return 'square-preset-list';
+    return 'box-preset-list';
   }
   function getPresetArrByKind(kind) {
     if (kind === 'line')   return loadPresets();
     if (kind === 'frame')  return framePresets;
     if (kind === 'circle') return circlePresets;
-    return squarePresets;
+    return boxPresets;
   }
   function commitPresetRename(kind, i, newName) {
     if (kind === 'line') {
@@ -4103,18 +4108,18 @@
       circlePresets[i].name = newName;
       saveCirclePresets();
       renderCirclePresets();
-    } else if (kind === 'square') {
-      if (!squarePresets[i]) return;
-      squarePresets[i].name = newName;
-      saveSquarePresets();
-      renderSquarePresets();
+    } else if (kind === 'box') {
+      if (!boxPresets[i]) return;
+      boxPresets[i].name = newName;
+      saveBoxPresets();
+      renderBoxPresets();
     }
   }
   function cancelPresetRename(kind) {
     if (kind === 'line') renderPresets();
     else if (kind === 'frame') renderFramePresets();
     else if (kind === 'circle') renderCirclePresets();
-    else renderSquarePresets();
+    else renderBoxPresets();
   }
   function startPresetRename(kind, i) {
     const arr = getPresetArrByKind(kind);
@@ -4377,7 +4382,7 @@
     band:   makeEmptyChartState(),
     frame:  makeEmptyChartState(),
     circle: makeEmptyChartState(),
-    square: makeEmptyChartState(),
+    box:    makeEmptyChartState(),
   };
 
   // 現在の img/scale/offsetX/offsetY をそのタブの保存領域へ書き戻す
@@ -4444,8 +4449,8 @@
       frameStep = Math.max(1, Math.round(frameStepBase * scale));
     } else if (tab === 'circle' && circleStepBase > 0 && circleStep > 0) {
       circleStep = Math.max(1, Math.round(circleStepBase * scale));
-    } else if (tab === 'square' && squareStepBase > 0 && squareStep > 0) {
-      squareStep = Math.max(1, Math.round(squareStepBase * scale));
+    } else if (tab === 'box' && boxStepBase > 0 && boxStep > 0) {
+      boxStep = Math.max(1, Math.round(boxStepBase * scale));
     }
     drawImage();
     updateZoomLabel();
@@ -4453,14 +4458,14 @@
 
   // ヘッダーのバッジ（今使っている定規、Boxなら正方形/長方形も）を更新する
   function updateCurrentRulerBadge() {
-    const labels = { band: 'Line定規', frame: 'Frame定規', circle: 'Circle定規', square: 'Box定規' };
+    const labels = { band: 'Line定規', frame: 'Frame定規', circle: 'Circle定規', box: 'Box定規' };
     const mainEl = document.getElementById('panel-current-ruler-badge-main');
     const subEl  = document.getElementById('panel-current-ruler-badge-sub');
     if (mainEl) mainEl.textContent = labels[currentRulerTab] || 'Line定規';
     if (subEl) {
-      if (currentRulerTab === 'square') {
+      if (currentRulerTab === 'box') {
         // ロック（モード）ではなく、今実際に見えている形をそのまま表示する
-        const looksSquare = (typeof sqHalfW !== 'undefined' && sqHalfW === sqHalfH);
+        const looksSquare = (typeof bxHalfW !== 'undefined' && bxHalfW === bxHalfH);
         subEl.textContent = looksSquare ? '（正方形）' : '（長方形）';
         subEl.classList.add('show');
       } else {
@@ -4480,11 +4485,11 @@
     document.getElementById('tab-band').classList.toggle('active',   tab === 'band');
     document.getElementById('tab-frame').classList.toggle('active',  tab === 'frame');
     document.getElementById('tab-circle').classList.toggle('active', tab === 'circle');
-    document.getElementById('tab-square').classList.toggle('active', tab === 'square');
+    document.getElementById('tab-box').classList.toggle('active', tab === 'box');
     document.getElementById('ruler-card').style.display    = tab === 'band'   ? '' : 'none';
     document.getElementById('frame-card').style.display    = tab === 'frame'  ? '' : 'none';
     document.getElementById('circle-card').style.display   = tab === 'circle' ? '' : 'none';
-    document.getElementById('square-card').style.display   = tab === 'square' ? '' : 'none';
+    document.getElementById('box-card').style.display   = tab === 'box' ? '' : 'none';
     // カウンターエリアをタブに合わせて切り替え
     const counterWrap = document.getElementById('counter-panel');
     if (tab === 'band') {
@@ -4499,10 +4504,10 @@
       counterWrap.style.display = showFrameCounter ? 'flex' : 'none';
       cpGuideRow.style.display = showFrameCounter ? 'flex' : 'none';
       cpNum.textContent = frameCount;
-    } else if (tab === 'square') {
-      counterWrap.style.display = showSquareCounter ? 'flex' : 'none';
-      cpGuideRow.style.display = showSquareCounter ? 'flex' : 'none';
-      cpNum.textContent = squareCount;
+    } else if (tab === 'box') {
+      counterWrap.style.display = showBoxCounter ? 'flex' : 'none';
+      cpGuideRow.style.display = showBoxCounter ? 'flex' : 'none';
+      cpNum.textContent = boxCount;
     } else {
       counterWrap.style.display = 'none';
       cpGuideRow.style.display = 'none';
@@ -4512,28 +4517,28 @@
       rulerOverlay.style.display  = 'block';
       frameOverlay.style.display  = 'none';
       circleOverlay.style.display = 'none';
-      squareOverlay.style.display = 'none';
+      boxOverlay.style.display = 'none';
       if (!rulerTop) rulerTop = Math.round(window.innerHeight * 0.75);
       applyRulerPos();
     } else if (tab === 'frame') {
       rulerOverlay.style.display  = 'none';
       frameOverlay.style.display  = 'block';
       circleOverlay.style.display = 'none';
-      squareOverlay.style.display = 'none';
+      boxOverlay.style.display = 'none';
       applyFrameOuterPos();
       applyFrameStyle();
     } else if (tab === 'circle') {
       rulerOverlay.style.display  = 'none';
       frameOverlay.style.display  = 'none';
       circleOverlay.style.display = 'block';
-      squareOverlay.style.display = 'none';
+      boxOverlay.style.display = 'none';
       applyCircle();
     } else {
       rulerOverlay.style.display  = 'none';
       frameOverlay.style.display  = 'none';
       circleOverlay.style.display = 'none';
-      squareOverlay.style.display = 'block';
-      applySquare();
+      boxOverlay.style.display = 'block';
+      applyBox();
     }
   };
 
@@ -5985,78 +5990,78 @@
     });
   };
 
-  /* ========== Square定規 ========== */
-  const squareOverlay  = document.getElementById('square-overlay');
-  const squareCanvas   = document.getElementById('square-canvas');
-  const squareCtx      = squareCanvas.getContext('2d');
-  const square3dLayer  = document.getElementById('square-3d-layer');
+  /* ========== Box定規 ========== */
+  const boxOverlay  = document.getElementById('box-overlay');
+  const boxCanvas   = document.getElementById('box-canvas');
+  const boxCtx      = boxCanvas.getContext('2d');
+  const box3dLayer  = document.getElementById('box-3d-layer');
   // canvas（操作判定）とSVGレイヤー（見た目）の両方にdraggingクラスを同期させる
-  function setSquareDragging(on) {
-    squareCanvas.classList.toggle('dragging', on);
-    square3dLayer.classList.toggle('dragging', on);
+  function setBoxDragging(on) {
+    boxCanvas.classList.toggle('dragging', on);
+    box3dLayer.classList.toggle('dragging', on);
   }
-  const SQUARE_KEY     = 'yucchi_ruler_square';
+  const BOX_KEY     = 'yucchi_ruler_square';
 
-  let sqX = 0, sqY = 0;          // 中心座標
-  let sqHalfW = 50, sqHalfH = 50; // 中心から辺までの距離（半幅・半高）
+  let bxX = 0, bxY = 0;          // 中心座標
+  let bxHalfW = 50, bxHalfH = 50; // 中心から辺までの距離（半幅・半高）
   // 正方形⇔長方形トグル用：直前の長方形サイズを記憶（正方形に変える前の値）
-  let sqRectHalfW = null, sqRectHalfH = null;
+  let bxRectHalfW = null, bxRectHalfH = null;
   // 正方形⇔長方形トグル用：直前の正方形サイズを記憶（長方形に変える前の値。長方形サイズの記憶と対になる仕組み）
-  let sqSquareSide = null;
+  let bxSquareSide = null;
   // 正方形用・長方形用の色・濃さをそれぞれ記憶（サイズと同じ考え方）
-  let sqSquareColor = null, sqSquareAlpha = null;
-  let sqRectColor = null, sqRectAlpha = null;
-  let sqPrevWasSquare = null; // 直前の描画時に正方形だったか（リサイズで正方形になった瞬間の検知用）
-  let sqIsSquareMode = true;  // 「正方形⇔長方形」ボタンで選んだモード（数字の一致とは独立。辺ロックの判定に使う）
-  let sqColor = '#b2aaaa';
-  let sqAlpha = 0.70;
-  let squareStep  = 0;       // 段ガイドON時に有効な1段の幅（OFF時は0）
-  let squareStepBase = 0;    // 計測した実寸（段ガイドOFFでも保持、未計測なら0）
-  let squareGuideOn = false; // Square定規の段ガイドON/OFF状態（タブ切替時もこの値が真実の源）
-  let squareCount = 0;
-  let showSquareCounter = true;
+  let bxSquareColor = null, bxSquareAlpha = null;
+  let bxRectColor = null, bxRectAlpha = null;
+  let bxPrevWasSquare = null; // 直前の描画時に正方形だったか（リサイズで正方形になった瞬間の検知用）
+  let bxIsSquareMode = true;  // 「正方形⇔長方形」ボタンで選んだモード（数字の一致とは独立。辺ロックの判定に使う）
+  let bxColor = '#b2aaaa';
+  let bxAlpha = 0.70;
+  let boxStep  = 0;       // 段ガイドON時に有効な1段の幅（OFF時は0）
+  let boxStepBase = 0;    // 計測した実寸（段ガイドOFFでも保持、未計測なら0）
+  let boxGuideOn = false; // Box定規の段ガイドON/OFF状態（タブ切替時もこの値が真実の源）
+  let boxCount = 0;
+  let showBoxCounter = true;
   // サークル定規のcircleMaxRForScreen()と同じ考え方：中心位置から画面を覆いきれる大きさまでは拡大できるようにする
-  function squareMaxHalfForScreen() {
+  function boxMaxHalfForScreen() {
     // 「画面の端にちょうど届く」距離だけだと、中央配置の時にはみ出せないので、
     // サークル定規と同じ考え方で、対角線分の余裕を持たせる
     const sw = window.innerWidth, sh = window.innerHeight;
     const diag = Math.hypot(sw, sh);
     return {
-      w: Math.max(sqX, sw - sqX) + diag * 0.5,
-      h: Math.max(sqY, sh - sqY) + diag * 0.5,
+      w: Math.max(bxX, sw - bxX) + diag * 0.5,
+      h: Math.max(bxY, sh - bxY) + diag * 0.5,
     };
   }
-  let sqDragging = false;
-  let sqResizing = false;       // リサイズ中フラグ（角・辺共通）
-  let sqResizeMode = null;      // 'corner-tl' | 'corner-tr' | 'corner-bl' | 'corner-br' | 'edge-t' | 'edge-b' | 'edge-l' | 'edge-r'
-  let sqDragStartX = 0, sqDragStartY = 0, sqCX0 = 0, sqCY0 = 0;
-  let sqResizeStartX = 0, sqResizeStartY = 0, sqHalfW0 = 0, sqHalfH0 = 0;
+  let bxDragging = false;
+  let bxResizing = false;       // リサイズ中フラグ（角・辺共通）
+  let bxResizeMode = null;      // 'corner-tl' | 'corner-tr' | 'corner-bl' | 'corner-br' | 'edge-t' | 'edge-b' | 'edge-l' | 'edge-r'
+  let bxDragStartX = 0, bxDragStartY = 0, bxCX0 = 0, bxCY0 = 0;
+  let bxResizeStartX = 0, bxResizeStartY = 0, bxHalfW0 = 0, bxHalfH0 = 0, bxX0 = 0, bxY0 = 0;
 
-  function resizeSquareCanvas() {
-    squareCanvas.width  = window.innerWidth;
-    squareCanvas.height = window.innerHeight;
-    if (sqX === 0 && sqY === 0) {
-      sqX = Math.round(window.innerWidth  / 2);
-      sqY = Math.round(window.innerHeight / 2);
+  function resizeBoxCanvas() {
+    boxCanvas.width  = window.innerWidth;
+    boxCanvas.height = window.innerHeight;
+    if (bxX === 0 && bxY === 0) {
+      bxX = Math.round(window.innerWidth  / 2);
+      bxY = Math.round(window.innerHeight / 2);
     }
-    applySquare();
+    applyBox();
   }
 
-  function applySquare() {
+  function applyBox() {
     // 操作判定用canvasは常に画面全体のサイズを保つ（クリック判定のため透明なまま）
-    const w = squareCanvas.width, h = squareCanvas.height;
-    squareCtx.clearRect(0, 0, w, h);
+    const w = boxCanvas.width, h = boxCanvas.height;
+    boxCtx.clearRect(0, 0, w, h);
 
-    const hex = sqColor;
+    const hex = bxColor;
     const r = parseInt(hex.slice(1,3),16);
     const g = parseInt(hex.slice(3,5),16);
     const b = parseInt(hex.slice(5,7),16);
-    const la = Math.min(1, sqAlpha * 1.6);
+    const la = Math.min(1, bxAlpha * 1.6);
 
     // 見た目専用レイヤー：正方形/長方形がちょうど収まるSVGをその位置に配置する（Frame/Line/Circle定規と同じ仕組み）
-    const left = sqX - sqHalfW, top = sqY - sqHalfH;
-    const ow = sqHalfW * 2, oh = sqHalfH * 2;
-    const rad = Math.min(10, sqHalfW * 0.15, sqHalfH * 0.15);
+    const left = bxX - bxHalfW, top = bxY - bxHalfH;
+    const ow = bxHalfW * 2, oh = bxHalfH * 2;
+    const rad = 10;
     const hiDepthTB = Math.min(12, oh / 3);
     const hiDepthLR = Math.min(12, ow / 3);
 
@@ -6084,7 +6089,7 @@
       </defs>
       <!-- 本体 -->
       <rect x="0" y="0" width="${ow}" height="${oh}" rx="${rad}" ry="${rad}"
-        fill="rgba(${r},${g},${b},${sqAlpha})" filter="url(#sqdrop)"/>
+        fill="rgba(${r},${g},${b},${bxAlpha})" filter="url(#sqdrop)"/>
       <!-- 上ハイライト -->
       <path fill="url(#sqlg_t)"
         d="M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${hiDepthTB} H0 V${rad} Q0,0 ${rad},0 Z"/>
@@ -6102,226 +6107,237 @@
         fill="none" stroke="rgba(${r},${g},${b},${la})" stroke-width="1.5"/>
     </svg>`;
 
-    const layer = document.getElementById('square-3d-layer');
+    const layer = document.getElementById('box-3d-layer');
     layer.style.left = left + 'px';
     layer.style.top  = top  + 'px';
     layer.innerHTML  = svg;
-    syncSquareShapeToggleBtn();
+    syncBoxShapeToggleBtn();
     // 正方形⇔長方形、見た目が切り替わった瞬間（ボタン操作・リサイズ・お気に入り適用どれでも共通）を検知して知らせる
-    const isSquareNow2 = (sqHalfW === sqHalfH);
-    if (sqPrevWasSquare === false && isSquareNow2) {
-      showSquareToSquareToast();
-    } else if (sqPrevWasSquare === true && !isSquareNow2) {
-      showSquareToRectToast();
+    const isSquareNow2 = (bxHalfW === bxHalfH);
+    if (bxPrevWasSquare === false && isSquareNow2) {
+      showBoxToSquareToast();
+    } else if (bxPrevWasSquare === true && !isSquareNow2) {
+      showBoxToRectToast();
     }
-    sqPrevWasSquare = isSquareNow2;
+    bxPrevWasSquare = isSquareNow2;
   }
 
   // 正方形／長方形スイッチの、選択中のハイライトを「今実際に見えている形」に応じて更新する
   // （ドラッグ中も含めてリアルタイムに連動させる。タップした時にすでに同じ形だと見た目上は動かないが、
-  //   ロック状態（sqIsSquareMode）自体は内部でちゃんと切り替わる）
-  function syncSquareShapeToggleBtn() {
-    const sqBtn = document.getElementById('square-shape-btn-square');
-    const rectBtn = document.getElementById('square-shape-btn-rect');
-    const looksSquare = (sqHalfW === sqHalfH);
+  //   ロック状態（bxIsSquareMode）自体は内部でちゃんと切り替わる）
+  function syncBoxShapeToggleBtn() {
+    const sqBtn = document.getElementById('box-shape-btn-square');
+    const rectBtn = document.getElementById('box-shape-btn-rect');
+    const looksSquare = (bxHalfW === bxHalfH);
     if (sqBtn)   sqBtn.classList.toggle('active', looksSquare);
     if (rectBtn) rectBtn.classList.toggle('active', !looksSquare);
-    if (currentRulerTab === 'square') updateCurrentRulerBadge();
+    if (currentRulerTab === 'box') updateCurrentRulerBadge();
   }
   // スイッチをタップして、選んだ方の見た目に切り替える。
   // 「今のモード」ではなく「今実際に見えている形」を基準に判定するので、
   // ドラッグで見た目だけ変わってモードとズレていても、正しく動く
   function setSquareShapeMode(wantSquare) {
-    const looksSquare = (sqHalfW === sqHalfH);
-    const wasSquareMode = sqIsSquareMode;
+    const looksSquare = (bxHalfW === bxHalfH);
+    const wasSquareMode = bxIsSquareMode;
 
     // 色・濃さ：今離れるモードの色として記憶してから、切り替え先のモードの色を復元する（記憶がなければ今の色のまま）
     if (wasSquareMode) {
-      sqSquareColor = sqColor; sqSquareAlpha = sqAlpha;
+      bxSquareColor = bxColor; bxSquareAlpha = bxAlpha;
     } else {
-      sqRectColor = sqColor; sqRectAlpha = sqAlpha;
+      bxRectColor = bxColor; bxRectAlpha = bxAlpha;
     }
     if (wantSquare) {
-      if (sqSquareColor != null) sqColor = sqSquareColor;
-      if (sqSquareAlpha != null) sqAlpha = sqSquareAlpha;
+      if (bxSquareColor != null) bxColor = bxSquareColor;
+      if (bxSquareAlpha != null) bxAlpha = bxSquareAlpha;
     } else {
-      if (sqRectColor != null) sqColor = sqRectColor;
-      if (sqRectAlpha != null) sqAlpha = sqRectAlpha;
+      if (bxRectColor != null) bxColor = bxRectColor;
+      if (bxRectAlpha != null) bxAlpha = bxRectAlpha;
     }
 
     if (wantSquare) {
-      if (sqSquareSide != null) {
+      if (bxSquareSide != null) {
         // 記憶している正方形サイズがあれば、まずそれを優先して復元する
         if (!looksSquare) {
           // 今が長方形の見た目なら、そのサイズを記憶してから正方形に戻す
-          sqRectHalfW = sqHalfW;
-          sqRectHalfH = sqHalfH;
+          bxRectHalfW = bxHalfW;
+          bxRectHalfH = bxHalfH;
         }
-        sqHalfW = sqSquareSide;
-        sqHalfH = sqSquareSide;
+        bxHalfW = bxSquareSide;
+        bxHalfH = bxSquareSide;
       } else if (!looksSquare) {
         // 記憶している正方形サイズがまだない場合：今のサイズを記憶してから、小さい方の辺に揃える
-        sqRectHalfW = sqHalfW;
-        sqRectHalfH = sqHalfH;
-        const side = Math.min(sqHalfW, sqHalfH);
-        sqHalfW = side;
-        sqHalfH = side;
+        bxRectHalfW = bxHalfW;
+        bxRectHalfH = bxHalfH;
+        const side = Math.min(bxHalfW, bxHalfH);
+        bxHalfW = side;
+        bxHalfH = side;
       }
-      sqIsSquareMode = true;
+      bxIsSquareMode = true;
     } else {
       // 長方形に切り替える前に、今の正方形サイズを記憶しておく（正方形モードだった場合のみ）
-      if (wasSquareMode) sqSquareSide = sqHalfW;
+      if (wasSquareMode) bxSquareSide = bxHalfW;
       if (looksSquare) {
-        if (sqRectHalfW == null || sqRectHalfH == null) {
+        if (bxRectHalfW == null || bxRectHalfH == null) {
           // 記憶している長方形サイズが無い場合（リセット直後など）：
           // 正方形の横幅を2倍にした横長の長方形をデフォルトにする（画面外に出ない範囲で）
           const margin = 5;
-          const wallHalfW = Math.min(sqX, window.innerWidth  - sqX) - margin;
-          const wallHalfH = Math.min(sqY, window.innerHeight - sqY) - margin;
-          sqHalfW = Math.max(10, Math.min(sqHalfW * 2, wallHalfW));
-          sqHalfH = Math.max(10, Math.min(sqHalfH,     wallHalfH));
+          const wallHalfW = Math.min(bxX, window.innerWidth  - bxX) - margin;
+          const wallHalfH = Math.min(bxY, window.innerHeight - bxY) - margin;
+          bxHalfW = Math.max(15, Math.min(bxHalfW * 2, wallHalfW));
+          bxHalfH = Math.max(15, Math.min(bxHalfH,     wallHalfH));
         } else {
           // 正方形の見た目 → 長方形：記憶している直前の長方形サイズに戻す
-          sqHalfW = sqRectHalfW;
-          sqHalfH = sqRectHalfH;
+          bxHalfW = bxRectHalfW;
+          bxHalfH = bxRectHalfH;
         }
       }
-      sqIsSquareMode = false;
+      bxIsSquareMode = false;
     }
-    syncSquareUI();
-    applySquare();
-    saveSquareSettings();
+    syncBoxUI();
+    applyBox();
+    saveBoxSettings();
   }
 
-  function saveSquareSettings() {
-    try { localStorage.setItem(SQUARE_KEY, JSON.stringify({ sqX, sqY, sqHalfW, sqHalfH, sqColor, sqAlpha, squareStep, squareStepBase, squareCount, showSquareCounter, sqRectHalfW, sqRectHalfH, sqSquareSide, sqSquareColor, sqSquareAlpha, sqRectColor, sqRectAlpha, sqIsSquareMode, guideOn: squareGuideOn })); } catch(e) {}
+  function saveBoxSettings() {
+    // 注意：JSONのキー名は今までの保存データ（sqX, squareStep 等）と互換性を保つため、あえて変更していません。
+    try { localStorage.setItem(BOX_KEY, JSON.stringify({
+      sqX: bxX, sqY: bxY, sqHalfW: bxHalfW, sqHalfH: bxHalfH, sqColor: bxColor, sqAlpha: bxAlpha,
+      squareStep: boxStep, squareStepBase: boxStepBase, squareCount: boxCount, showSquareCounter: showBoxCounter,
+      sqRectHalfW: bxRectHalfW, sqRectHalfH: bxRectHalfH, sqSquareSide: bxSquareSide,
+      sqSquareColor: bxSquareColor, sqSquareAlpha: bxSquareAlpha, sqRectColor: bxRectColor, sqRectAlpha: bxRectAlpha,
+      sqIsSquareMode: bxIsSquareMode, guideOn: boxGuideOn
+    })); } catch(e) {}
   }
-  function loadSquareSettings() {
+  function loadBoxSettings() {
+    // 注意：s.sqX 等は今までの保存データのキー名のまま読み込む（後方互換のため）
     try {
-      const s = JSON.parse(localStorage.getItem(SQUARE_KEY));
+      const s = JSON.parse(localStorage.getItem(BOX_KEY));
       if (!s) return false;
-      if (s.sqHalfW) sqHalfW = s.sqHalfW;
-      if (s.sqHalfH) sqHalfH = s.sqHalfH;
-      if (s.sqColor) sqColor = s.sqColor;
-      if (s.sqAlpha != null) sqAlpha = s.sqAlpha;
-      if (s.sqX)     sqX     = s.sqX;
-      if (s.sqY)     sqY     = s.sqY;
+      if (s.sqHalfW) bxHalfW = s.sqHalfW;
+      if (s.sqHalfH) bxHalfH = s.sqHalfH;
+      if (s.sqColor) bxColor = s.sqColor;
+      if (s.sqAlpha != null) bxAlpha = s.sqAlpha;
+      if (s.sqX)     bxX     = s.sqX;
+      if (s.sqY)     bxY     = s.sqY;
       // 画面サイズに収まるようにクランプ（辺の10%まで画面外へはみ出すのは許容）
       const maxHalf = Math.min(window.innerWidth, window.innerHeight) * 0.45;
-      sqHalfW = Math.min(sqHalfW, maxHalf);
-      sqHalfH = Math.min(sqHalfH, maxHalf);
+      bxHalfW = Math.min(bxHalfW, maxHalf);
+      bxHalfH = Math.min(bxHalfH, maxHalf);
       {
-        const marginW = sqHalfW * 0.8;
-        const marginH = sqHalfH * 0.8;
-        sqX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, sqX));
-        sqY = Math.max(-marginH, Math.min(window.innerHeight + marginH, sqY));
+        const marginW = bxHalfW * 0.8;
+        const marginH = bxHalfH * 0.8;
+        bxX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, bxX));
+        bxY = Math.max(-marginH, Math.min(window.innerHeight + marginH, bxY));
       }
-      if (s.squareStep  != null) squareStep  = s.squareStep;
-      if (s.squareStepBase != null) squareStepBase = s.squareStepBase;
-      else if (s.squareStep != null) squareStepBase = s.squareStep;
-      squareGuideOn = !!s.guideOn;
-      if (!squareGuideOn) squareStep = 0;
-      if (s.squareCount != null) squareCount = s.squareCount;
-      if (s.showSquareCounter != null) showSquareCounter = s.showSquareCounter;
-      if (s.sqRectHalfW != null) sqRectHalfW = s.sqRectHalfW;
-      if (s.sqRectHalfH != null) sqRectHalfH = s.sqRectHalfH;
-      if (s.sqSquareSide != null) sqSquareSide = s.sqSquareSide;
-      if (s.sqSquareColor != null) sqSquareColor = s.sqSquareColor;
-      if (s.sqSquareAlpha != null) sqSquareAlpha = s.sqSquareAlpha;
-      if (s.sqRectColor != null) sqRectColor = s.sqRectColor;
-      if (s.sqRectAlpha != null) sqRectAlpha = s.sqRectAlpha;
+      if (s.squareStep  != null) boxStep  = s.squareStep;
+      if (s.squareStepBase != null) boxStepBase = s.squareStepBase;
+      else if (s.squareStep != null) boxStepBase = s.squareStep;
+      boxGuideOn = !!s.guideOn;
+      if (!boxGuideOn) boxStep = 0;
+      if (s.squareCount != null) boxCount = s.squareCount;
+      if (s.showSquareCounter != null) showBoxCounter = s.showSquareCounter;
+      if (s.sqRectHalfW != null) bxRectHalfW = s.sqRectHalfW;
+      if (s.sqRectHalfH != null) bxRectHalfH = s.sqRectHalfH;
+      if (s.sqSquareSide != null) bxSquareSide = s.sqSquareSide;
+      if (s.sqSquareColor != null) bxSquareColor = s.sqSquareColor;
+      if (s.sqSquareAlpha != null) bxSquareAlpha = s.sqSquareAlpha;
+      if (s.sqRectColor != null) bxRectColor = s.sqRectColor;
+      if (s.sqRectAlpha != null) bxRectAlpha = s.sqRectAlpha;
       // 寸法が一致していれば常に正方形モードとして扱う（保存されたモードのフラグが古い/ズレていても、実際の寸法を優先する）
-      sqIsSquareMode = (sqHalfW === sqHalfH) ? true : !!s.sqIsSquareMode;
+      bxIsSquareMode = (bxHalfW === bxHalfH) ? true : !!s.sqIsSquareMode;
       return true;
     } catch(e) { return false; }
   }
 
   // UI初期反映
-  function syncSquareUI() {
-    document.getElementById('square-opacity').value      = Math.round(sqAlpha * 100);
-    document.getElementById('square-opacity-label').textContent = Math.round(sqAlpha * 100) + '%';
-    document.getElementById('square-color').value        = sqColor;
-    document.getElementById('toggle-square-counter').checked = showSquareCounter;
-    cpNum.textContent = squareCount;
-    document.querySelectorAll('#square-card .color-dot').forEach(d =>
-      d.classList.toggle('active', d.dataset.color === sqColor));
+  function syncBoxUI() {
+    document.getElementById('box-opacity').value      = Math.round(bxAlpha * 100);
+    document.getElementById('box-opacity-label').textContent = Math.round(bxAlpha * 100) + '%';
+    document.getElementById('box-color').value        = bxColor;
+    document.getElementById('toggle-box-counter').checked = showBoxCounter;
+    cpNum.textContent = boxCount;
+    document.querySelectorAll('#box-card .color-dot').forEach(d =>
+      d.classList.toggle('active', d.dataset.color === bxColor));
   }
 
   // スライダー
-  document.getElementById('square-opacity').addEventListener('input', e => {
-    sqAlpha = parseInt(e.target.value) / 100;
-    document.getElementById('square-opacity-label').textContent = e.target.value + '%';
-    applySquare(); saveSquareSettings();
+  document.getElementById('box-opacity').addEventListener('input', e => {
+    bxAlpha = parseInt(e.target.value) / 100;
+    document.getElementById('box-opacity-label').textContent = e.target.value + '%';
+    applyBox(); saveBoxSettings();
   });
-  document.getElementById('toggle-square-counter').addEventListener('change', e => {
-    showSquareCounter = e.target.checked;
-    if (currentRulerTab === 'square') {
-      counterPanel.style.display = showSquareCounter ? 'flex' : 'none';
-      cpGuideRow.style.display = showSquareCounter ? 'flex' : 'none';
+  document.getElementById('toggle-box-counter').addEventListener('change', e => {
+    showBoxCounter = e.target.checked;
+    if (currentRulerTab === 'box') {
+      counterPanel.style.display = showBoxCounter ? 'flex' : 'none';
+      cpGuideRow.style.display = showBoxCounter ? 'flex' : 'none';
     }
-    saveSquareSettings();
+    saveBoxSettings();
   });
 
   // カラードット
-  document.querySelectorAll('#square-card .color-dot').forEach(dot => {
+  document.querySelectorAll('#box-card .color-dot').forEach(dot => {
     dot.addEventListener('click', () => {
-      sqColor = dot.dataset.color;
-      document.querySelectorAll('#square-card .color-dot').forEach(d => d.classList.remove('active'));
+      bxColor = dot.dataset.color;
+      document.querySelectorAll('#box-card .color-dot').forEach(d => d.classList.remove('active'));
       dot.classList.add('active');
-      document.getElementById('square-color').value = sqColor;
-      applySquare(); saveSquareSettings();
+      document.getElementById('box-color').value = bxColor;
+      applyBox(); saveBoxSettings();
     });
   });
-  document.getElementById('square-color').addEventListener('input', e => {
-    sqColor = e.target.value;
-    document.querySelectorAll('#square-card .color-dot').forEach(d => d.classList.remove('active'));
-    applySquare(); saveSquareSettings();
+  document.getElementById('box-color').addEventListener('input', e => {
+    bxColor = e.target.value;
+    document.querySelectorAll('#box-card .color-dot').forEach(d => d.classList.remove('active'));
+    applyBox(); saveBoxSettings();
   });
 
   // リセット
-  window.resetSquareDefault = function() {
-    const wasSquareMode = sqIsSquareMode; // 今のモードを維持する（正方形/長方形どちらでリセットしたかで結果を変える）
+  window.resetBoxDefault = function() {
+    const wasSquareMode = bxIsSquareMode; // 今のモードを維持する（正方形/長方形どちらでリセットしたかで結果を変える）
     if (wasSquareMode) {
-      sqHalfW = 50; sqHalfH = 50;
-      sqRectHalfW = null; sqRectHalfH = null; // 記憶していた長方形サイズもリセット
-      sqSquareSide = 50;
+      bxHalfW = 50; bxHalfH = 50;
+      bxRectHalfW = null; bxRectHalfH = null; // 記憶していた長方形サイズもリセット
+      bxSquareSide = 50;
     } else {
-      sqHalfW = 100; sqHalfH = 50; // 長方形のデフォルトサイズ（横長）
-      sqRectHalfW = 100; sqRectHalfH = 50;
-      sqSquareSide = null; // 記憶していた正方形サイズもリセット
+      bxHalfW = 100; bxHalfH = 50; // 長方形のデフォルトサイズ（横長）
+      bxRectHalfW = 100; bxRectHalfH = 50;
+      bxSquareSide = null; // 記憶していた正方形サイズもリセット
     }
-    sqColor = '#b2aaaa'; sqAlpha = 0.70;
-    sqSquareColor = null; sqSquareAlpha = null; // 記憶していた色・濃さもリセット
-    sqRectColor = null; sqRectAlpha = null;
-    sqIsSquareMode = wasSquareMode;
-    squareStep = 0; squareStepBase = 0; squareCount = 0; showSquareCounter = true;
-    sqX = Math.round(window.innerWidth  / 2);
+    bxColor = '#b2aaaa'; bxAlpha = 0.70;
+    bxSquareColor = null; bxSquareAlpha = null; // 記憶していた色・濃さもリセット
+    bxRectColor = null; bxRectAlpha = null;
+    bxIsSquareMode = wasSquareMode;
+    boxStep = 0; boxStepBase = 0; boxCount = 0; showBoxCounter = true;
+    bxX = Math.round(window.innerWidth  / 2);
     const sh = window.innerHeight;
     const textCenterY = sh / 2;
     const textBlockH = 14 * 2 + 16 + 18;
     const hintBlockH = 46 + (11 * 1.7 * 2) + 10;
     const textBottom = textCenterY + Math.max(textBlockH / 2, hintBlockH);
-    sqY = Math.round(textBottom + 35 + sqHalfH);
-    syncSquareUI();
-    syncGuideRowUI('square');
-    applySquare(); saveSquareSettings();
-    squareUndo.resetHistory();
-    refreshSquareUndoBtns();
+    bxY = Math.round(textBottom + 35 + bxHalfH);
+    syncBoxUI();
+    syncGuideRowUI('box');
+    applyBox(); saveBoxSettings();
+    boxUndo.resetHistory();
+    refreshBoxUndoBtns();
   };
-  function confirmResetSquare() {
-    showModal('定規を初期設定に戻しますか？', 'リセットする', () => resetSquareDefault());
+  function confirmResetBox() {
+    showModal('定規を初期設定に戻しますか？', 'リセットする', () => resetBoxDefault());
   }
 
   /* ----- 角・辺判定（リサイズゾーン） ----- */
-  function closeSquarePanelIfOpen() {
+  function closeBoxPanelIfOpen() {
     if (!floatPanel.classList.contains('collapsed')) togglePanel(true);
   }
-  const SQ_HANDLE_R = 26; // 角・辺の当たり判定の許容範囲(px)　※スマホでも掴みやすいよう16→26に拡大
+  const BX_HANDLE_R = 26; // 角・辺の当たり判定の許容範囲(px)　※スマホでも掴みやすいよう16→26に拡大
+  const BX_MIN_HALF = 15; // リサイズ・カウンター共通の最小半径(px)　※ここを変えると両方に反映される
 
   // 座標から「どの操作ゾーンか」を判定する。戻り値: null（外側） / 'inside'（移動） / 'corner-tl' などのリサイズモード
-  function squareHitTest(px, py) {
-    const left = sqX - sqHalfW, right = sqX + sqHalfW;
-    const top  = sqY - sqHalfH, bottom = sqY + sqHalfH;
+  function boxHitTest(px, py) {
+    const left = bxX - bxHalfW, right = bxX + bxHalfW;
+    const top  = bxY - bxHalfH, bottom = bxY + bxHalfH;
+    // 角の当たり判定の半径。形が薄い/細い時にこれが辺のエリアを飲み込んでしまわないよう、高さ・幅に応じて縮める
+    const cornerR = Math.max(8, Math.min(BX_HANDLE_R, bxHalfW - 6, bxHalfH - 6));
     const corners = [
       { mode: 'corner-tl', x: left,  y: top },
       { mode: 'corner-tr', x: right, y: top },
@@ -6329,19 +6345,24 @@
       { mode: 'corner-br', x: right, y: bottom },
     ];
     for (const c of corners) {
-      if (Math.hypot(px - c.x, py - c.y) <= SQ_HANDLE_R) return c.mode;
+      if (Math.hypot(px - c.x, py - c.y) <= cornerR) return c.mode;
     }
     // 辺は中点だけでなく、辺全体をドラッグできるようにする（角の当たり判定とは被らないよう、両端を少し避ける）
-    const EDGE_STRIP = SQ_HANDLE_R; // 辺からの垂直方向の許容範囲(px)
-    const cornerGap  = SQ_HANDLE_R; // 角の当たり判定と被らないよう、両端をこの分だけ避ける
-    if (Math.abs(py - top)    <= EDGE_STRIP && px > left + cornerGap && px < right - cornerGap) return 'edge-t';
-    if (Math.abs(py - bottom) <= EDGE_STRIP && px > left + cornerGap && px < right - cornerGap) return 'edge-b';
-    if (Math.abs(px - left)   <= EDGE_STRIP && py > top  + cornerGap && py < bottom - cornerGap) return 'edge-l';
-    if (Math.abs(px - right)  <= EDGE_STRIP && py > top  + cornerGap && py < bottom - cornerGap) return 'edge-r';
+    // 細長い長方形でも中央を掴んで移動できるよう、辺の当たり判定の太さを高さ・幅に応じて狭める
+    // （常に中央に最低12px程度の「inside」帯を残す）
+    const EDGE_STRIP_V = Math.min(BX_HANDLE_R, Math.max(4, bxHalfH - 6));
+    const EDGE_STRIP_H = Math.min(BX_HANDLE_R, Math.max(4, bxHalfW - 6));
+    // 角の当たり判定と揃える（食い違うと、角の円の外なのに辺の除外ゾーン、という空白ができてしまうため）
+    const cornerGapV = cornerR;
+    const cornerGapH = cornerR;
+    if (Math.abs(py - top)    <= EDGE_STRIP_V && px > left + cornerGapH && px < right - cornerGapH) return 'edge-t';
+    if (Math.abs(py - bottom) <= EDGE_STRIP_V && px > left + cornerGapH && px < right - cornerGapH) return 'edge-b';
+    if (Math.abs(px - left)   <= EDGE_STRIP_H && py > top  + cornerGapV && py < bottom - cornerGapV) return 'edge-l';
+    if (Math.abs(px - right)  <= EDGE_STRIP_H && py > top  + cornerGapV && py < bottom - cornerGapV) return 'edge-r';
     if (px >= left && px <= right && py >= top && py <= bottom) return 'inside';
     return null;
   }
-  function squareResizeCursor(mode) {
+  function boxResizeCursor(mode) {
     if (mode === 'corner-tl' || mode === 'corner-br') return 'nwse-resize';
     if (mode === 'corner-tr' || mode === 'corner-bl') return 'nesw-resize';
     if (mode === 'edge-t' || mode === 'edge-b') return 'ns-resize';
@@ -6349,460 +6370,513 @@
     return 'grab';
   }
   // 操作の結果（長方形/正方形になる）をふわっと知らせるトースト
-  const squareEdgeToastEl = document.getElementById('square-edge-toast');
-  let squareEdgeToastTimer = null;
-  function showSquareToast(html) {
-    if (!squareEdgeToastEl) return;
-    squareEdgeToastEl.innerHTML = html;
+  const boxEdgeToastEl = document.getElementById('box-edge-toast');
+  let boxEdgeToastTimer = null;
+  function showBoxToast(html) {
+    if (!boxEdgeToastEl) return;
+    boxEdgeToastEl.innerHTML = html;
     // 定規の上端の少し上に表示する（画面外に出ないよう調整）
-    const toastLeft = Math.max(60, Math.min(window.innerWidth - 60, sqX));
-    const toastTop  = Math.max(30, sqY - sqHalfH - 48);
-    squareEdgeToastEl.style.left = toastLeft + 'px';
-    squareEdgeToastEl.style.top  = toastTop + 'px';
-    squareEdgeToastEl.classList.add('show');
-    clearTimeout(squareEdgeToastTimer);
-    squareEdgeToastTimer = setTimeout(() => {
-      squareEdgeToastEl.classList.remove('show');
+    const toastLeft = Math.max(60, Math.min(window.innerWidth - 60, bxX));
+    const toastTop  = Math.max(30, bxY - bxHalfH - 48);
+    boxEdgeToastEl.style.left = toastLeft + 'px';
+    boxEdgeToastEl.style.top  = toastTop + 'px';
+    boxEdgeToastEl.classList.add('show');
+    clearTimeout(boxEdgeToastTimer);
+    boxEdgeToastTimer = setTimeout(() => {
+      boxEdgeToastEl.classList.remove('show');
     }, 1500);
   }
   // 長方形の見た目になった瞬間（ボタン操作・リサイズ・お気に入り適用どれでも）：「長方形」
   // ※正方形モードの間は辺がロックされ長方形にはなり得ないので、モード補足は不要
-  function showSquareToRectToast() {
-    showSquareToast('<span style="display:inline-block; width:15px; height:10px; border:1px solid currentColor; border-radius:0; vertical-align:-1px; margin-right:5px;"></span>長方形');
+  function showBoxToRectToast() {
+    showBoxToast('<span style="display:inline-block; width:15px; height:10px; border:1px solid currentColor; border-radius:0; vertical-align:-1px; margin-right:5px;"></span>長方形');
   }
   // 正方形の見た目になった瞬間（ボタン操作・リサイズ・お気に入り適用どれでも）：「正方形」
   // 長方形モードのまま、たまたま正方形の寸法になった場合だけ「（長方形モード）」を補足する
-  function showSquareToSquareToast() {
-    const label = sqIsSquareMode ? '正方形' : '正方形（長方形モード）';
-    showSquareToast('<span style="display:inline-block; width:10px; height:10px; border:1px solid currentColor; border-radius:0; vertical-align:-1px; margin-right:5px;"></span>' + label);
+  function showBoxToSquareToast() {
+    const label = bxIsSquareMode ? '正方形' : '正方形（長方形モード）';
+    showBoxToast('<span style="display:inline-block; width:10px; height:10px; border:1px solid currentColor; border-radius:0; vertical-align:-1px; margin-right:5px;"></span>' + label);
   }
   // リサイズ操作中：角は中心固定で正方形のまま拡大縮小、辺は片側のみ調整
-  const SQ_SNAP_TOLERANCE = 8; // 辺ドラッグでもう一方の辺に近づいたら正方形にスナップする許容誤差(px)
-  function applySquareResize(mode, dx, dy) {
-    const MIN_HALF = 20;
-    const maxHalf = squareMaxHalfForScreen();
+  const BX_SNAP_TOLERANCE = 8; // 辺ドラッグでもう一方の辺に近づいたら正方形にスナップする許容誤差(px)
+  function applyBoxResize(mode, dx, dy) {
+    const MIN_HALF = BX_MIN_HALF;
+    const maxHalf = boxMaxHalfForScreen();
     const MAX_HALF_W = maxHalf.w, MAX_HALF_H = maxHalf.h;
     // 正方形モードの間は縦横で上限を共有する（片方だけ先に頭打ちになって形が崩れないように）。
     // 長方形モードの時はこれまで通り、縦横それぞれ独立の上限を使う
     const sharedMax = Math.max(MAX_HALF_W, MAX_HALF_H);
-    const capW = sqIsSquareMode ? sharedMax : MAX_HALF_W;
-    const capH = sqIsSquareMode ? sharedMax : MAX_HALF_H;
+    const capW = bxIsSquareMode ? sharedMax : MAX_HALF_W;
+    const capH = bxIsSquareMode ? sharedMax : MAX_HALF_H;
     // 現在位置から計算した、最低44px見えるための最小半幅・半高
-    const minVisW = Math.max(MIN_HALF, 44 - Math.min(sqX, window.innerWidth  - sqX) + sqHalfW);
-    const minVisH = Math.max(MIN_HALF, 44 - Math.min(sqY, window.innerHeight - sqY) + sqHalfH);
+    const minVisW = Math.max(MIN_HALF, 44 - Math.min(bxX, window.innerWidth  - bxX) + bxHalfW);
+    const minVisH = Math.max(MIN_HALF, 44 - Math.min(bxY, window.innerHeight - bxY) + bxHalfH);
     if (mode === 'corner-tl') {
-      const d = Math.max(-dx, -dy);
-      sqHalfW = Math.max(minVisW, Math.min(capW, sqHalfW0 + d));
-      sqHalfH = Math.max(minVisH, Math.min(capH, sqHalfH0 + d));
+      if (bxIsSquareMode) {
+        const d = Math.max(-dx, -dy);
+        bxHalfW = Math.max(minVisW, Math.min(capW, bxHalfW0 + d));
+        bxHalfH = Math.max(minVisH, Math.min(capH, bxHalfH0 + d));
+      } else {
+        // 長方形モード：右下のコーナーは固定したまま、左上のコーナーだけ動かす
+        // （半幅への反映量は移動量の半分。半幅が1動くと両端の合計では2動くため）
+        const newW = Math.max(minVisW, Math.min(capW, bxHalfW0 - dx / 2));
+        const newH = Math.max(minVisH, Math.min(capH, bxHalfH0 - dy / 2));
+        bxX = bxX0 - (newW - bxHalfW0);
+        bxY = bxY0 - (newH - bxHalfH0);
+        bxHalfW = newW; bxHalfH = newH;
+      }
     } else if (mode === 'corner-tr') {
-      const d = Math.max(dx, -dy);
-      sqHalfW = Math.max(minVisW, Math.min(capW, sqHalfW0 + d));
-      sqHalfH = Math.max(minVisH, Math.min(capH, sqHalfH0 + d));
+      if (bxIsSquareMode) {
+        const d = Math.max(dx, -dy);
+        bxHalfW = Math.max(minVisW, Math.min(capW, bxHalfW0 + d));
+        bxHalfH = Math.max(minVisH, Math.min(capH, bxHalfH0 + d));
+      } else {
+        // 長方形モード：左下のコーナーは固定したまま、右上のコーナーだけ動かす
+        const newW = Math.max(minVisW, Math.min(capW, bxHalfW0 + dx / 2));
+        const newH = Math.max(minVisH, Math.min(capH, bxHalfH0 - dy / 2));
+        bxX = bxX0 + (newW - bxHalfW0);
+        bxY = bxY0 - (newH - bxHalfH0);
+        bxHalfW = newW; bxHalfH = newH;
+      }
     } else if (mode === 'corner-bl') {
-      const d = Math.max(-dx, dy);
-      sqHalfW = Math.max(minVisW, Math.min(capW, sqHalfW0 + d));
-      sqHalfH = Math.max(minVisH, Math.min(capH, sqHalfH0 + d));
+      if (bxIsSquareMode) {
+        const d = Math.max(-dx, dy);
+        bxHalfW = Math.max(minVisW, Math.min(capW, bxHalfW0 + d));
+        bxHalfH = Math.max(minVisH, Math.min(capH, bxHalfH0 + d));
+      } else {
+        // 長方形モード：右上のコーナーは固定したまま、左下のコーナーだけ動かす
+        const newW = Math.max(minVisW, Math.min(capW, bxHalfW0 - dx / 2));
+        const newH = Math.max(minVisH, Math.min(capH, bxHalfH0 + dy / 2));
+        bxX = bxX0 - (newW - bxHalfW0);
+        bxY = bxY0 + (newH - bxHalfH0);
+        bxHalfW = newW; bxHalfH = newH;
+      }
     } else if (mode === 'corner-br') {
-      const d = Math.max(dx, dy);
-      sqHalfW = Math.max(minVisW, Math.min(capW, sqHalfW0 + d));
-      sqHalfH = Math.max(minVisH, Math.min(capH, sqHalfH0 + d));
+      if (bxIsSquareMode) {
+        const d = Math.max(dx, dy);
+        bxHalfW = Math.max(minVisW, Math.min(capW, bxHalfW0 + d));
+        bxHalfH = Math.max(minVisH, Math.min(capH, bxHalfH0 + d));
+      } else {
+        // 長方形モード：左上のコーナーは固定したまま、右下のコーナーだけ動かす
+        const newW = Math.max(minVisW, Math.min(capW, bxHalfW0 + dx / 2));
+        const newH = Math.max(minVisH, Math.min(capH, bxHalfH0 + dy / 2));
+        bxX = bxX0 + (newW - bxHalfW0);
+        bxY = bxY0 + (newH - bxHalfH0);
+        bxHalfW = newW; bxHalfH = newH;
+      }
     } else if (mode === 'edge-t') {
-      if (sqIsSquareMode) {
+      if (bxIsSquareMode) {
         // 正方形の状態から辺だけドラッグした場合は、コーナーと同じく両辺を一緒に動かして正方形を保つ
         const d = -dy;
-        sqHalfH = Math.max(minVisH, Math.min(capH, sqHalfH0 + d));
-        sqHalfW = Math.max(minVisW, Math.min(capW, sqHalfW0 + d));
+        bxHalfH = Math.max(minVisH, Math.min(capH, bxHalfH0 + d));
+        bxHalfW = Math.max(minVisW, Math.min(capW, bxHalfW0 + d));
       } else {
-        let newH = Math.max(minVisH, Math.min(capH, sqHalfH0 - dy));
-        if (Math.abs(newH - sqHalfW) <= SQ_SNAP_TOLERANCE) newH = sqHalfW; // 幅に近づいたら正方形にスナップ
-        sqHalfH = newH;
+        // 長方形モード：下辺は固定したまま、上辺だけ動かす（半幅への反映量は移動量の半分）
+        let newH = Math.max(minVisH, Math.min(capH, bxHalfH0 - dy / 2));
+        if (Math.abs(newH - bxHalfW) <= BX_SNAP_TOLERANCE) newH = bxHalfW; // 幅に近づいたら正方形にスナップ
+        bxHalfH = newH;
+        bxY = bxY0 - (newH - bxHalfH0);
       }
     } else if (mode === 'edge-b') {
-      if (sqIsSquareMode) {
+      if (bxIsSquareMode) {
         const d = dy;
-        sqHalfH = Math.max(minVisH, Math.min(capH, sqHalfH0 + d));
-        sqHalfW = Math.max(minVisW, Math.min(capW, sqHalfW0 + d));
+        bxHalfH = Math.max(minVisH, Math.min(capH, bxHalfH0 + d));
+        bxHalfW = Math.max(minVisW, Math.min(capW, bxHalfW0 + d));
       } else {
-        let newH = Math.max(minVisH, Math.min(capH, sqHalfH0 + dy));
-        if (Math.abs(newH - sqHalfW) <= SQ_SNAP_TOLERANCE) newH = sqHalfW;
-        sqHalfH = newH;
+        // 長方形モード：上辺は固定したまま、下辺だけ動かす（半幅への反映量は移動量の半分）
+        let newH = Math.max(minVisH, Math.min(capH, bxHalfH0 + dy / 2));
+        if (Math.abs(newH - bxHalfW) <= BX_SNAP_TOLERANCE) newH = bxHalfW;
+        bxHalfH = newH;
+        bxY = bxY0 + (newH - bxHalfH0);
       }
     } else if (mode === 'edge-l') {
-      if (sqIsSquareMode) {
+      if (bxIsSquareMode) {
         const d = -dx;
-        sqHalfW = Math.max(minVisW, Math.min(capW, sqHalfW0 + d));
-        sqHalfH = Math.max(minVisH, Math.min(capH, sqHalfH0 + d));
+        bxHalfW = Math.max(minVisW, Math.min(capW, bxHalfW0 + d));
+        bxHalfH = Math.max(minVisH, Math.min(capH, bxHalfH0 + d));
       } else {
-        let newW = Math.max(minVisW, Math.min(capW, sqHalfW0 - dx));
-        if (Math.abs(newW - sqHalfH) <= SQ_SNAP_TOLERANCE) newW = sqHalfH; // 高さに近づいたら正方形にスナップ
-        sqHalfW = newW;
+        // 長方形モード：右辺は固定したまま、左辺だけ動かす（半幅への反映量は移動量の半分）
+        let newW = Math.max(minVisW, Math.min(capW, bxHalfW0 - dx / 2));
+        if (Math.abs(newW - bxHalfH) <= BX_SNAP_TOLERANCE) newW = bxHalfH; // 高さに近づいたら正方形にスナップ
+        bxHalfW = newW;
+        bxX = bxX0 - (newW - bxHalfW0);
       }
     } else if (mode === 'edge-r') {
-      if (sqIsSquareMode) {
+      if (bxIsSquareMode) {
         const d = dx;
-        sqHalfW = Math.max(minVisW, Math.min(capW, sqHalfW0 + d));
-        sqHalfH = Math.max(minVisH, Math.min(capH, sqHalfH0 + d));
+        bxHalfW = Math.max(minVisW, Math.min(capW, bxHalfW0 + d));
+        bxHalfH = Math.max(minVisH, Math.min(capH, bxHalfH0 + d));
       } else {
-        let newW = Math.max(minVisW, Math.min(capW, sqHalfW0 + dx));
-        if (Math.abs(newW - sqHalfH) <= SQ_SNAP_TOLERANCE) newW = sqHalfH;
-        sqHalfW = newW;
+        // 長方形モード：左辺は固定したまま、右辺だけ動かす（半幅への反映量は移動量の半分）
+        let newW = Math.max(minVisW, Math.min(capW, bxHalfW0 + dx / 2));
+        if (Math.abs(newW - bxHalfH) <= BX_SNAP_TOLERANCE) newW = bxHalfH;
+        bxHalfW = newW;
+        bxX = bxX0 + (newW - bxHalfW0);
       }
     }
   }
 
   /* ----- マウス操作（PC）：pointerイベントで処理 ----- */
   // トラックパッドのピンチ（ctrlKey付きwheel）：枠の上（角・辺・内側）なら枠のリサイズ、外側なら編み図ズーム
-  let squareWheelPinchTimer = null;
-  squareCanvas.addEventListener('wheel', e => {
+  let boxWheelPinchTimer = null;
+  boxCanvas.addEventListener('wheel', e => {
     if (e.ctrlKey) {
-      const hit = squareHitTest(e.clientX, e.clientY);
+      const hit = boxHitTest(e.clientX, e.clientY);
       if (hit !== null) {
         e.preventDefault();
         const factor = Math.exp(-e.deltaY * 0.01);
         // サークル定規と同様、中心位置から画面を覆いきれる大きさまでは拡大できるようにする
-        const maxHalf = squareMaxHalfForScreen();
+        const maxHalf = boxMaxHalfForScreen();
         const sharedMax = Math.max(maxHalf.w, maxHalf.h); // 正方形を保つ時は縦横で上限を共有（片方だけ頭打ちで形が崩れないように）
         if (hit === 'edge-t' || hit === 'edge-b') {
-          if (sqIsSquareMode) {
+          if (bxIsSquareMode) {
             // 正方形の間は辺のピンチでもコーナーと同じく両辺一緒に動かして正方形を保つ
-            sqHalfH = Math.max(20, Math.min(sharedMax, Math.round(sqHalfH * factor)));
-            sqHalfW = Math.max(20, Math.min(sharedMax, Math.round(sqHalfW * factor)));
+            bxHalfH = Math.max(15, Math.min(sharedMax, Math.round(bxHalfH * factor)));
+            bxHalfW = Math.max(15, Math.min(sharedMax, Math.round(bxHalfW * factor)));
           } else {
-            let newH = Math.max(20, Math.min(maxHalf.h, Math.round(sqHalfH * factor)));
-            if (Math.abs(newH - sqHalfW) <= SQ_SNAP_TOLERANCE) newH = sqHalfW; // 幅に近づいたら正方形にスナップ
-            sqHalfH = newH;
+            const oldH = bxHalfH;
+            let newH = Math.max(15, Math.min(maxHalf.h, Math.round(bxHalfH * factor)));
+            if (Math.abs(newH - bxHalfW) <= BX_SNAP_TOLERANCE) newH = bxHalfW; // 幅に近づいたら正方形にスナップ
+            bxHalfH = newH;
+            // 長方形モード：つまんだ辺の反対側は固定したまま動かす
+            bxY = hit === 'edge-t' ? bxY - (newH - oldH) : bxY + (newH - oldH);
           }
         } else if (hit === 'edge-l' || hit === 'edge-r') {
-          if (sqIsSquareMode) {
-            sqHalfW = Math.max(20, Math.min(sharedMax, Math.round(sqHalfW * factor)));
-            sqHalfH = Math.max(20, Math.min(sharedMax, Math.round(sqHalfH * factor)));
+          if (bxIsSquareMode) {
+            bxHalfW = Math.max(15, Math.min(sharedMax, Math.round(bxHalfW * factor)));
+            bxHalfH = Math.max(15, Math.min(sharedMax, Math.round(bxHalfH * factor)));
           } else {
-            let newW = Math.max(20, Math.min(maxHalf.w, Math.round(sqHalfW * factor)));
-            if (Math.abs(newW - sqHalfH) <= SQ_SNAP_TOLERANCE) newW = sqHalfH; // 高さに近づいたら正方形にスナップ
-            sqHalfW = newW;
+            const oldW = bxHalfW;
+            let newW = Math.max(15, Math.min(maxHalf.w, Math.round(bxHalfW * factor)));
+            if (Math.abs(newW - bxHalfH) <= BX_SNAP_TOLERANCE) newW = bxHalfH; // 高さに近づいたら正方形にスナップ
+            bxHalfW = newW;
+            // 長方形モード：つまんだ辺の反対側は固定したまま動かす
+            bxX = hit === 'edge-l' ? bxX - (newW - oldW) : bxX + (newW - oldW);
           }
-        } else if (sqIsSquareMode) {
+        } else if (bxIsSquareMode) {
           // 角または内側・正方形モード：縦横で上限を共有して正方形を保つ
-          sqHalfW = Math.max(20, Math.min(sharedMax, Math.round(sqHalfW * factor)));
-          sqHalfH = Math.max(20, Math.min(sharedMax, Math.round(sqHalfH * factor)));
+          bxHalfW = Math.max(15, Math.min(sharedMax, Math.round(bxHalfW * factor)));
+          bxHalfH = Math.max(15, Math.min(sharedMax, Math.round(bxHalfH * factor)));
         } else {
           // 角または内側・長方形モード：比率を保ったまま、縦横それぞれ独立の上限まで拡大縮小できるようにする
           let effFactor = factor;
-          effFactor = Math.min(effFactor, maxHalf.w / sqHalfW, maxHalf.h / sqHalfH);
-          effFactor = Math.max(effFactor, 20 / sqHalfW, 20 / sqHalfH);
-          sqHalfW = Math.round(sqHalfW * effFactor);
-          sqHalfH = Math.round(sqHalfH * effFactor);
+          effFactor = Math.min(effFactor, maxHalf.w / bxHalfW, maxHalf.h / bxHalfH);
+          effFactor = Math.max(effFactor, 20 / bxHalfW, 20 / bxHalfH);
+          bxHalfW = Math.round(bxHalfW * effFactor);
+          bxHalfH = Math.round(bxHalfH * effFactor);
         }
-        applySquare();
-        clearTimeout(squareWheelPinchTimer);
-        squareWheelPinchTimer = setTimeout(saveSquareSettings, 200);
+        applyBox();
+        clearTimeout(boxWheelPinchTimer);
+        boxWheelPinchTimer = setTimeout(saveBoxSettings, 200);
         return;
       }
     }
     viewerWheel(e);
   }, { passive: false });
   // タッチで外側を押した瞬間にパネルを閉じる
-  squareCanvas.addEventListener('pointerdown', e => {
+  boxCanvas.addEventListener('pointerdown', e => {
     if (e.pointerType !== 'touch') return;
-    if (squareHitTest(e.clientX, e.clientY) === null) {
-      closeSquarePanelIfOpen();
+    if (boxHitTest(e.clientX, e.clientY) === null) {
+      closeBoxPanelIfOpen();
     }
   });
 
-  squareCanvas.addEventListener('pointerdown', e => {
+  boxCanvas.addEventListener('pointerdown', e => {
     if (e.pointerType === 'touch') return; // ペン(Apple Pencil等)はマウスと同様に扱う
-    const hit = squareHitTest(e.clientX, e.clientY);
+    const hit = boxHitTest(e.clientX, e.clientY);
     if (hit && hit !== 'inside') {
-      sqResizing = true;
-      sqResizeMode = hit;
-      sqResizeStartX = e.clientX; sqResizeStartY = e.clientY;
-      sqHalfW0 = sqHalfW; sqHalfH0 = sqHalfH;
-      setSquareDragging(true);
-      squareCanvas.setPointerCapture(e.pointerId);
+      bxResizing = true;
+      bxResizeMode = hit;
+      bxResizeStartX = e.clientX; bxResizeStartY = e.clientY;
+      bxHalfW0 = bxHalfW; bxHalfH0 = bxHalfH;
+      bxX0 = bxX; bxY0 = bxY;
+      setBoxDragging(true);
+      boxCanvas.setPointerCapture(e.pointerId);
     } else if (hit === 'inside') {
-      sqDragging = true;
-      sqDragStartX = e.clientX; sqDragStartY = e.clientY;
-      sqCX0 = sqX; sqCY0 = sqY;
-      setSquareDragging(true);
-      squareCanvas.setPointerCapture(e.pointerId);
+      bxDragging = true;
+      bxDragStartX = e.clientX; bxDragStartY = e.clientY;
+      bxCX0 = bxX; bxCY0 = bxY;
+      setBoxDragging(true);
+      boxCanvas.setPointerCapture(e.pointerId);
     } else {
-      closeSquarePanelIfOpen();
+      closeBoxPanelIfOpen();
       viewerMouseDown(e);
     }
   });
-  squareCanvas.addEventListener('pointermove', e => {
+  boxCanvas.addEventListener('pointermove', e => {
     if (e.pointerType === 'touch') return; // ペンはマウスと同様に扱う
-    if (sqResizing) {
-      applySquareResize(sqResizeMode, e.clientX - sqResizeStartX, e.clientY - sqResizeStartY);
-      applySquare();
-    } else if (sqDragging) {
+    if (bxResizing) {
+      applyBoxResize(bxResizeMode, e.clientX - bxResizeStartX, e.clientY - bxResizeStartY);
+      applyBox();
+    } else if (bxDragging) {
       // 辺の10%だけ画面内に見えていればOK（＝90%まで画面外に隠れてよい）
-      const marginW = Math.min(sqHalfW * 0.8, Math.max(0, sqHalfW - 44));
-      const marginH = Math.min(sqHalfH * 0.8, Math.max(0, sqHalfH - 44));
-      sqX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, sqCX0 + e.clientX - sqDragStartX));
-      sqY = Math.max(-marginH, Math.min(window.innerHeight + marginH, sqCY0 + e.clientY - sqDragStartY));
-      applySquare();
+      const marginW = Math.min(bxHalfW * 0.8, Math.max(0, bxHalfW - 44));
+      const marginH = Math.min(bxHalfH * 0.8, Math.max(0, bxHalfH - 44));
+      bxX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, bxCX0 + e.clientX - bxDragStartX));
+      bxY = Math.max(-marginH, Math.min(window.innerHeight + marginH, bxCY0 + e.clientY - bxDragStartY));
+      applyBox();
     } else {
-      const hit = squareHitTest(e.clientX, e.clientY);
+      const hit = boxHitTest(e.clientX, e.clientY);
       if (hit && hit !== 'inside') {
-        squareCanvas.classList.add('rim');
-        squareCanvas.style.setProperty('cursor', squareResizeCursor(hit), 'important');
+        boxCanvas.classList.add('rim');
+        boxCanvas.style.setProperty('cursor', boxResizeCursor(hit), 'important');
       } else {
-        squareCanvas.classList.remove('rim');
-        squareCanvas.style.removeProperty('cursor');
+        boxCanvas.classList.remove('rim');
+        boxCanvas.style.removeProperty('cursor');
       }
     }
   });
-  squareCanvas.addEventListener('pointerup', e => {
+  boxCanvas.addEventListener('pointerup', e => {
     if (e.pointerType === 'touch') return; // ペンはマウスと同様に扱う
-    if (sqResizing || sqDragging) saveSquareSettings();
-    sqDragging = false; sqResizing = false; sqResizeMode = null;
-    setSquareDragging(false);
-    squareCanvas.style.removeProperty('cursor');
+    if (bxResizing || bxDragging) saveBoxSettings();
+    bxDragging = false; bxResizing = false; bxResizeMode = null;
+    setBoxDragging(false);
+    boxCanvas.style.removeProperty('cursor');
   });
-  squareCanvas.addEventListener('pointercancel', e => {
+  boxCanvas.addEventListener('pointercancel', e => {
     if (e.pointerType === 'touch') return; // ペンはマウスと同様に扱う
-    sqDragging = false; sqResizing = false; sqResizeMode = null;
-    setSquareDragging(false);
+    bxDragging = false; bxResizing = false; bxResizeMode = null;
+    setBoxDragging(false);
   });
 
   /* ----- タッチ操作（スマホ）：1本指ドラッグ／角辺長押しリサイズ／2本指ピンチ／外タップで閉じる ----- */
-  let sqTouchMode = null;   // 'drag' | 'corner' | 'edge' | 'pinch' | 'viewer' | null
-  let sqTouchMoved = false;
-  let sqPinchDist0 = 0, sqHalfW00 = 0, sqHalfH00 = 0;
-  let sqTouchResizeMode = null;
-  let sqTouchStartX = 0, sqTouchStartY = 0;
+  let bxTouchMode = null;   // 'drag' | 'corner' | 'edge' | 'pinch' | 'viewer' | null
+  let bxTouchMoved = false;
+  let bxPinchDist0 = 0, bxHalfW00 = 0, bxHalfH00 = 0;
+  let bxTouchResizeMode = null;
+  let bxTouchStartX = 0, bxTouchStartY = 0;
 
-  squareCanvas.addEventListener('touchstart', e => {
+  boxCanvas.addEventListener('touchstart', e => {
     // Apple Pencil等のスタイラスはpointerイベント側（PCマウスと同様の処理）に一本化するため、ここでは扱わない
     if (e.touches[0] && e.touches[0].touchType === 'stylus') return;
     if (e.touches.length === 2) {
       const t0 = e.touches[0], t1 = e.touches[1];
-      const hit0 = squareHitTest(t0.clientX, t0.clientY);
-      const hit1 = squareHitTest(t1.clientX, t1.clientY);
+      const hit0 = boxHitTest(t0.clientX, t0.clientY);
+      const hit1 = boxHitTest(t1.clientX, t1.clientY);
       if (hit0 !== null && hit1 !== null) {
         e.preventDefault();
-        sqTouchMode = 'pinch';
-        sqDragging = false; sqResizing = false;
-        setSquareDragging(false);
-        sqPinchDist0 = pinchDist(e.touches) || 1;
-        sqHalfW00 = sqHalfW; sqHalfH00 = sqHalfH;
+        bxTouchMode = 'pinch';
+        bxDragging = false; bxResizing = false;
+        setBoxDragging(false);
+        bxPinchDist0 = pinchDist(e.touches) || 1;
+        bxHalfW00 = bxHalfW; bxHalfH00 = bxHalfH;
       } else {
-        sqTouchMode = 'viewer';
+        bxTouchMode = 'viewer';
         viewerTouchStart(e);
       }
     } else if (e.touches.length === 1) {
       const t = e.touches[0];
-      const hit = squareHitTest(t.clientX, t.clientY);
-      sqTouchMoved = false;
+      const hit = boxHitTest(t.clientX, t.clientY);
+      bxTouchMoved = false;
       if (hit && hit !== 'inside') {
         e.preventDefault();
-        sqTouchMode = (hit.indexOf('corner') === 0) ? 'corner' : 'edge';
-        sqTouchResizeMode = hit;
-        sqTouchStartX = t.clientX; sqTouchStartY = t.clientY;
-        sqHalfW0 = sqHalfW; sqHalfH0 = sqHalfH;
-        setSquareDragging(true);
+        bxTouchMode = (hit.indexOf('corner') === 0) ? 'corner' : 'edge';
+        bxTouchResizeMode = hit;
+        bxTouchStartX = t.clientX; bxTouchStartY = t.clientY;
+        bxHalfW0 = bxHalfW; bxHalfH0 = bxHalfH;
+        bxX0 = bxX; bxY0 = bxY;
+        setBoxDragging(true);
       } else if (hit === 'inside') {
         e.preventDefault();
-        sqTouchMode = 'drag';
-        sqDragStartX = t.clientX; sqDragStartY = t.clientY;
-        sqCX0 = sqX; sqCY0 = sqY;
-        setSquareDragging(true);
+        bxTouchMode = 'drag';
+        bxDragStartX = t.clientX; bxDragStartY = t.clientY;
+        bxCX0 = bxX; bxCY0 = bxY;
+        setBoxDragging(true);
       } else {
-        sqTouchMode = 'viewer';
+        bxTouchMode = 'viewer';
         viewerTouchStart(e);
       }
     }
   }, { passive: false });
 
-  squareCanvas.addEventListener('touchmove', e => {
-    if (sqTouchMode === 'pinch' && e.touches.length === 2) {
+  boxCanvas.addEventListener('touchmove', e => {
+    if (bxTouchMode === 'pinch' && e.touches.length === 2) {
       e.preventDefault();
-      const ratio = pinchDist(e.touches) / sqPinchDist0;
-      const maxHalf = squareMaxHalfForScreen();
-      if (sqIsSquareMode) {
+      const ratio = pinchDist(e.touches) / bxPinchDist0;
+      const maxHalf = boxMaxHalfForScreen();
+      if (bxIsSquareMode) {
         // 正方形モードは縦横で上限を共有して、片方だけ頭打ちで形が崩れないようにする
         const sharedMax = Math.max(maxHalf.w, maxHalf.h);
-        sqHalfW = Math.max(20, Math.min(sharedMax, Math.round(sqHalfW00 * ratio)));
-        sqHalfH = Math.max(20, Math.min(sharedMax, Math.round(sqHalfH00 * ratio)));
+        bxHalfW = Math.max(15, Math.min(sharedMax, Math.round(bxHalfW00 * ratio)));
+        bxHalfH = Math.max(15, Math.min(sharedMax, Math.round(bxHalfH00 * ratio)));
       } else {
         // 長方形モードも、比率を保ったまま、縦横それぞれ独立の上限まで拡大縮小できるようにする
         let effRatio = ratio;
-        effRatio = Math.min(effRatio, maxHalf.w / sqHalfW00, maxHalf.h / sqHalfH00);
-        effRatio = Math.max(effRatio, 20 / sqHalfW00, 20 / sqHalfH00);
-        sqHalfW = Math.round(sqHalfW00 * effRatio);
-        sqHalfH = Math.round(sqHalfH00 * effRatio);
+        effRatio = Math.min(effRatio, maxHalf.w / bxHalfW00, maxHalf.h / bxHalfH00);
+        effRatio = Math.max(effRatio, 20 / bxHalfW00, 20 / bxHalfH00);
+        bxHalfW = Math.round(bxHalfW00 * effRatio);
+        bxHalfH = Math.round(bxHalfH00 * effRatio);
       }
-      applySquare();
-    } else if ((sqTouchMode === 'corner' || sqTouchMode === 'edge') && e.touches.length === 1) {
+      applyBox();
+    } else if ((bxTouchMode === 'corner' || bxTouchMode === 'edge') && e.touches.length === 1) {
       e.preventDefault();
       const t = e.touches[0];
       // 動いた量が小さい間はタップ扱いのまま。一定以上動いたらリサイズ操作とみなす
-      if (Math.hypot(t.clientX - sqTouchStartX, t.clientY - sqTouchStartY) > 8) {
-        sqTouchMoved = true;
+      if (Math.hypot(t.clientX - bxTouchStartX, t.clientY - bxTouchStartY) > 8) {
+        bxTouchMoved = true;
       }
-      applySquareResize(sqTouchResizeMode, t.clientX - sqTouchStartX, t.clientY - sqTouchStartY);
-      applySquare();
-    } else if (sqTouchMode === 'drag' && e.touches.length === 1) {
+      applyBoxResize(bxTouchResizeMode, t.clientX - bxTouchStartX, t.clientY - bxTouchStartY);
+      applyBox();
+    } else if (bxTouchMode === 'drag' && e.touches.length === 1) {
       e.preventDefault();
       const t = e.touches[0];
-      sqTouchMoved = true;
+      bxTouchMoved = true;
       // 辺の10%だけ画面内に見えていればOK（＝90%まで画面外に隠れてよい）
-      const marginW = Math.min(sqHalfW * 0.8, Math.max(0, sqHalfW - 44));
-      const marginH = Math.min(sqHalfH * 0.8, Math.max(0, sqHalfH - 44));
-      sqX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, sqCX0 + t.clientX - sqDragStartX));
-      sqY = Math.max(-marginH, Math.min(window.innerHeight + marginH, sqCY0 + t.clientY - sqDragStartY));
-      applySquare();
-    } else if (sqTouchMode === 'viewer') {
+      const marginW = Math.min(bxHalfW * 0.8, Math.max(0, bxHalfW - 44));
+      const marginH = Math.min(bxHalfH * 0.8, Math.max(0, bxHalfH - 44));
+      bxX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, bxCX0 + t.clientX - bxDragStartX));
+      bxY = Math.max(-marginH, Math.min(window.innerHeight + marginH, bxCY0 + t.clientY - bxDragStartY));
+      applyBox();
+    } else if (bxTouchMode === 'viewer') {
       e.preventDefault();
-      sqTouchMoved = true;
+      bxTouchMoved = true;
       viewerTouchMove(e);
     }
   }, { passive: false });
 
-  squareCanvas.addEventListener('touchend', e => {
-    if (sqTouchMode === 'pinch' || sqTouchMode === 'drag' || sqTouchMode === 'corner' || sqTouchMode === 'edge') {
+  boxCanvas.addEventListener('touchend', e => {
+    if (bxTouchMode === 'pinch' || bxTouchMode === 'drag' || bxTouchMode === 'corner' || bxTouchMode === 'edge') {
       // ドラッグ後に強制クランプ：最低44px（指1本分）は必ず画面内に残す
-      const marginW = Math.min(sqHalfW * 0.8, Math.max(0, sqHalfW - 44));
-      const marginH = Math.min(sqHalfH * 0.8, Math.max(0, sqHalfH - 44));
-      sqX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, sqX));
-      sqY = Math.max(-marginH, Math.min(window.innerHeight + marginH, sqY));
-      applySquare();
-      saveSquareSettings();
-    } else if (sqTouchMode === 'viewer') {
+      const marginW = Math.min(bxHalfW * 0.8, Math.max(0, bxHalfW - 44));
+      const marginH = Math.min(bxHalfH * 0.8, Math.max(0, bxHalfH - 44));
+      bxX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, bxX));
+      bxY = Math.max(-marginH, Math.min(window.innerHeight + marginH, bxY));
+      applyBox();
+      saveBoxSettings();
+    } else if (bxTouchMode === 'viewer') {
       viewerTouchEnd(e);
     }
-    setSquareDragging(false);
-    sqTouchMode = null;
+    setBoxDragging(false);
+    bxTouchMode = null;
   }, { passive: false });
-  squareCanvas.addEventListener('touchcancel', () => {
-    setSquareDragging(false);
-    sqTouchMode = null;
+  boxCanvas.addEventListener('touchcancel', () => {
+    setBoxDragging(false);
+    bxTouchMode = null;
   });
 
   // プリセット
-  const SQUARE_PRESET_KEY = 'yucchi_square_presets';
-  let squarePresets = [];
-  let activeSquarePresetIdx = -1;
-  let activeSquarePresetSnapshot = null; // 選択時の設定スナップショット（変更検知用）
+  const BOX_PRESET_KEY = 'yucchi_square_presets';
+  let boxPresets = [];
+  let activeBoxPresetIdx = -1;
+  let activeBoxPresetSnapshot = null; // 選択時の設定スナップショット（変更検知用）
 
-  function loadSquarePresets() {
-    try { squarePresets = JSON.parse(localStorage.getItem(SQUARE_PRESET_KEY)) || []; } catch(e) { squarePresets = []; }
-    renderSquarePresets();
+  function loadBoxPresets() {
+    try { boxPresets = JSON.parse(localStorage.getItem(BOX_PRESET_KEY)) || []; } catch(e) { boxPresets = []; }
+    renderBoxPresets();
   }
-  function saveSquarePresets() {
-    try { localStorage.setItem(SQUARE_PRESET_KEY, JSON.stringify(squarePresets)); } catch(e) {}
+  function saveBoxPresets() {
+    try { localStorage.setItem(BOX_PRESET_KEY, JSON.stringify(boxPresets)); } catch(e) {}
   }
-  function currentSquareSnapshot() {
-    return { color: sqColor, alpha: sqAlpha, halfW: sqHalfW, halfH: sqHalfH, isSquareMode: sqIsSquareMode };
+  function currentBoxSnapshot() {
+    return { color: bxColor, alpha: bxAlpha, halfW: bxHalfW, halfH: bxHalfH, isSquareMode: bxIsSquareMode };
   }
   // 現在の設定がアクティブプリセットから変更されているか
-  function isSquarePresetDirty() {
-    if (activeSquarePresetIdx === -1 || !activeSquarePresetSnapshot) return false;
-    const s = activeSquarePresetSnapshot;
+  function isBoxPresetDirty() {
+    if (activeBoxPresetIdx === -1 || !activeBoxPresetSnapshot) return false;
+    const s = activeBoxPresetSnapshot;
     return (
-      sqColor !== s.color ||
-      sqAlpha !== s.alpha ||
-      sqHalfW !== s.halfW ||
-      sqHalfH !== s.halfH ||
-      sqIsSquareMode !== s.isSquareMode
+      bxColor !== s.color ||
+      bxAlpha !== s.alpha ||
+      bxHalfW !== s.halfW ||
+      bxHalfH !== s.halfH ||
+      bxIsSquareMode !== s.isSquareMode
     );
   }
   // お気に入り保存時、寸法が正方形になっていたら正方形モードへ切り替える
   function lockSquareModeIfSquareShaped() {
-    if (sqHalfW === sqHalfH && !sqIsSquareMode) {
-      sqIsSquareMode = true;
-      applySquare();
+    if (bxHalfW === bxHalfH && !bxIsSquareMode) {
+      bxIsSquareMode = true;
+      applyBox();
     }
   }
-  window.saveSquarePreset = function() {
-    const nameInput = document.getElementById('square-preset-name');
+  window.saveBoxPreset = function() {
+    const nameInput = document.getElementById('box-preset-name');
     const name = nameInput.value.trim();
     if (!name) {
       showModal('名前を入力してください。', 'OK', () => nameInput.focus(), false);
       return;
     }
     lockSquareModeIfSquareShaped();
-    const dupIdx = squarePresets.findIndex(p => p.name === name);
+    const dupIdx = boxPresets.findIndex(p => p.name === name);
     if (dupIdx !== -1) {
       showModal(`「${name}」はすでに保存されています。\n上書きしますか？`, '上書き保存', () => {
-        squarePresets[dupIdx] = { name, ...currentSquareSnapshot() };
-        saveSquarePresets();
+        boxPresets[dupIdx] = { name, ...currentBoxSnapshot() };
+        saveBoxPresets();
         nameInput.value = '';
-        renderSquarePresets();
+        renderBoxPresets();
       });
       return;
     }
-    if (squarePresets.length >= 5) {
+    if (boxPresets.length >= 5) {
       showModal('保存できるのは5個までです。\n先に削除してから保存してください。', 'OK', () => {}, false);
       return;
     }
-    squarePresets.push({ name, ...currentSquareSnapshot() });
-    activeSquarePresetIdx = squarePresets.length - 1;
-    saveSquarePresets();
-    renderSquarePresets();
+    boxPresets.push({ name, ...currentBoxSnapshot() });
+    activeBoxPresetIdx = boxPresets.length - 1;
+    saveBoxPresets();
+    renderBoxPresets();
     nameInput.value = '';
   };
   // プリセット項目の上書きボタン：選択中ならその場で上書き保存、未選択ならまず切り替えるだけ
-  window.overwriteSquarePresetItem = function(i) {
+  window.overwriteBoxPresetItem = function(i) {
     if (pencilLongPressed) { pencilLongPressed = false; return; }
-    const p = squarePresets[i];
+    const p = boxPresets[i];
     if (!p) return;
-    if (activeSquarePresetIdx !== i) {
-      doApplySquarePreset(p, i);
+    if (activeBoxPresetIdx !== i) {
+      doApplyBoxPreset(p, i);
       return;
     }
     showModal(`「${p.name}」を今の設定で\n上書き保存しますか？`, '上書き保存', () => {
       lockSquareModeIfSquareShaped();
-      squarePresets[i] = { name: p.name, ...currentSquareSnapshot() };
-      saveSquarePresets();
-      activeSquarePresetSnapshot = { ...currentSquareSnapshot() };
-      renderSquarePresets();
+      boxPresets[i] = { name: p.name, ...currentBoxSnapshot() };
+      saveBoxPresets();
+      activeBoxPresetSnapshot = { ...currentBoxSnapshot() };
+      renderBoxPresets();
     });
   };
-  function renderSquarePresets() {
-    const list = document.getElementById('square-preset-list');
-    const countEl = document.getElementById('square-preset-count');
-    if (countEl) countEl.textContent = squarePresets.length;
-    if (!squarePresets.length) {
+  function renderBoxPresets() {
+    const list = document.getElementById('box-preset-list');
+    const countEl = document.getElementById('box-preset-count');
+    if (countEl) countEl.textContent = boxPresets.length;
+    if (!boxPresets.length) {
       list.innerHTML = '<div class="preset-empty">保存した定規はありません</div>';
       return;
     }
-    list.innerHTML = squarePresets.map((p, i) => `
-      <div class="preset-item${i === activeSquarePresetIdx ? ' preset-active' : ''}" style="display:flex;align-items:center;gap:6px;">
+    list.innerHTML = boxPresets.map((p, i) => `
+      <div class="preset-item${i === activeBoxPresetIdx ? ' preset-active' : ''}" style="display:flex;align-items:center;gap:6px;">
         <div style="width:16px;height:16px;flex-shrink:0;border-radius:3px;background:${p.color};opacity:${Math.min(1,(p.alpha||0.7)+0.3)};border:1.5px solid ${p.color};"></div>
-        <div style="flex:1;min-width:0;cursor:pointer;" onclick="applySquarePreset(${i})">
+        <div style="flex:1;min-width:0;cursor:pointer;" onclick="applyBoxPreset(${i})">
           <div class="preset-item-name">${p.name}</div>
 
         </div>
-        <button class="preset-overwrite-item-btn" data-tip="上書き（長押しで名前変更）" onpointerdown="pencilPressStart('square', ${i})" onpointerup="pencilPressEnd()" onpointerleave="pencilPressEnd()" onpointercancel="pencilPressEnd()" onclick="overwriteSquarePresetItem(${i})">✎</button>
-        <button class="preset-del-btn" data-tip="削除" onclick="deleteSquarePreset(${i})">✕</button>
+        <button class="preset-overwrite-item-btn" data-tip="上書き（長押しで名前変更）" onpointerdown="pencilPressStart('box', ${i})" onpointerup="pencilPressEnd()" onpointerleave="pencilPressEnd()" onpointercancel="pencilPressEnd()" onclick="overwriteBoxPresetItem(${i})">✎</button>
+        <button class="preset-del-btn" data-tip="削除" onclick="deleteBoxPreset(${i})">✕</button>
       </div>`).join('');
   }
-  function doApplySquarePreset(p, idx) {
-    sqColor = p.color; sqAlpha = p.alpha;
-    sqHalfW = p.halfW; sqHalfH = p.halfH;
+  function doApplyBoxPreset(p, idx) {
+    bxColor = p.color; bxAlpha = p.alpha;
+    bxHalfW = p.halfW; bxHalfH = p.halfH;
     // 寸法が一致していれば常に正方形モードとして扱う（保存されたモードのフラグが古い/ズレていても、実際の寸法を優先する）
-    sqIsSquareMode = (p.halfW === p.halfH) ? true : !!p.isSquareMode;
-    activeSquarePresetIdx = idx;
-    activeSquarePresetSnapshot = { ...currentSquareSnapshot() };
-    syncSquareUI(); applySquare(); saveSquareSettings(); renderSquarePresets();
+    bxIsSquareMode = (p.halfW === p.halfH) ? true : !!p.isSquareMode;
+    activeBoxPresetIdx = idx;
+    activeBoxPresetSnapshot = { ...currentBoxSnapshot() };
+    syncBoxUI(); applyBox(); saveBoxSettings(); renderBoxPresets();
     // 適用した結果の見た目（正方形／長方形）を知らせる
-    if (sqHalfW === sqHalfH) { showSquareToSquareToast(); } else { showSquareToRectToast(); }
-    squareUndo.resetHistory();
-    refreshSquareUndoBtns();
+    if (bxHalfW === bxHalfH) { showBoxToSquareToast(); } else { showBoxToRectToast(); }
+    boxUndo.resetHistory();
+    refreshBoxUndoBtns();
   }
-  window.applySquarePreset = function(i) {
-    const p = squarePresets[i];
-    const doSwitch = () => doApplySquarePreset(p, i);
-    if (isSquarePresetDirty()) {
-      const ps = squarePresets;
+  window.applyBoxPreset = function(i) {
+    const p = boxPresets[i];
+    const doSwitch = () => doApplyBoxPreset(p, i);
+    if (isBoxPresetDirty()) {
+      const ps = boxPresets;
       showModal(
-        `「${ps[activeSquarePresetIdx].name}」を上書き保存しますか？`,
+        `「${ps[activeBoxPresetIdx].name}」を上書き保存しますか？`,
         '上書き保存',
         () => {
-          ps[activeSquarePresetIdx] = { name: ps[activeSquarePresetIdx].name, ...currentSquareSnapshot() };
-          saveSquarePresets();
+          ps[activeBoxPresetIdx] = { name: ps[activeBoxPresetIdx].name, ...currentBoxSnapshot() };
+          saveBoxPresets();
           doSwitch();
         }
       );
@@ -6811,12 +6885,12 @@
       doSwitch();
     }
   };
-  window.deleteSquarePreset = function(i) {
-    const p = squarePresets[i];
+  window.deleteBoxPreset = function(i) {
+    const p = boxPresets[i];
     showModal(`「${p.name}」を削除しますか？`, '削除する', () => {
-      squarePresets.splice(i, 1);
-      if (activeSquarePresetIdx >= squarePresets.length) activeSquarePresetIdx = -1;
-      saveSquarePresets(); renderSquarePresets();
+      boxPresets.splice(i, 1);
+      if (activeBoxPresetIdx >= boxPresets.length) activeBoxPresetIdx = -1;
+      saveBoxPresets(); renderBoxPresets();
     });
   };
 
@@ -6832,10 +6906,10 @@
   loadCircleSettings();
   syncCircleUI();
   loadCirclePresets();
-  resizeSquareCanvas();
-  loadSquareSettings();
-  syncSquareUI();
-  loadSquarePresets();
+  resizeBoxCanvas();
+  loadBoxSettings();
+  syncBoxUI();
+  loadBoxPresets();
 
   /* ========== カスタマイズのUndo/Redo ==========
      対象は「色・濃さ・サイズ・位置」のみ（カウンター・段ガイドは対象外）。
@@ -6979,28 +7053,28 @@
     saveCircleSettings = function() { _origSaveCircleSettings(); circleUndo.requestCommit(); };
   })();
 
-  /* --- Square --- */
-  function squareGetState() {
-    return { sqColor, sqAlpha, sqX, sqY, sqHalfW, sqHalfH, sqRectHalfW, sqRectHalfH, sqSquareSide, sqSquareColor, sqSquareAlpha, sqRectColor, sqRectAlpha, sqIsSquareMode };
+  /* --- Box --- */
+  function boxGetState() {
+    return { bxColor, bxAlpha, bxX, bxY, bxHalfW, bxHalfH, bxRectHalfW, bxRectHalfH, bxSquareSide, bxSquareColor, bxSquareAlpha, bxRectColor, bxRectAlpha, bxIsSquareMode };
   }
-  function squareApplyState(s) {
-    sqColor = s.sqColor; sqAlpha = s.sqAlpha; sqX = s.sqX; sqY = s.sqY;
-    sqHalfW = s.sqHalfW; sqHalfH = s.sqHalfH;
-    sqRectHalfW = s.sqRectHalfW; sqRectHalfH = s.sqRectHalfH;
-    sqSquareSide = s.sqSquareSide;
-    sqSquareColor = s.sqSquareColor; sqSquareAlpha = s.sqSquareAlpha;
-    sqRectColor = s.sqRectColor; sqRectAlpha = s.sqRectAlpha;
-    sqIsSquareMode = s.sqIsSquareMode;
-    syncSquareUI();
-    applySquare();
-    saveSquareSettings();
+  function boxApplyState(s) {
+    bxColor = s.bxColor; bxAlpha = s.bxAlpha; bxX = s.bxX; bxY = s.bxY;
+    bxHalfW = s.bxHalfW; bxHalfH = s.bxHalfH;
+    bxRectHalfW = s.bxRectHalfW; bxRectHalfH = s.bxRectHalfH;
+    bxSquareSide = s.bxSquareSide;
+    bxSquareColor = s.bxSquareColor; bxSquareAlpha = s.bxSquareAlpha;
+    bxRectColor = s.bxRectColor; bxRectAlpha = s.bxRectAlpha;
+    bxIsSquareMode = s.bxIsSquareMode;
+    syncBoxUI();
+    applyBox();
+    saveBoxSettings();
   }
-  let refreshSquareUndoBtns;
-  const squareUndo = makeUndoManager(squareGetState, squareApplyState, { onChange: () => refreshSquareUndoBtns() });
-  refreshSquareUndoBtns = wireUndoButtons(squareUndo, 'square-undo-btn', 'square-redo-btn');
+  let refreshBoxUndoBtns;
+  const boxUndo = makeUndoManager(boxGetState, boxApplyState, { onChange: () => refreshBoxUndoBtns() });
+  refreshBoxUndoBtns = wireUndoButtons(boxUndo, 'box-undo-btn', 'box-redo-btn');
   (function() {
-    const _origSaveSquareSettings = saveSquareSettings;
-    saveSquareSettings = function() { _origSaveSquareSettings(); squareUndo.requestCommit(); };
+    const _origSaveBoxSettings = saveBoxSettings;
+    saveBoxSettings = function() { _origSaveBoxSettings(); boxUndo.requestCommit(); };
   })();
 
   // 初期タブをbandに統一（全定規の表示状態をリセット）
@@ -7028,10 +7102,10 @@
     const moveRulerBtn = document.getElementById('measure-move-ruler-btn');
 
     let pt1 = null, pt2 = null;
-    let measureAxis = 'v'; // Square定規専用：'v'=縦のみ／'h'=横のみ
+    let measureAxis = 'v'; // Box定規専用：'v'=縦のみ／'h'=横のみ
     // measurePhase: 'zoom'(拡大調整中・タップ無効) → 'pick1'(1点目待ち) → 'pick2'(2点目待ち) → 'adjust'(2点とも確定・ドラッグで伸縮調整可)
     let measurePhase = 'zoom';
-    let rulerMoveMode = false; // true の間は編み図側の定規（Line/Frame/Circle/Square）を動かせる
+    let rulerMoveMode = false; // true の間は編み図側の定規（Line/Frame/Circle/Box）を動かせる
     let adjustDragTarget = null; // 'pt1' | 'pt2' | 'line' | null（伸縮調整中/移動中につかんでいる対象）
     const PT_HIT_R = 22; // 点をつかむ判定の半径(px)
     const LINE_HIT_R = 16; // 線本体をつかむ判定の太さ(px)
@@ -7060,7 +7134,7 @@
       axisBtnV.classList.remove('active');
     });
 
-    // 定規を動かすボタンの中身を、今選ばれている定規（Line/Frame/Circle/Square）の
+    // 定規を動かすボタンの中身を、今選ばれている定規（Line/Frame/Circle/Box）の
     // 色・形にあわせたミニスウォッチに更新する（何を指しているボタンか一目でわかるように）
     function updateMoveRulerIcon() {
       const icon = document.getElementById('measure-move-ruler-icon');
@@ -7073,8 +7147,8 @@
       } else if (currentRulerTab === 'circle') {
         const c = cColor, a = Math.min(1, cAlpha + 0.3);
         icon.style.cssText = 'display:block; width:14px; height:14px; border-radius:50%; background:' + c + '; opacity:' + a + '; border:1.5px solid ' + c + ';';
-      } else if (currentRulerTab === 'square') {
-        const c = sqColor, a = Math.min(1, sqAlpha + 0.3);
+      } else if (currentRulerTab === 'box') {
+        const c = bxColor, a = Math.min(1, bxAlpha + 0.3);
         icon.style.cssText = 'display:block; width:13px; height:13px; border-radius:2px; background:' + c + '; opacity:' + a + '; border:1.5px solid ' + c + ';';
       } else {
         // Line（帯定規）：横長のバー形状
@@ -7083,7 +7157,7 @@
       }
     }
 
-    // 定規を動かすモード：ONの間は計測バー側のタップ判定を止めて、下の編み図側の定規（Line/Frame/Circle/Square）を操作できるようにする
+    // 定規を動かすモード：ONの間は計測バー側のタップ判定を止めて、下の編み図側の定規（Line/Frame/Circle/Box）を操作できるようにする
     let savedHintText = '', hintWasVisible = false, resultColWasVisible = false;
     function setRulerMoveMode(on) {
       rulerMoveMode = on;
@@ -7143,21 +7217,32 @@
         }
       } else {
         // タップした場所（点）に重ならないよう、まず上に置けるか試す。
-        // 上に置ききれない（パネルに近すぎる等）場合は、下側に回す。
+        // 上に置けない場合、下に回すと「次にタップする点」の縦方向の動線と被りやすいので、横（右→左）に逃がす。
         if (above >= minTop) {
           barTop = above;
-        } else if (below + barHeight <= window.innerHeight - 8) {
-          barTop = below;
         } else {
-          // 上下どちらにも収まらない極端なケースのみ、画面内に収める
-          barTop = Math.max(minTop, Math.min(window.innerHeight - barHeight - 8, above));
+          const GAP_SIDE = 20;
+          const sideTop = Math.max(minTop, Math.min(window.innerHeight - barHeight - 8, y - barHeight / 2));
+          if (x + GAP_SIDE + barWidth <= window.innerWidth - 8) {
+            barLeft = x + GAP_SIDE;       // 右側に配置
+            barTop  = sideTop;
+          } else if (x - GAP_SIDE - barWidth >= 8) {
+            barLeft = x - GAP_SIDE - barWidth; // 左側に配置
+            barTop  = sideTop;
+          } else if (below + barHeight <= window.innerHeight - 8) {
+            // 左右どちらにも収まらない極端なケースのみ、下に回す
+            barTop = below;
+          } else {
+            // 上下左右どこにも収まらない極端なケースのみ、画面内に収める
+            barTop = Math.max(minTop, Math.min(window.innerHeight - barHeight - 8, above));
+          }
         }
       }
       bar.style.left = barLeft + 'px';
       bar.style.top  = barTop + 'px';
     }
 
-    // 計測線（の外接矩形）を避けて、線の左→右→上→下の順で置ける場所を探す。
+    // 計測線（の外接矩形）を避けて、線の右→左→上→下の順で置ける場所を探す。
     // どこにも収まらない極端なケースのみ、画面内に収めるだけの配置にフォールバックする。
     function positionBarAvoidingLine(minX, maxX, minY, maxY, gap) {
       bar.style.left = '0px';
@@ -7174,20 +7259,20 @@
 
       let barLeft, barTop;
 
-      // 候補1：線の左側
-      const leftCandidate = minX - gap - barWidth;
-      // 候補2：線の右側
+      // 候補1：線の右側
       const rightCandidate = maxX + gap;
+      // 候補2：線の左側
+      const leftCandidate = minX - gap - barWidth;
       // 候補3：線の上側
       const aboveCandidate = minY - gap - barHeight;
       // 候補4：線の下側
       const belowCandidate = maxY + gap;
 
-      if (leftCandidate >= screenL) {
-        barLeft = leftCandidate;
-        barTop  = Math.max(screenT, Math.min(screenB - barHeight, midY - barHeight / 2));
-      } else if (rightCandidate + barWidth <= screenR) {
+      if (rightCandidate + barWidth <= screenR) {
         barLeft = rightCandidate;
+        barTop  = Math.max(screenT, Math.min(screenB - barHeight, midY - barHeight / 2));
+      } else if (leftCandidate >= screenL) {
+        barLeft = leftCandidate;
         barTop  = Math.max(screenT, Math.min(screenB - barHeight, midY - barHeight / 2));
       } else if (aboveCandidate >= screenT) {
         barTop  = aboveCandidate;
@@ -7207,13 +7292,13 @@
     // 計測線の種類に応じて、px表示と重ならない位置にバーを配置する
     function positionBarForLine() {
       if (!pt1 || !pt2) { resetBarToCenter(); return; }
-      const isHorizontal = (currentRulerTab === 'square' && measureAxis === 'h');
+      const isHorizontal = (currentRulerTab === 'box' && measureAxis === 'h');
       if (isHorizontal) {
-        // 横計測（Square横モード）は左右の概念がはっきりしないため、画面上部中央に固定
+        // 横計測（Box横モード）は左右の概念がはっきりしないため、画面上部中央に固定
         resetBarToCenter();
       } else {
-        // 斜め計測（Circle）・縦計測（Line/Frame/Square縦）共通：
-        // 線の外接矩形を避けて、左→右→上→下の順で重ならない場所に配置する
+        // 斜め計測（Circle）・縦計測（Line/Frame/Box縦）共通：
+        // 線の外接矩形を避けて、右→左→上→下の順で重ならない場所に配置する
         const minX = Math.min(pt1.x, pt2.x), maxX = Math.max(pt1.x, pt2.x);
         const minY = Math.min(pt1.y, pt2.y), maxY = Math.max(pt1.y, pt2.y);
         positionBarAvoidingLine(minX, maxX, minY, maxY, currentRulerTab === 'circle' ? 36 : 20);
@@ -7240,7 +7325,7 @@
 
       const color = '#7A9B93';
       const isDiagonal = (currentRulerTab === 'circle');
-      const isHorizontal = (currentRulerTab === 'square' && measureAxis === 'h');
+      const isHorizontal = (currentRulerTab === 'box' && measureAxis === 'h');
 
       // 1点目のマーカー（丸＋ガイド線。縦モードは横線、横モードは縦線）
       ctx.beginPath();
@@ -7310,12 +7395,12 @@
         const dist = Math.round(Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y));
         ctx.font = '700 13px "Zen Maru Gothic", sans-serif';
         ctx.fillStyle = color;
-        // テキストは線の中点から右側に表示する（Line/Frame/Squareと同じく「右にpx・左にカード」で統一）
+        // テキストは線の中点から右側に表示する（Line/Frame/Boxと同じく「右にpx・左にカード」で統一）
         ctx.textAlign = 'left';
         ctx.fillText(dist + ' px', midX + 24, midY + 5);
       } else {
         if (isHorizontal) {
-          const y = pt1.y; // Square横モード：1点目のY座標に揃えて描く（縦ズレを無視した横距離計測）
+          const y = pt1.y; // Box横モード：1点目のY座標に揃えて描く（縦ズレを無視した横距離計測）
           // 2点目のマーカー（Y座標は1点目に揃える）
           ctx.beginPath();
           ctx.arc(pt2.x, y, 6, 0, Math.PI * 2);
@@ -7346,7 +7431,7 @@
           ctx.fillText(dist + ' px', midX, y - 24);
           ctx.textAlign = 'left';
         } else {
-        const x = pt1.x; // Line/Frame/Square縦モードは常に1点目のX座標に揃えて描く（横ズレを無視した縦距離計測）
+        const x = pt1.x; // Line/Frame/Box縦モードは常に1点目のX座標に揃えて描く（横ズレを無視した縦距離計測）
         // 2点目のマーカー（X座標は1点目に揃える。実際のタップ座標の点は描かない）
         ctx.beginPath();
         ctx.arc(x, pt2.y, 6, 0, Math.PI * 2);
@@ -7384,8 +7469,8 @@
       hint.style.display = 'inline';
       resultCol.style.display = 'none';
       zoomDoneBtn.style.display = showZoomDoneBtn ? 'inline-block' : 'none';
-      // Square定規：1点目を選ぶ前（やり直し含む）だけ縦/横トグルを見せる（拡大調整中は出さない）
-      axisToggle.style.display = (currentRulerTab === 'square' && !showZoomDoneBtn) ? 'flex' : 'none';
+      // Box定規：1点目を選ぶ前（やり直し含む）だけ縦/横トグルを見せる（拡大調整中は出さない）
+      axisToggle.style.display = (currentRulerTab === 'box' && !showZoomDoneBtn) ? 'flex' : 'none';
     }
 
     // バーの中身を結果表示に切り替え
@@ -7401,7 +7486,7 @@
     function calcDist() {
       if (!pt1 || !pt2) return 0;
       if (currentRulerTab === 'circle') return Math.round(Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y));
-      if (currentRulerTab === 'square' && measureAxis === 'h') return Math.round(Math.abs(pt2.x - pt1.x));
+      if (currentRulerTab === 'box' && measureAxis === 'h') return Math.round(Math.abs(pt2.x - pt1.x));
       return Math.round(Math.abs(pt2.y - pt1.y));
     }
 
@@ -7446,8 +7531,8 @@
       resetBarToCenter();
       measurePhase = 'zoom';
       showHintMode('編み図を拡大してください', true);
-      // Square定規のときは毎回「縦」から開始（表示・非表示はshowHintModeが担当）
-      if (currentRulerTab === 'square') {
+      // Box定規のときは毎回「縦」から開始（表示・非表示はshowHintModeが担当）
+      if (currentRulerTab === 'box') {
         measureAxis = 'v';
         axisBtnV.classList.add('active');
         axisBtnH.classList.remove('active');
@@ -7533,11 +7618,11 @@
         circleStepBase = scale > 0 ? dist / scale : dist;
         circleGuideOn = true;
         saveCircleSettings();
-      } else if (currentRulerTab === 'square') {
-        squareStep = dist;
-        squareStepBase = scale > 0 ? dist / scale : dist;
-        squareGuideOn = true;
-        saveSquareSettings();
+      } else if (currentRulerTab === 'box') {
+        boxStep = dist;
+        boxStepBase = scale > 0 ? dist / scale : dist;
+        boxGuideOn = true;
+        saveBoxSettings();
       } else {
         rulerStep = dist;
         rulerBaseStep = scale > 0 ? dist / scale : dist;
@@ -7605,11 +7690,11 @@
       if (currentRulerTab === 'circle') {
         // 斜め計測：自由に動かせる
         target.x = x; target.y = y;
-      } else if (currentRulerTab === 'square' && measureAxis === 'h') {
+      } else if (currentRulerTab === 'box' && measureAxis === 'h') {
         // 横方向のみ計測：Y座標は固定し、Xだけ動かす
         target.x = x;
       } else {
-        // Line/Frame/Square(縦)：X座標は固定し、Yだけ動かす
+        // Line/Frame/Box(縦)：X座標は固定し、Yだけ動かす
         target.y = y;
       }
       draw();
