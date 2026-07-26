@@ -1916,7 +1916,7 @@
     .data-note.open .data-note-arrow { transform: rotate(180deg); }
     .data-note-body {
       display: none;
-      padding: 10px 12px 12px;
+      padding: 12px 12px 12px;
       font-family: 'Zen Maru Gothic', sans-serif;
       font-size: 10px;
       color: var(--text-sub);
@@ -1930,6 +1930,7 @@
       display: block;
       width: 100%;
       margin-top: 8px;
+      margin-bottom: 8px;
       padding: 9px 12px;
       background: var(--surface);
       border: 1.5px solid var(--border);
@@ -2175,7 +2176,7 @@
           <span>ライン定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:28px 12px 18px; gap:20px;">
+        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:20px;">
           <div class="ruler-settings-group">
           <div class="ruler-control ruler-color-row">
             <label>カラー</label>
@@ -2241,7 +2242,7 @@
           <span>段数カウンター</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
+        <div class="card-accordion-body" style="padding:14px 12px 14px; gap:6px;">
           <div style="display:flex; align-items:center; gap:6px;">
             <span class="toggle-label" style="width:7.5em;">段数カウンター</span>
             <label class="toggle-switch">
@@ -2249,7 +2250,7 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段ガイド機能も使えるようになります。<br>
           <strong style="font-weight:700; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
         </div>
       </div>
@@ -2260,13 +2261,13 @@
           <span>段ガイド機能</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。</p>
-          <p style="margin-top:2px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに合わせて<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">ライン定規が1段ずつ自動で動きます</span>。使用するには1段の高さの計測が必要です（計測方法は下記をご覧ください）。<br>
-          <strong style="font-weight:700; color:var(--text);">OFF</strong>：ライン定規をドラッグすると、手動で動かせます。<br>
-          ※ONの間も定規の位置をドラッグで微調整できます（編み図の歪みなどでズレた時に便利です）。</p>
-          <p style="margin-top:8px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
-          カウンターの「計測」ボタンを押し、画面の案内に沿って編み図の1段の高さを計測してください。<br>
+        <div class="card-accordion-body" style="padding:14px 12px 14px; gap:12px;">
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">ライン定規が1段ずつ動きます</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
+          <strong style="font-weight:700; color:var(--text);">OFF</strong>：ライン定規をドラッグすると、手動で動かせます。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。<br>
+          ※ONの間も定規の位置をドラッグで微調整できます。編み図の歪みなどでズレた時に便利です。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
+          カウンターの「計測」ボタンを押し、編み図の1段の高さを計測してください。<br>
           ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
           ※計測後は、カウンターの「1段：◯◯ px」の数値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。</p>
         </div>
@@ -2286,7 +2287,7 @@
           <span>フレーム定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:28px 12px 18px; gap:20px;">
+        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:20px;">
           <div class="ruler-settings-group">
           <div class="ruler-control ruler-color-row">
             <label>カラー</label>
@@ -2352,7 +2353,7 @@
           <span>段数カウンター</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
+        <div class="card-accordion-body" style="padding:14px 12px 14px; gap:6px;">
           <div style="display:flex; align-items:center; gap:6px;">
             <span class="toggle-label" style="width:7.5em;">段数カウンター</span>
             <label class="toggle-switch">
@@ -2360,7 +2361,7 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段ガイド機能も使えるようになります。<br>
           <strong style="font-weight:700; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
         </div>
       </div>
@@ -2371,13 +2372,13 @@
           <span>段ガイド機能</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。</p>
-          <p style="margin-top:2px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに合わせて、<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">フレーム定規の窓枠の上側は固定されたまま、窓枠の下側が1段ずつ自動で動きます</span>。使用するには1段の高さの計測が必要です（計測方法は下記をご覧ください）。<br>
-          <strong style="font-weight:700; color:var(--text);">OFF</strong>：フレーム定規をドラッグすると、手動で動かせます。<br>
-          ※ONの間も定規の位置をドラッグで微調整できます（編み図の歪みなどでズレた時に便利です）。</p>
-          <p style="margin-top:8px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
-          カウンターの「計測」ボタンを押し、画面の案内に沿って編み図の1段の高さを計測してください。<br>
+        <div class="card-accordion-body" style="padding:14px 12px 14px; gap:12px;">
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して、<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">フレーム定規の窓枠の上側は固定されたまま、窓枠の下側が1段ずつ動きます</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
+          <strong style="font-weight:700; color:var(--text);">OFF</strong>：フレーム定規をドラッグすると、手動で動かせます。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。<br>
+          ※ONの間も定規の位置をドラッグで微調整できます。編み図の歪みなどでズレた時に便利です。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
+          カウンターの「計測」ボタンを押し、編み図の1段の高さを計測してください。<br>
           ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
           ※計測後は、カウンターの「1段：◯◯ px」の数値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。</p>
         </div>
@@ -2397,7 +2398,7 @@
           <span>サークル定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:28px 12px 18px; gap:20px;">
+        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:20px;">
           <div class="ruler-settings-group">
           <div class="ruler-control ruler-color-row">
             <label>カラー</label>
@@ -2463,7 +2464,7 @@
           <span>段数カウンター</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
+        <div class="card-accordion-body" style="padding:14px 12px 14px; gap:6px;">
           <div style="display:flex; align-items:center; gap:6px;">
             <span class="toggle-label" style="width:7.5em;">段数カウンター</span>
             <label class="toggle-switch">
@@ -2471,7 +2472,7 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段ガイド機能も使えるようになります。<br>
           <strong style="font-weight:700; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
         </div>
       </div>
@@ -2482,13 +2483,13 @@
           <span>段ガイド機能</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。</p>
-          <p style="margin-top:2px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに合わせて<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">サークル定規が1段ずつ自動で拡大縮小します</span>。使用するには1段の高さの計測が必要です（計測方法は下記をご覧ください）。<br>
-          <strong style="font-weight:700; color:var(--text);">OFF</strong>：サークル定規をドラッグすると、手動で動かせます。<br>
-          ※ONの間も定規の位置をドラッグで微調整できます（編み図の歪みなどでズレた時に便利です）。</p>
-          <p style="margin-top:8px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
-          カウンターの「計測」ボタンを押し、画面の案内に沿って編み図の1段の高さを計測してください。<br>
+        <div class="card-accordion-body" style="padding:14px 12px 14px; gap:12px;">
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">サークル定規が1段ずつ拡大縮小します</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
+          <strong style="font-weight:700; color:var(--text);">OFF</strong>：サークル定規をドラッグすると、手動で動かせます。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。<br>
+          ※ONの間も定規の位置をドラッグで微調整できます。編み図の歪みなどでズレた時に便利です。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
+          カウンターの「計測」ボタンを押し、編み図の1段の高さを計測してください。<br>
           ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
           ※計測後は、カウンターの「1段：◯◯ px」の数値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。</p>
         </div>
@@ -2508,7 +2509,7 @@
           <span>Box定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:28px 12px 18px; gap:20px;">
+        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:20px;">
           <div class="ruler-settings-group">
           <div class="ruler-control ruler-color-row">
             <label>カラー</label>
@@ -2580,7 +2581,7 @@
           <span>段数カウンター</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
+        <div class="card-accordion-body" style="padding:14px 12px 14px; gap:6px;">
           <div style="display:flex; align-items:center; gap:6px;">
             <span class="toggle-label" style="width:7.5em;">段数カウンター</span>
             <label class="toggle-switch">
@@ -2588,7 +2589,7 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="margin-top:6px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段ガイド機能も使えるようになります。<br>
           <strong style="font-weight:700; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
         </div>
       </div>
@@ -2599,13 +2600,13 @@
           <span>段ガイド機能</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。</p>
-          <p style="margin-top:2px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに合わせて<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">Box定規（正方形または長方形）が1段ずつ自動で拡大縮小します</span>。使用するには1段の高さの計測が必要です（計測方法は下記をご覧ください）。<br>
-          <strong style="font-weight:700; color:var(--text);">OFF</strong>：Box定規をドラッグすると、手動で動かせます。<br>
-          ※ONの間も定規の位置をドラッグで微調整できます（編み図の歪みなどでズレた時に便利です）。</p>
-          <p style="margin-top:8px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
-          カウンターの「計測」ボタンを押し、画面の案内に沿って編み図の1段の高さを計測してください。<br>
+        <div class="card-accordion-body" style="padding:14px 12px 14px; gap:12px;">
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">Box定規（正方形または長方形）が1段ずつ拡大縮小します</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
+          <strong style="font-weight:700; color:var(--text);">OFF</strong>：Box定規をドラッグすると、手動で動かせます。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。<br>
+          ※ONの間も定規の位置をドラッグで微調整できます。編み図の歪みなどでズレた時に便利です。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
+          カウンターの「計測」ボタンを押し、編み図の1段の高さを計測してください。<br>
           ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
           ※計測後は、カウンターの「1段：◯◯ px」の数値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。</p>
         </div>
