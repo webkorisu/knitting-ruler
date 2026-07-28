@@ -919,16 +919,33 @@
     }
     #circle-canvas { cursor: grab; }
     #circle-canvas:active { cursor: grabbing; }
-    #circle-canvas.dragging { opacity: 0.6; transition: opacity .1s; }
+    #circle-canvas.dragging { opacity: 0.6; transition: opacity .15s; }
     #circle-canvas.rim { cursor: nwse-resize !important; }
-    #circle-3d-layer.dragging { opacity: 0.6; transition: opacity .1s; }
+    #circle-3d-layer.dragging { opacity: 0.6; transition: opacity .15s; }
+    /* ホバー時に薄くする（4定規で統一）。#circle-3d-layerはpointer-events:noneで直接ホバーできないため、
+       操作用キャンバス（#circle-canvas）がホバーされているかを:has()で検知して連動させる */
+    #circle-3d-layer:has(~ #circle-canvas:hover):not(.dragging) {
+      opacity: 0.85;
+      transition: opacity .15s;
+    }
     #box-canvas { cursor: grab; }
     #box-canvas:active { cursor: grabbing; }
-    #box-canvas.dragging { opacity: 0.6; transition: opacity .1s; }
-    #box-3d-layer.dragging { opacity: 0.6; transition: opacity .1s; }
+    #box-canvas.dragging { opacity: 0.6; transition: opacity .15s; }
+    #box-3d-layer.dragging { opacity: 0.6; transition: opacity .15s; }
+    /* ホバー時に薄くする（4定規で統一）。#box-3d-layerはpointer-events:noneで直接ホバーできないため、
+       操作用キャンバス（#box-canvas）がホバーされているかを:has()で検知して連動させる */
+    #box-3d-layer:has(~ #box-canvas:hover):not(.dragging) {
+      opacity: 0.85;
+      transition: opacity .15s;
+    }
     .frame-panel.dragging { opacity: 0.6; transition: opacity .15s; }
     #frame-3d-border.dragging { opacity: 0.6; transition: opacity .15s; }
-    #frame-3d-border:hover { filter: brightness(1.06); transition: filter .2s; }
+    /* ホバー時に薄くする（4定規で統一）。#frame-3d-borderはpointer-events:noneで直接ホバーできないため、
+       操作用パネル（.frame-panel）側がホバーされているかを:has()で検知して連動させる */
+    #frame-3d-border:has(~ .frame-panel:hover):not(.dragging) {
+      opacity: 0.85;
+      transition: opacity .15s;
+    }
     #frame-top    { top: 0; left: 0; right: 0; cursor: grab; }
     #frame-bottom { bottom: 0; left: 0; right: 0; cursor: grab; }
     #frame-left   { cursor: grab; }
@@ -1046,7 +1063,7 @@
       left: 0; width: 100%;
       box-sizing: border-box;
       height: 48px;
-      background: rgba(242,214,214,0.5);
+      background: transparent;
       border: none;
       cursor: grab;
       pointer-events: all;
@@ -1058,10 +1075,15 @@
       padding-right: 8px;
     }
     #ruler-handle:active { cursor: grabbing; }
+    /* ホバー時に薄くする（4定規で統一。ドラッグ中・リサイズ中は優先させない） */
+    #ruler-handle:hover:not(.dragging):not(.resizing) {
+      opacity: 0.85;
+      transition: opacity .15s;
+    }
     #ruler-handle.dragging {
       opacity: 0.6;
       cursor: grabbing;
-      transition: opacity .1s;
+      transition: opacity .15s;
     }
     #ruler-handle.resizing {
       opacity: 0.55;
@@ -1112,32 +1134,6 @@
     .ruler-edge.left   { left: 0;   top: 18px; bottom: 18px; width: 10px;  cursor: ew-resize; }
     .ruler-edge.right  { right: 0;  top: 18px; bottom: 18px; width: 10px;  cursor: ew-resize; }
 
-    /* 端ヒント（上下左右にうっすら光彩） */
-    /* 立体定規オン時のみ光彩ヒント */
-    #ruler-handle.ruler-3d::before,
-    #ruler-handle.ruler-3d::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity .2s;
-    }
-    #ruler-handle.ruler-3d::before {
-      background:
-        linear-gradient(to bottom, rgba(255,255,255,0.18) 0px, transparent 14px),
-        linear-gradient(to top,    rgba(255,255,255,0.18) 0px, transparent 14px);
-    }
-    #ruler-handle.ruler-3d::after {
-      background:
-        linear-gradient(to right, rgba(255,255,255,0.18) 0px, transparent 14px),
-        linear-gradient(to left,  rgba(255,255,255,0.18) 0px, transparent 14px);
-    }
-    #ruler-handle.ruler-3d:hover::before,
-    #ruler-handle.ruler-3d:hover::after,
-    #ruler-handle.ruler-3d:active::before,
-    #ruler-handle.ruler-3d:active::after { opacity: 1; }
-
     /* ===== カウンターフローティングパネル（段ガイド機能付き） ===== */
     #counter-panel {
       position: fixed;
@@ -1180,7 +1176,7 @@
     }
     .gp-caption {
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--text);
       letter-spacing: .06em;
@@ -1203,7 +1199,7 @@
       white-space: nowrap;
       pointer-events: auto;
       cursor: pointer;
-      margin-left: 8px;
+      margin-left: 2px;
       width: 84px;
       box-sizing: border-box;
       text-align: center;
@@ -1221,10 +1217,17 @@
       background: #FFFFFF;
       transform: scale(0.94);
     }
-    /* 未計測の間は、押せそうに見えないようにする（実際タップしても何も起きないため） */
+    /* 未計測の間は、押せそうに見えないようにする（実際タップしても何も起きないため）。
+       文字も薄く・細くして「今は何も情報が無い」ことが伝わるようにする。
+       余白(margin-left)は計測後と同じ2pxのままにして、計測した瞬間にパネル幅が変わらないようにする */
     #gp-step-label.unmeasured {
       cursor: default;
       background: transparent;
+      text-align: left;
+      opacity: 0.45;
+      font-weight: 500;
+      font-size: 12px;
+      color: #D98C8C;
     }
     #gp-step-label.unmeasured:hover,
     #gp-step-label.unmeasured:active {
@@ -1489,6 +1492,18 @@
       transform: translateY(-3px);
     }
     #cp-counter-row .cp-divider { margin-left: 0; }
+    /* カウンターの数字が「何を数えているか」を示す、数字の右横に添えるごく小さな単位ラベル */
+    #cp-unit {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+      opacity: 0.75;
+      align-self: flex-end;
+      margin-left: -15px;
+      margin-bottom: 12px;
+      pointer-events: none;
+    }
     .cp-btn {
       background: none;
       border: none;
@@ -2058,7 +2073,7 @@
   <div id="measure-bar" class="measure-bar-pos" style="position:absolute; left:50%; transform:translateX(-50%); background:#fff; border:1.5px solid var(--border); border-radius:20px; padding:8px 10px 8px 16px; box-shadow:0 4px 16px rgba(0,0,0,0.12); font-family:'Zen Maru Gothic',sans-serif; pointer-events:all; width:max-content; max-width:calc(100vw - 24px); display:flex; align-items:center; gap:10px; flex-wrap:nowrap;">
 
     <!-- ヒント表示（タップ案内） -->
-    <span id="measure-hint" style="font-size:13px; font-weight:700; color:var(--text); white-space:nowrap; flex-shrink:0;">編み図を拡大して1点目をタップ</span>
+    <span id="measure-hint" style="font-size:13px; font-weight:700; color:var(--text); white-space:normal; flex-shrink:1; min-width:0;">編み図を拡大して1点目をタップ</span>
 
     <!-- 拡大調整フェーズ専用：拡大完了ボタン -->
     <button id="measure-zoomdone-btn" style="display:none; background:var(--primary); border:none; border-radius:16px; padding:6px 14px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; color:var(--text); cursor:pointer; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.10); flex-shrink:0; -webkit-tap-highlight-color:transparent;">完了</button>
@@ -2105,6 +2120,7 @@
   <div id="cp-counter-row">
     <button class="cp-btn" id="cp-minus" title="−1">−</button>
     <span id="cp-num">0</span>
+    <span id="cp-unit">段</span>
     <button class="cp-btn" id="cp-plus" title="＋1">+</button>
   </div>
 </div>
@@ -2195,8 +2211,8 @@
           <div class="ruler-control ruler-slider-row">
             <label for="ruler-opacity">濃さ</label>
             <div style="display:flex; align-items:center; gap:10px; width:100%; max-width:203px;">
-              <input type="range" id="ruler-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
-              <span id="ruler-opacity-label">70%</span>
+              <input type="range" id="ruler-opacity" min="10" max="100" value="80" step="5" style="width:116px; flex:none;">
+              <span id="ruler-opacity-label">80%</span>
             </div>
           </div>
           <div class="ruler-control" style="gap:12px;">
@@ -2306,8 +2322,8 @@
           <div class="ruler-control ruler-slider-row">
             <label for="frame-opacity">濃さ</label>
             <div style="display:flex; align-items:center; gap:10px; width:100%; max-width:203px;">
-              <input type="range" id="frame-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
-              <span id="frame-opacity-label">70%</span>
+              <input type="range" id="frame-opacity" min="10" max="100" value="80" step="5" style="width:116px; flex:none;">
+              <span id="frame-opacity-label">80%</span>
             </div>
           </div>
           <div class="ruler-control" style="gap:12px;">
@@ -2417,8 +2433,8 @@
           <div class="ruler-control ruler-slider-row">
             <label for="circle-opacity">濃さ</label>
             <div style="display:flex; align-items:center; gap:10px; width:100%; max-width:203px;">
-              <input type="range" id="circle-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
-              <span id="circle-opacity-label">70%</span>
+              <input type="range" id="circle-opacity" min="10" max="100" value="80" step="5" style="width:116px; flex:none;">
+              <span id="circle-opacity-label">80%</span>
             </div>
           </div>
           <div class="ruler-control" style="gap:12px;">
@@ -2528,8 +2544,8 @@
           <div class="ruler-control ruler-slider-row">
             <label for="box-opacity">濃さ</label>
             <div style="display:flex; align-items:center; gap:10px; width:100%; max-width:203px;">
-              <input type="range" id="box-opacity" min="10" max="90" value="70" step="5" style="width:116px; flex:none;">
-              <span id="box-opacity-label">70%</span>
+              <input type="range" id="box-opacity" min="10" max="100" value="80" step="5" style="width:116px; flex:none;">
+              <span id="box-opacity-label">80%</span>
             </div>
           </div>
           <div class="ruler-control" style="gap:12px;">
@@ -2719,7 +2735,7 @@
   let rulerHeight = 172;
   const MIN_RULER_H = 30;
   let rulerColor  = '#b2aaaa';
-  let rulerAlpha  = 0.85;
+  let rulerAlpha  = 0.80;
   let rulerWidth  = 80;
   let showCounter = true;
   let rulerStep   = 40;  // 1段のスライド量（px）
@@ -2727,7 +2743,7 @@
   let rulerGuideOn = false; // Line定規の段ガイドON/OFF状態（タブ切替時もこの値が真実の源）
 
   let rowCount    = 0;
-  let rulerAlpha100 = 85;
+  let rulerAlpha100 = 80;
 
   /* ========== localStorage ========== */
   const STORAGE_KEY = 'yucchi_ruler';
@@ -2912,50 +2928,58 @@
     const ow = rulerHandle.offsetWidth  || (rulerWidth / 100) * window.innerWidth;
     const oh = rulerHandle.offsetHeight || rulerHeight;
     const rad = 10;
+    const hl = Math.min(12, ow/3, oh/3); // ハイライトの太さ：上下左右すべて共通の値にする
+    const M  = 16; // 外側の光がはみ出すための余白（SVGのキャンバス自体を4辺とも同じだけ広げる）
 
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow}" height="${oh}">
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow + M*2}" height="${oh + M*2}">
       <defs>
         <linearGradient id="rlg_t" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="rlg_b" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="rlg_l" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="rlg_r" x1="1" y1="0" x2="0" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
-        <filter id="rdrop" x="-5%" y="-5%" width="115%" height="120%" color-interpolation-filters="sRGB">
-          <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(${r},${g},${b},0.25)"/>
+        <filter id="rglow" x="-100%" y="-100%" width="300%" height="300%" color-interpolation-filters="sRGB">
+          <feGaussianBlur stdDeviation="4"/>
         </filter>
+        <clipPath id="rclip">
+          <rect x="${M}" y="${M}" width="${ow}" height="${oh}" rx="${rad}" ry="${rad}"/>
+        </clipPath>
       </defs>
+      <!-- 外側の光（4辺とも同じstdDeviationで描くので幅は必ず均等になる） -->
+      <rect x="${M}" y="${M}" width="${ow}" height="${oh}" rx="${rad}" ry="${rad}"
+        fill="rgba(${r},${g},${b},0.28)" filter="url(#rglow)"/>
       <!-- 本体 -->
-      <rect x="0" y="0" width="${ow}" height="${oh}" rx="${rad}" ry="${rad}"
-        fill="rgba(${r},${g},${b},${fa})" filter="url(#rdrop)"/>
-      <!-- 上ハイライト -->
-      <path fill="url(#rlg_t)"
-        d="M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${Math.min(12,oh/3)} H0 V${rad} Q0,0 ${rad},0 Z"/>
-      <!-- 下ハイライト -->
-      <path fill="url(#rlg_b)"
-        d="M0,${oh-Math.min(12,oh/3)} H${ow} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
-      <!-- 左ハイライト -->
-      <path fill="url(#rlg_l)"
-        d="M0,${rad} Q0,0 ${rad},0 H${Math.min(12,ow/3)} V${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
-      <!-- 右ハイライト -->
-      <path fill="url(#rlg_r)"
-        d="M${ow-Math.min(12,ow/3)},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${ow-Math.min(12,ow/3)} Z"/>
+      <rect x="${M}" y="${M}" width="${ow}" height="${oh}" rx="${rad}" ry="${rad}"
+        fill="rgba(${r},${g},${b},${fa})" stroke="rgba(${r},${g},${b},${la})" stroke-width="1.5"/>
+      <!-- ハイライト（本体と同じ丸みでクリップし、角に直線の継ぎ目が出ないようにする） -->
+      <g clip-path="url(#rclip)">
+        <path fill="url(#rlg_t)" transform="translate(${M},${M})"
+          d="M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${hl} H0 V${rad} Q0,0 ${rad},0 Z"/>
+        <path fill="url(#rlg_b)" transform="translate(${M},${M})"
+          d="M0,${oh-hl} H${ow} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
+        <path fill="url(#rlg_l)" transform="translate(${M},${M})"
+          d="M0,${rad} Q0,0 ${rad},0 H${hl} V${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
+        <path fill="url(#rlg_r)" transform="translate(${M},${M})"
+          d="M${ow-hl},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${ow-hl} Z"/>
+      </g>
     </svg>`;
 
     const border = document.getElementById('ruler-3d-border');
-    border.style.borderRadius = `${rad}px`;
-    border.style.border       = `1.5px solid rgba(${r},${g},${b},${la})`;
-    border.style.overflow     = 'hidden';
+    border.style.inset      = `-${M}px`;
+    border.style.overflow   = 'visible';
+    border.style.border     = 'none';
+    border.style.borderRadius = '';
     border.innerHTML = svg;
 
     rulerHandle.style.background = 'transparent';
@@ -3260,41 +3284,47 @@
   cpPlus.addEventListener('click', e => {
     e.stopPropagation();
     if (currentRulerTab === 'circle') {
-      circleCount++;
-      if (circleStep > 0) {
-        cR = Math.min(circleMaxRForScreen(), cR + circleStep);
-        applyCircle();
-      }
-      cpNum.textContent = circleCount;
-      saveCircleSettings();
-    } else if (currentRulerTab === 'box') {
-      boxCount++;
-      if (boxStep > 0) {
-        // サークル定規と同様、中心位置から画面を覆いきれる大きさまでは拡大できるようにする。
-        const maxHalf = boxMaxHalfForScreen();
-        if (bxIsSquareMode) {
-          // 正方形モードは縦横同じ上限（余裕がある方）を共有して、形が崩れないようにする
-          const shared = Math.max(maxHalf.w, maxHalf.h);
-          bxHalfW = Math.min(shared, bxHalfW + boxStep);
-          bxHalfH = Math.min(shared, bxHalfH + boxStep);
-        } else {
-          // 長方形モードも、正方形と同じく縦横それぞれ均等にstep分だけ伸びる（比率維持の計算は極端な形で破綻するためやめた）
-          bxHalfW = Math.min(maxHalf.w, bxHalfW + boxStep);
-          bxHalfH = Math.min(maxHalf.h, bxHalfH + boxStep);
+      if (circleCount < 999) {
+        circleCount++;
+        if (circleStep > 0) {
+          cR = Math.min(circleMaxRForScreen(), cR + circleStep);
+          applyCircle();
         }
-        applyBox();
+        cpNum.textContent = circleCount;
+        saveCircleSettings();
       }
-      cpNum.textContent = boxCount;
-      saveBoxSettings();
+    } else if (currentRulerTab === 'box') {
+      if (boxCount < 999) {
+        boxCount++;
+        if (boxStep > 0) {
+          // サークル定規と同様、中心位置から画面を覆いきれる大きさまでは拡大できるようにする。
+          const maxHalf = boxMaxHalfForScreen();
+          if (bxIsSquareMode) {
+            // 正方形モードは縦横同じ上限（余裕がある方）を共有して、形が崩れないようにする
+            const shared = Math.max(maxHalf.w, maxHalf.h);
+            bxHalfW = Math.min(shared, bxHalfW + boxStep);
+            bxHalfH = Math.min(shared, bxHalfH + boxStep);
+          } else {
+            // 長方形モードも、正方形と同じく縦横それぞれ均等にstep分だけ伸びる（比率維持の計算は極端な形で破綻するためやめた）
+            bxHalfW = Math.min(maxHalf.w, bxHalfW + boxStep);
+            bxHalfH = Math.min(maxHalf.h, bxHalfH + boxStep);
+          }
+          applyBox();
+        }
+        cpNum.textContent = boxCount;
+        saveBoxSettings();
+      }
     } else if (currentRulerTab === 'frame') {
-      frameCount++;
-      if (frameStep > 0 && fWin.h - frameStep >= 20) {
-        fWin.h     -= frameStep; // 窓を縮める
-        fOuter.bottom += frameStep; // 外枠はそのまま（底辺を固定）
-        applyFrameOuterPos(); applyFrameStyle();
+      if (frameCount < 999) {
+        frameCount++;
+        if (frameStep > 0 && fWin.h - frameStep >= 20) {
+          fWin.h     -= frameStep; // 窓を縮める
+          fOuter.bottom += frameStep; // 外枠はそのまま（底辺を固定）
+          applyFrameOuterPos(); applyFrameStyle();
+        }
+        cpNum.textContent = frameCount;
+        saveFrameSettings();
       }
-      cpNum.textContent = frameCount;
-      saveFrameSettings();
     } else {
       if (rowCount < 999) {
         rowCount++;
@@ -4266,7 +4296,9 @@
     if (e.target.closest('.cp-btn')) return;
     if (e.target.closest('#gp-toggle-wrap')) return;
     if (e.target.closest('#gp-measure-btn')) return;
-    if (e.target.closest('#gp-step-label')) return;
+    // 未計測の時はタップしても何も起きないので、そこからパネルをドラッグできるようにする。
+    // 計測値が出ている時（例：1段：66px）は、タップで調整カードを開く動作を優先し、ドラッグは始めない。
+    if (e.target.closest('#gp-step-label') && gpStepLabel.textContent !== '未計測') return;
     if (e.target.closest('#step-adjust-card')) return;
     cpDragging = true;
     const pos = getCpPos();
@@ -4640,7 +4672,7 @@
   let frameCount = 0;
   let showFrameCounter = true;
   let fColor = '#b2aaaa';
-  let fAlpha = 0.70;
+  let fAlpha = 0.80;
   const F_MIN = 20; // 窓・外枠の最小サイズ
 
   function initFramePos() {
@@ -4761,63 +4793,73 @@
     const wh  = fWin.h;
     const rad = 10;
     const fa  = fAlpha;
-    const bc  = Math.min(1, fa * 1.5);
+    const bc  = Math.min(1, fa * 1.6); // 枠線の濃さ（旧border方式と同じ濃さになるよう1.6倍のまま）
+    const hl  = Math.min(12, ow/3, oh/3); // ハイライトの太さ：上下左右すべて共通の値にする（Line定規と同じ考え方）
+    const M   = 16; // 外側の光がはみ出すための余白（Line定規のapplyRulerStyle()と同じ仕組み）
 
-    const svgId = 'frame-svg-' + Date.now();
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow}" height="${oh}">
+    const framePathD = `M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad}
+             V${oh-rad} Q${ow},${oh} ${ow-rad},${oh}
+             H${rad} Q0,${oh} 0,${oh-rad}
+             V${rad} Q0,0 ${rad},0 Z
+             M${wx},${wy} H${wx+ww} V${wy+wh} H${wx} Z`;
+
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow + M*2}" height="${oh + M*2}">
       <defs>
         <linearGradient id="lg_t" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="lg_b" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="lg_l" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="lg_r" x1="1" y1="0" x2="0" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
-        <filter id="drop" x="-5%" y="-5%" width="115%" height="120%" color-interpolation-filters="sRGB">
-          <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(${r},${g},${b},0.25)"/>
+        <filter id="fglow" x="-100%" y="-100%" width="300%" height="300%" color-interpolation-filters="sRGB">
+          <feGaussianBlur stdDeviation="4"/>
         </filter>
+        <clipPath id="fclip">
+          <rect x="0" y="0" width="${ow}" height="${oh}" rx="${rad}" ry="${rad}"/>
+        </clipPath>
       </defs>
-      <!-- 額縁本体 -->
-      <path fill="rgba(${r},${g},${b},${fa})" filter="url(#drop)"
-        d="M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad}
-           V${oh-rad} Q${ow},${oh} ${ow-rad},${oh}
-           H${rad} Q0,${oh} 0,${oh-rad}
-           V${rad} Q0,0 ${rad},0 Z
-           M${wx},${wy} H${wx+ww} V${wy+wh} H${wx} Z"
-        fill-rule="evenodd"/>
-      <!-- 上ハイライト -->
-      <path fill="url(#lg_t)"
-        d="M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${Math.min(12,oh/3)} H0 V${rad} Q0,0 ${rad},0 Z"/>
-      <!-- 下ハイライト -->
-      <path fill="url(#lg_b)"
-        d="M0,${oh-Math.min(12,oh/3)} H${ow} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
-      <!-- 左ハイライト -->
-      <path fill="url(#lg_l)"
-        d="M0,${rad} Q0,0 ${rad},0 H${Math.min(12,ow/3)} V${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
-      <!-- 右ハイライト -->
-      <path fill="url(#lg_r)"
-        d="M${ow-Math.min(12,ow/3)},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${ow-Math.min(12,ow/3)} Z"/>
+      <g transform="translate(${M},${M})">
+        <!-- 外側の光（本体と同じ「窓を切り抜いた」形にして、窓の中まで色がにじまないようにする） -->
+        <path fill="rgba(${r},${g},${b},0.28)" filter="url(#fglow)" fill-rule="evenodd"
+          d="${framePathD}"/>
+        <!-- 額縁本体（窓を切り抜いた形＋枠線を同じpathで描く） -->
+        <path fill="rgba(${r},${g},${b},${fa})" stroke="rgba(${r},${g},${b},${bc})" stroke-width="1.5"
+          fill-rule="evenodd"
+          d="${framePathD}"/>
+        <!-- ハイライト（本体と同じ丸みでクリップし、角に直線の継ぎ目が出ないようにする。Line定規と同じ仕組み） -->
+        <g clip-path="url(#fclip)">
+          <path fill="url(#lg_t)"
+            d="M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${hl} H0 V${rad} Q0,0 ${rad},0 Z"/>
+          <path fill="url(#lg_b)"
+            d="M0,${oh-hl} H${ow} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
+          <path fill="url(#lg_l)"
+            d="M0,${rad} Q0,0 ${rad},0 H${hl} V${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
+          <path fill="url(#lg_r)"
+            d="M${ow-hl},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${ow-hl} Z"/>
+        </g>
+      </g>
     </svg>`;
 
     const border = document.getElementById('frame-3d-border');
-    border.style.left         = outerLeft + 'px';
-    border.style.top          = outerTop  + 'px';
-    border.style.width        = ow + 'px';
-    border.style.height       = oh + 'px';
+    border.style.left         = (outerLeft - M) + 'px';
+    border.style.top          = (outerTop  - M) + 'px';
+    border.style.width        = (ow + M*2) + 'px';
+    border.style.height       = (oh + M*2) + 'px';
     border.style.background   = 'none';
     border.style.boxShadow    = 'none';
-    border.style.borderRadius = `${rad}px`;
-    border.style.border       = `1.5px solid rgba(${r},${g},${b},${Math.min(1, fa * 1.6)})`;
-    border.style.overflow     = 'hidden';
+    border.style.borderRadius = '';
+    border.style.border       = 'none';
+    border.style.overflow     = 'visible';
     border.innerHTML = svg;
   }
 
@@ -4826,7 +4868,7 @@
     const DEFAULT_WIDTH   = 80;
     const DEFAULT_HEIGHT  = 172;
     const DEFAULT_COLOR   = '#b2aaaa';
-    const DEFAULT_ALPHA   = 0.85;
+    const DEFAULT_ALPHA   = 0.80;
 
     rulerWidth  = DEFAULT_WIDTH;
     rulerHeight = DEFAULT_HEIGHT;
@@ -4864,7 +4906,7 @@
     document.getElementById('toggle-frame-counter').checked = true;
     syncGuideRowUI('frame');
     const DEFAULT_COLOR = '#b2aaaa';
-    const DEFAULT_ALPHA = 0.70;
+    const DEFAULT_ALPHA = 0.80;
     const sw = window.innerWidth, sh = window.innerHeight;
 
     fColor = DEFAULT_COLOR;
@@ -5532,7 +5574,7 @@
   let cX = 0, cY = 0;         // 中心座標
   let cR = 50;                 // 半径（直径100px）
   let cColor = '#b2aaaa';
-  let cAlpha = 0.70;
+  let cAlpha = 0.80;
   let circleStep  = 0;       // 段ガイドON時に有効な1段の幅（OFF時は0）
   let circleStepBase = 0;    // 計測した実寸（段ガイドOFFでも保持、未計測なら0）
   let circleGuideOn = false; // Circle定規の段ガイドON/OFF状態（タブ切替時もこの値が真実の源）
@@ -5574,32 +5616,37 @@
     const b = parseInt(hex.slice(5,7),16);
     const la = Math.min(1, cAlpha * 1.6);
 
-    // 見た目専用レイヤー：円がちょうど収まる正方形のSVGをその位置に配置する（Frame/Line定規と同じ仕組み）
+    // 見た目専用レイヤー：円がちょうど収まる正方形のSVGをその位置に配置する（Line/Frame/Box定規と同じ仕組み）
     const left = cX - cR, top = cY - cR;
     const size = cR * 2;
-    const hiW  = Math.min(cR * 0.22, 14); // ハイライトの太さ（他の3定規と統一感を出すため少し広め）
+    const hiW  = Math.min(cR * 0.22, 12); // ハイライトの太さ（上限は他の3定規と統一して12px）
+    const M    = 16; // 外側の光がはみ出すための余白（Line/Frame/Box定規と同じ仕組み）
 
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size + M*2}" height="${size + M*2}">
       <defs>
         <radialGradient id="clg_hi" cx="50%" cy="50%" r="50%">
           <stop offset="${Math.max(0, (1 - hiW / cR) * 100)}%" stop-color="rgba(255,255,255,0)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0.22)"/>
         </radialGradient>
-        <filter id="cdrop" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
-          <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(${r},${g},${b},0.25)"/>
+        <filter id="cglow" x="-100%" y="-100%" width="300%" height="300%" color-interpolation-filters="sRGB">
+          <feGaussianBlur stdDeviation="4"/>
         </filter>
       </defs>
-      <!-- 本体 -->
-      <circle cx="${cR}" cy="${cR}" r="${cR}" fill="rgba(${r},${g},${b},${cAlpha})" filter="url(#cdrop)"/>
-      <!-- 外周ハイライト -->
-      <circle cx="${cR}" cy="${cR}" r="${cR}" fill="url(#clg_hi)"/>
-      <!-- 枠線 -->
-      <circle cx="${cR}" cy="${cR}" r="${cR - 0.75}" fill="none" stroke="rgba(${r},${g},${b},${la})" stroke-width="1.5"/>
+      <g transform="translate(${M},${M})">
+        <!-- 外側の光（Line/Frame/Box定規と同じfeGaussianBlurで描く） -->
+        <circle cx="${cR}" cy="${cR}" r="${cR}" fill="rgba(${r},${g},${b},0.28)" filter="url(#cglow)"/>
+        <!-- 本体＋枠線を同じ円で描く -->
+        <circle cx="${cR}" cy="${cR}" r="${cR}" fill="rgba(${r},${g},${b},${cAlpha})" stroke="rgba(${r},${g},${b},${la})" stroke-width="1.5"/>
+        <!-- 外周ハイライト -->
+        <circle cx="${cR}" cy="${cR}" r="${cR}" fill="url(#clg_hi)"/>
+      </g>
     </svg>`;
 
     const layer = document.getElementById('circle-3d-layer');
-    layer.style.left = left + 'px';
-    layer.style.top  = top  + 'px';
+    layer.style.left = (left - M) + 'px';
+    layer.style.top  = (top  - M) + 'px';
+    layer.style.borderRadius = '';
+    layer.style.boxShadow = 'none';
     layer.innerHTML  = svg;
   }
 
@@ -5678,7 +5725,7 @@
 
   // リセット
   window.resetCircleDefault = function() {
-    cR = 50; cColor = '#b2aaaa'; cAlpha = 0.70;
+    cR = 50; cColor = '#b2aaaa'; cAlpha = 0.80;
     circleStep = 0; circleStepBase = 0; circleCount = 0; showCircleCounter = true;
     cX = Math.round(window.innerWidth  / 2);
     // テキスト2行＋注意文2行の下端 + 35px + 半径 の位置に円の中心を配置（テキストと重ならないように）
@@ -6096,7 +6143,7 @@
   let bxPrevWasSquare = null; // 直前の描画時に正方形だったか（リサイズで正方形になった瞬間の検知用）
   let bxIsSquareMode = true;  // 「正方形⇔長方形」ボタンで選んだモード（数字の一致とは独立。辺ロックの判定に使う）
   let bxColor = '#b2aaaa';
-  let bxAlpha = 0.70;
+  let bxAlpha = 0.80;
   let boxStep  = 0;       // 段ガイドON時に有効な1段の幅（OFF時は0）
   let boxStepBase = 0;    // 計測した実寸（段ガイドOFFでも保持、未計測なら0）
   let boxGuideOn = false; // Box定規の段ガイドON/OFF状態（タブ切替時もこの値が真実の源）
@@ -6144,54 +6191,60 @@
     const left = bxX - bxHalfW, top = bxY - bxHalfH;
     const ow = bxHalfW * 2, oh = bxHalfH * 2;
     const rad = 10;
-    const hiDepthTB = Math.min(12, oh / 3);
-    const hiDepthLR = Math.min(12, ow / 3);
+    const hl  = Math.min(12, ow/3, oh/3); // ハイライトの太さ：上下左右すべて共通の値にする（Line/Frame定規と同じ考え方）
+    const M   = 16; // 外側の光がはみ出すための余白（Line/Frame定規と同じ仕組み）
 
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow}" height="${oh}">
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow + M*2}" height="${oh + M*2}">
       <defs>
         <linearGradient id="sqlg_t" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="sqlg_b" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="sqlg_l" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="sqlg_r" x1="1" y1="0" x2="0" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
-        <filter id="sqdrop" x="-5%" y="-5%" width="115%" height="120%" color-interpolation-filters="sRGB">
-          <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="rgba(${r},${g},${b},0.25)"/>
+        <filter id="sqglow" x="-100%" y="-100%" width="300%" height="300%" color-interpolation-filters="sRGB">
+          <feGaussianBlur stdDeviation="4"/>
         </filter>
+        <clipPath id="sqclip">
+          <rect x="0" y="0" width="${ow}" height="${oh}" rx="${rad}" ry="${rad}"/>
+        </clipPath>
       </defs>
-      <!-- 本体 -->
-      <rect x="0" y="0" width="${ow}" height="${oh}" rx="${rad}" ry="${rad}"
-        fill="rgba(${r},${g},${b},${bxAlpha})" filter="url(#sqdrop)"/>
-      <!-- 上ハイライト -->
-      <path fill="url(#sqlg_t)"
-        d="M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${hiDepthTB} H0 V${rad} Q0,0 ${rad},0 Z"/>
-      <!-- 下ハイライト -->
-      <path fill="url(#sqlg_b)"
-        d="M0,${oh-hiDepthTB} H${ow} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
-      <!-- 左ハイライト -->
-      <path fill="url(#sqlg_l)"
-        d="M0,${rad} Q0,0 ${rad},0 H${hiDepthLR} V${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
-      <!-- 右ハイライト -->
-      <path fill="url(#sqlg_r)"
-        d="M${ow-hiDepthLR},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${ow-hiDepthLR} Z"/>
-      <!-- 枠線 -->
-      <rect x="0.75" y="0.75" width="${ow-1.5}" height="${oh-1.5}" rx="${rad}" ry="${rad}"
-        fill="none" stroke="rgba(${r},${g},${b},${la})" stroke-width="1.5"/>
+      <g transform="translate(${M},${M})">
+        <!-- 外側の光（Line/Frame定規と同じfeGaussianBlurで描く） -->
+        <rect x="0" y="0" width="${ow}" height="${oh}" rx="${rad}" ry="${rad}"
+          fill="rgba(${r},${g},${b},0.28)" filter="url(#sqglow)"/>
+        <!-- 本体＋枠線を同じ四角形で描く -->
+        <rect x="0" y="0" width="${ow}" height="${oh}" rx="${rad}" ry="${rad}"
+          fill="rgba(${r},${g},${b},${bxAlpha})" stroke="rgba(${r},${g},${b},${la})" stroke-width="1.5"/>
+        <!-- ハイライト（本体と同じ丸みでクリップし、角に直線の継ぎ目が出ないようにする。Line/Frame定規と同じ仕組み） -->
+        <g clip-path="url(#sqclip)">
+          <path fill="url(#sqlg_t)"
+            d="M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${hl} H0 V${rad} Q0,0 ${rad},0 Z"/>
+          <path fill="url(#sqlg_b)"
+            d="M0,${oh-hl} H${ow} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
+          <path fill="url(#sqlg_l)"
+            d="M0,${rad} Q0,0 ${rad},0 H${hl} V${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
+          <path fill="url(#sqlg_r)"
+            d="M${ow-hl},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${ow-hl} Z"/>
+        </g>
+      </g>
     </svg>`;
 
     const layer = document.getElementById('box-3d-layer');
-    layer.style.left = left + 'px';
-    layer.style.top  = top  + 'px';
+    layer.style.left = (left - M) + 'px';
+    layer.style.top  = (top  - M) + 'px';
+    layer.style.borderRadius = '';
+    layer.style.boxShadow = 'none';
     layer.innerHTML  = svg;
     syncBoxShapeToggleBtn();
     // 正方形⇔長方形、見た目が切り替わった瞬間（ボタン操作・リサイズ・お気に入り適用どれでも共通）を検知して知らせる
@@ -6385,7 +6438,7 @@
       bxRectHalfW = 100; bxRectHalfH = 50;
       bxSquareSide = null; // 記憶していた正方形サイズもリセット
     }
-    bxColor = '#b2aaaa'; bxAlpha = 0.70;
+    bxColor = '#b2aaaa'; bxAlpha = 0.80;
     bxSquareColor = null; bxSquareAlpha = null; // 記憶していた色・濃さもリセット
     bxRectColor = null; bxRectAlpha = null;
     bxIsSquareMode = wasSquareMode;
