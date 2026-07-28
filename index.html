@@ -922,29 +922,31 @@
     #circle-canvas.dragging { opacity: 0.6; transition: opacity .15s; }
     #circle-canvas.rim { cursor: nwse-resize !important; }
     #circle-3d-layer.dragging { opacity: 0.6; transition: opacity .15s; }
-    /* ホバー時に薄くする（4定規で統一）。#circle-3d-layerはpointer-events:noneで直接ホバーできないため、
-       操作用キャンバス（#circle-canvas）がホバーされているかを:has()で検知して連動させる */
-    #circle-3d-layer:has(~ #circle-canvas:hover):not(.dragging) {
-      opacity: 0.85;
-      transition: opacity .15s;
-    }
     #box-canvas { cursor: grab; }
     #box-canvas:active { cursor: grabbing; }
     #box-canvas.dragging { opacity: 0.6; transition: opacity .15s; }
     #box-3d-layer.dragging { opacity: 0.6; transition: opacity .15s; }
-    /* ホバー時に薄くする（4定規で統一）。#box-3d-layerはpointer-events:noneで直接ホバーできないため、
-       操作用キャンバス（#box-canvas）がホバーされているかを:has()で検知して連動させる */
-    #box-3d-layer:has(~ #box-canvas:hover):not(.dragging) {
-      opacity: 0.85;
-      transition: opacity .15s;
-    }
     .frame-panel.dragging { opacity: 0.6; transition: opacity .15s; }
     #frame-3d-border.dragging { opacity: 0.6; transition: opacity .15s; }
-    /* ホバー時に薄くする（4定規で統一）。#frame-3d-borderはpointer-events:noneで直接ホバーできないため、
-       操作用パネル（.frame-panel）側がホバーされているかを:has()で検知して連動させる */
-    #frame-3d-border:has(~ .frame-panel:hover):not(.dragging) {
-      opacity: 0.85;
-      transition: opacity .15s;
+    /* ホバー時に薄くする（4定規で統一）。本物のマウスでホバーできる機種だけに限定する。
+       タッチ画面だと「:hover」がタップ後に貼り付いたままになり、他の場所をタップするまで
+       薄いままになってしまう（濃さ100%のはずなのに透けて見えるバグの原因だった）ため、
+       @media (hover: hover) でマウス操作可能な機種だけに絞っている。
+       #circle-3d-layer・#box-3d-layer・#frame-3d-borderはpointer-events:noneで直接ホバーできないため、
+       操作用パネル／キャンバス側がホバーされているかを:has()で検知して連動させる */
+    @media (hover: hover) {
+      #circle-3d-layer:has(~ #circle-canvas:hover):not(.dragging) {
+        opacity: 0.85;
+        transition: opacity .15s;
+      }
+      #box-3d-layer:has(~ #box-canvas:hover):not(.dragging) {
+        opacity: 0.85;
+        transition: opacity .15s;
+      }
+      #frame-3d-border:has(~ .frame-panel:hover):not(.dragging) {
+        opacity: 0.85;
+        transition: opacity .15s;
+      }
     }
     #frame-top    { top: 0; left: 0; right: 0; cursor: grab; }
     #frame-bottom { bottom: 0; left: 0; right: 0; cursor: grab; }
@@ -1075,10 +1077,13 @@
       padding-right: 8px;
     }
     #ruler-handle:active { cursor: grabbing; }
-    /* ホバー時に薄くする（4定規で統一。ドラッグ中・リサイズ中は優先させない） */
-    #ruler-handle:hover:not(.dragging):not(.resizing) {
-      opacity: 0.85;
-      transition: opacity .15s;
+    /* ホバー時に薄くする（4定規で統一。ドラッグ中・リサイズ中は優先させない）。
+       タッチ画面だとタップ後に:hoverが貼り付いたままになるため、本物のマウスがある機種だけに限定する */
+    @media (hover: hover) {
+      #ruler-handle:hover:not(.dragging):not(.resizing) {
+        opacity: 0.85;
+        transition: opacity .15s;
+      }
     }
     #ruler-handle.dragging {
       opacity: 0.6;
@@ -2073,7 +2078,7 @@
   <div id="measure-bar" class="measure-bar-pos" style="position:absolute; left:50%; transform:translateX(-50%); background:#fff; border:1.5px solid var(--border); border-radius:20px; padding:8px 10px 8px 16px; box-shadow:0 4px 16px rgba(0,0,0,0.12); font-family:'Zen Maru Gothic',sans-serif; pointer-events:all; width:max-content; max-width:calc(100vw - 24px); display:flex; align-items:center; gap:10px; flex-wrap:nowrap;">
 
     <!-- ヒント表示（タップ案内） -->
-    <span id="measure-hint" style="font-size:13px; font-weight:700; color:var(--text); white-space:normal; flex-shrink:1; min-width:0;">編み図を拡大して1点目をタップ</span>
+    <span id="measure-hint" style="font-size:13px; font-weight:700; color:var(--text); white-space:normal; flex-shrink:1; min-width:0; text-align:center; line-height:1;">編み図を拡大して1点目をタップ</span>
 
     <!-- 拡大調整フェーズ専用：拡大完了ボタン -->
     <button id="measure-zoomdone-btn" style="display:none; background:var(--primary); border:none; border-radius:16px; padding:6px 14px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; color:var(--text); cursor:pointer; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.10); flex-shrink:0; -webkit-tap-highlight-color:transparent;">完了</button>
