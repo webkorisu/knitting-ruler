@@ -252,8 +252,10 @@
       white-space: nowrap;
       text-align: center;
     }
-    /* パネルを折りたたんでいる時だけ、今使っている定規のバッジを表示する */
-    #float-panel.collapsed #panel-current-ruler-badge {
+    /* パネルを折りたたんでいる時、または開いていてもタブが見えなくなるまでスクロールした時に、
+       今使っている定規のバッジを表示する */
+    #float-panel.collapsed #panel-current-ruler-badge,
+    #float-panel.tabs-scrolled #panel-current-ruler-badge {
       display: flex;
     }
     #panel-current-ruler-badge-sub {
@@ -933,13 +935,18 @@
        薄いままになってしまう（濃さ100%のはずなのに透けて見えるバグの原因だった）ため、
        @media (hover: hover) でマウス操作可能な機種だけに絞っている。
        #circle-3d-layer・#box-3d-layer・#frame-3d-borderはpointer-events:noneで直接ホバーできないため、
-       操作用パネル／キャンバス側がホバーされているかを:has()で検知して連動させる */
+       操作用パネル／キャンバス側がホバーされているかを:has()で検知して連動させる。
+       Circle・Boxの当たり判定キャンバスは画面いっぱいに広がっているため、素の:hoverだと
+       「定規の近く」ではなく「画面のどこにマウスがあっても」反応してしまう
+       （薄くなるのは合っていても、元に戻すには画面外までカーソルを離す必要があり、とても遅く感じるバグの原因だった）。
+       そのためCircle・BoxはJS側で実際の形との距離を判定した`.hover-near`クラスと連動させている。
+       Frameのパネルは最初から定規のすぐ近くだけのサイズなので、素の:hoverのままで問題ない */
     @media (hover: hover) {
-      #circle-3d-layer:has(~ #circle-canvas:hover):not(.dragging) {
+      #circle-3d-layer:has(~ #circle-canvas.hover-near):not(.dragging) {
         opacity: 0.85;
         transition: opacity .15s;
       }
-      #box-3d-layer:has(~ #box-canvas:hover):not(.dragging) {
+      #box-3d-layer:has(~ #box-canvas.hover-near):not(.dragging) {
         opacity: 0.85;
         transition: opacity .15s;
       }
@@ -1091,8 +1098,8 @@
       transition: opacity .15s;
     }
     #ruler-handle.resizing {
-      opacity: 0.55;
-      transition: opacity .1s;
+      opacity: 0.6;
+      transition: opacity .15s;
     }
 
     .frame-color-dot {
@@ -1188,6 +1195,7 @@
       pointer-events: none;
       white-space: nowrap;
       flex-shrink: 0;
+      line-height: 1;
     }
     #gp-toggle-wrap {
       flex-shrink: 0;
@@ -1204,7 +1212,7 @@
       white-space: nowrap;
       pointer-events: auto;
       cursor: pointer;
-      margin-left: 2px;
+      margin-left: auto;
       width: 84px;
       box-sizing: border-box;
       text-align: center;
@@ -1213,6 +1221,7 @@
       padding: 3px 6px;
       border-radius: 12px;
       background: rgba(255,255,255,0.55);
+      line-height: 1;
       transition: opacity .15s, color .15s, background .15s, transform .1s;
     }
     #gp-step-label:hover {
@@ -1231,13 +1240,14 @@
       text-align: left;
       opacity: 0.45;
       font-weight: 500;
-      font-size: 12px;
+      font-size: 11px;
       color: #D98C8C;
+      transform: translateY(-1px);
     }
     #gp-step-label.unmeasured:hover,
     #gp-step-label.unmeasured:active {
       background: transparent;
-      transform: none;
+      transform: translateY(-1px);
     }
     /* 1段の高さ微調整カード（浮き出るカード） */
     #step-adjust-card {
@@ -1370,7 +1380,7 @@
       background: #f8fdfc;
       border: 1.5px solid var(--border);
       border-radius: 15px;
-      padding: 5px 13px;
+      padding: 7px 13px;
       font-family: 'Zen Maru Gothic', sans-serif;
       font-size: 11px;
       font-weight: 700;
@@ -1382,9 +1392,10 @@
       -webkit-tap-highlight-color: transparent;
       white-space: nowrap;
       flex-shrink: 0;
+      line-height: 1;
       box-shadow: 0 1px 3px rgba(0,0,0,0.10);
       transition: background .15s, border-color .15s, box-shadow .1s, transform .1s;
-      margin-left: 4px;
+      margin-left: 8px;
     }
     #gp-measure-btn:hover {
       background: #E4F2ED;
@@ -1393,6 +1404,10 @@
     #gp-measure-btn:active {
       box-shadow: 0 1px 1px rgba(0,0,0,0.10);
       transform: scale(.95);
+    }
+    #gp-measure-btn-text {
+      display: inline-block;
+      transform: translateY(-1px);
     }
     .measure-apply-btn:active {
       box-shadow: 0 1px 1px rgba(0,0,0,0.10);
@@ -2078,7 +2093,7 @@
   <div id="measure-bar" class="measure-bar-pos" style="position:absolute; left:50%; transform:translateX(-50%); background:#fff; border:1.5px solid var(--border); border-radius:20px; padding:8px 10px 8px 16px; box-shadow:0 4px 16px rgba(0,0,0,0.12); font-family:'Zen Maru Gothic',sans-serif; pointer-events:all; width:max-content; max-width:calc(100vw - 24px); display:flex; align-items:center; gap:10px; flex-wrap:nowrap;">
 
     <!-- ヒント表示（タップ案内） -->
-    <span id="measure-hint" style="font-size:13px; font-weight:700; color:var(--text); white-space:normal; flex-shrink:1; min-width:0; text-align:center; line-height:1;">編み図を拡大して1点目をタップ</span>
+    <span id="measure-hint" style="font-size:13px; font-weight:700; color:var(--text); white-space:normal; flex-shrink:1; min-width:0; text-align:left; line-height:1;">編み図を拡大して1点目をタップ</span>
 
     <!-- 拡大調整フェーズ専用：拡大完了ボタン -->
     <button id="measure-zoomdone-btn" style="display:none; background:var(--primary); border:none; border-radius:16px; padding:6px 14px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; color:var(--text); cursor:pointer; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.10); flex-shrink:0; -webkit-tap-highlight-color:transparent;">完了</button>
@@ -2119,7 +2134,7 @@
       <span class="toggle-knob"></span>
     </label>
     <span id="gp-step-label" style="opacity:0;" onclick="toggleStepAdjust(event)">未計測</span>
-    <button id="gp-measure-btn" style="opacity:0; pointer-events:none;">計測</button>
+    <button id="gp-measure-btn" style="opacity:0; pointer-events:none;"><span id="gp-measure-btn-text">計測</span></button>
   </div>
   <!-- 下段：カウンター行 -->
   <div id="cp-counter-row">
@@ -2271,7 +2286,7 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段ガイド機能も使えるようになります。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段ガイド機能も使えるようになります。<br>
           <strong style="font-weight:700; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
         </div>
       </div>
@@ -2283,11 +2298,11 @@
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 14px; gap:12px;">
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">ライン定規が1段ずつ動きます</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">ライン定規が1段ずつ動きます</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
           <strong style="font-weight:700; color:var(--text);">OFF</strong>：ライン定規をドラッグすると、手動で動かせます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。<br>
           ※ONの間も定規の位置をドラッグで微調整できます。編み図の歪みなどでズレた時に便利です。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
           カウンターの「計測」ボタンを押し、編み図の1段の高さを計測してください。<br>
           ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
           ※計測後は、カウンターの「1段：◯◯ px」の数値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。</p>
@@ -2334,7 +2349,7 @@
           <div class="ruler-control" style="gap:12px;">
             <label>リサイズ</label>
             <div>
-              <div class="ruler-op-desc">外枠・窓枠の辺や角をドラッグ<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">またはピンチ</span></div>
+              <div class="ruler-op-desc">外枠・窓枠の辺や角をドラッグ<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">またはピンチ</span><br>※別々にリサイズできます。</div>
             </div>
           </div>
           <div class="ruler-control" style="gap:10px;">
@@ -2382,7 +2397,7 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段ガイド機能も使えるようになります。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段ガイド機能も使えるようになります。<br>
           <strong style="font-weight:700; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
         </div>
       </div>
@@ -2394,11 +2409,11 @@
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 14px; gap:12px;">
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して、<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">フレーム定規の窓枠の上側は固定されたまま、窓枠の下側が1段ずつ動きます</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して、<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">フレーム定規の窓枠の上側は固定されたまま、窓枠の下側が1段ずつ動きます</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
           <strong style="font-weight:700; color:var(--text);">OFF</strong>：フレーム定規をドラッグすると、手動で動かせます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。<br>
           ※ONの間も定規の位置をドラッグで微調整できます。編み図の歪みなどでズレた時に便利です。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
           カウンターの「計測」ボタンを押し、編み図の1段の高さを計測してください。<br>
           ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
           ※計測後は、カウンターの「1段：◯◯ px」の数値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。</p>
@@ -2493,7 +2508,7 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段ガイド機能も使えるようになります。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段ガイド機能も使えるようになります。<br>
           <strong style="font-weight:700; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
         </div>
       </div>
@@ -2505,11 +2520,11 @@
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 14px; gap:12px;">
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">サークル定規が1段ずつ拡大縮小します</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">サークル定規が1段ずつ拡大縮小します</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
           <strong style="font-weight:700; color:var(--text);">OFF</strong>：サークル定規をドラッグすると、手動で動かせます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。<br>
           ※ONの間も定規の位置をドラッグで微調整できます。編み図の歪みなどでズレた時に便利です。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
           カウンターの「計測」ボタンを押し、編み図の1段の高さを計測してください。<br>
           ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
           ※計測後は、カウンターの「1段：◯◯ px」の数値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。</p>
@@ -2610,7 +2625,7 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段ガイド機能も使えるようになります。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段ガイド機能も使えるようになります。<br>
           <strong style="font-weight:700; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
         </div>
       </div>
@@ -2622,11 +2637,11 @@
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 14px; gap:12px;">
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">Box定規（正方形または長方形）が1段ずつ拡大縮小します</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">Box定規（正方形または長方形）が1段ずつ拡大縮小します</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
           <strong style="font-weight:700; color:var(--text);">OFF</strong>：Box定規をドラッグすると、手動で動かせます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。<br>
           ※ONの間も定規の位置をドラッグで微調整できます。編み図の歪みなどでズレた時に便利です。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:11px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
           カウンターの「計測」ボタンを押し、編み図の1段の高さを計測してください。<br>
           ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
           ※計測後は、カウンターの「1段：◯◯ px」の数値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。</p>
@@ -3708,6 +3723,7 @@
       rulerPinchDist0 = pinchDist(e.touches);
       rulerPinchW0 = rulerWidth;
       rulerPinchH0 = rulerHeight;
+      rulerHandle.classList.add('resizing');
     }
   }, { passive: false });
 
@@ -3737,6 +3753,7 @@
   rulerHandle.addEventListener('touchend', e => {
     if (e.touches.length < 2) {
       rulerPinchActive = false;
+      rulerHandle.classList.remove('resizing');
       saveSettings();
     }
   });
@@ -3784,8 +3801,9 @@
     if (rulerSizeInput)  rulerSizeInput.value = Math.max(24, Math.min(120, rulerHeight));
     if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
     applyRulerPos();
+    rulerHandle.classList.add('resizing');
     clearTimeout(rulerWheelPinchTimer);
-    rulerWheelPinchTimer = setTimeout(saveSettings, 200);
+    rulerWheelPinchTimer = setTimeout(() => { rulerHandle.classList.remove('resizing'); saveSettings(); }, 200);
   }, { passive: false });
 
   /* ========== パン（マウス） ========== */
@@ -4423,6 +4441,21 @@
       togglePanel(true);
     }
   });
+
+  // パネルを開いている時も、スクロールしてタブ（Line/Frame/Box/Circle）が見えなくなったら、
+  // 折りたたみ時と同じ「今の定規名バッジ」をヘッダーに表示する（どのタブを見ているか分かるように）
+  (function() {
+    const panelBody  = document.getElementById('panel-body');
+    const rulerTabsEl = document.querySelector('.ruler-tabs');
+    if (!panelBody || !rulerTabsEl) return;
+    function updateTabsScrolledBadge() {
+      if (floatPanel.classList.contains('collapsed')) return; // 折りたたみ中は既存の仕組みに任せる
+      const tabsBottom = rulerTabsEl.getBoundingClientRect().bottom;
+      const bodyTop     = panelBody.getBoundingClientRect().top;
+      floatPanel.classList.toggle('tabs-scrolled', tabsBottom <= bodyTop);
+    }
+    panelBody.addEventListener('scroll', updateTabsScrolledBadge, { passive: true });
+  })();
 
   // viewerタップでパネルを閉じる
   viewer.addEventListener('pointerdown', e => {
@@ -5323,6 +5356,11 @@
   let longPressTimer  = null;
   const framePanelIds = ['frame-top','frame-bottom','frame-left','frame-right'];
   const FRAME_SCREEN_MARGIN = 10; // (未使用) 旧:画面端に必ず残す余白（px）。現在は外枠サイズの10%はみ出し許容方式に変更
+  // ピンチ／トラックパッドのリサイズでも、ドラッグ時と同じく薄くするためのヘルパー
+  function setFrameDragging(on) {
+    framePanelIds.forEach(pid => document.getElementById(pid).classList.toggle('dragging', on));
+    document.getElementById('frame-3d-border').classList.toggle('dragging', on);
+  }
 
   function enterFrameResizeMode() {
     frameResizeMode = true;
@@ -5496,40 +5534,141 @@
   });
 
   // ===== 窓定規ピンチズーム =====
+  // つまんだ位置が「窓の内側」か「外枠の帯（窓の外〜外枠の間）」かで、
+  // リサイズする対象を分ける（窓だけ／外枠だけを別々に拡大縮小できるように）
   let framePinchActive = false;
   let framePinchDist0 = 0;
   let framePinchW0 = 0, framePinchH0 = 0;
+  let framePinchCX0 = 0, framePinchCY0 = 0;
+  let framePinchOuterFixed = null;
+  let frameOuterPinchActive = false;
+  let frameOuterPinchDist0 = 0;
+  let frameOuterPinchO0 = null;
+
+  function isPointInFrameWindow(x, y) {
+    return x >= fWin.x && x <= fWin.x + fWin.w && y >= fWin.y && y <= fWin.y + fWin.h;
+  }
+  function isPointOnFrameOuterBand(x, y) {
+    const outerLeft   = fWin.x - fOuter.left;
+    const outerTop    = fWin.y - fOuter.top;
+    const outerRight  = fWin.x + fWin.w + fOuter.right;
+    const outerBottom = fWin.y + fWin.h + fOuter.bottom;
+    const inOuterRect = x >= outerLeft && x <= outerRight && y >= outerTop && y <= outerBottom;
+    return inOuterRect && !isPointInFrameWindow(x, y);
+  }
+  // 窓の1辺（幅 or 高さ）を、中心を保ったまま対称に伸ばしつつ、
+  // 片方の辺が外枠の余白の下限（F_OUTER_MIN）に達したら、もう片方の辺だけで伸び続けられるようにする。
+  // startMin/startMax：伸ばす前の両端の座標。desiredSize：対称に伸ばした場合の理想サイズ。
+  // availMin/availMax：それぞれの辺が外枠にぶつからず、あとどれだけ動けるか
+  function growAxis(startMin, startMax, desiredSize, availMin, availMax) {
+    availMin = Math.max(0, availMin);
+    availMax = Math.max(0, availMax);
+    const startSize = startMax - startMin;
+    if (desiredSize <= startSize) {
+      // 縮む時は中心を保ったまま縮める
+      const half = (startSize - desiredSize) / 2;
+      return { min: startMin + half, max: startMax - half };
+    }
+    const desiredGrow = desiredSize - startSize;
+    const actualGrow  = Math.min(desiredGrow, availMin + availMax);
+    const half = actualGrow / 2;
+    let moveMin, moveMax;
+    if (half <= availMin && half <= availMax) {
+      moveMin = half; moveMax = half;
+    } else if (availMin < half) {
+      moveMin = availMin;
+      moveMax = Math.min(actualGrow - availMin, availMax);
+    } else {
+      moveMax = availMax;
+      moveMin = Math.min(actualGrow - availMax, availMin);
+    }
+    return { min: startMin - moveMin, max: startMax + moveMax };
+  }
 
   frameOverlay.addEventListener('touchstart', e => {
     e.preventDefault();
     if (e.touches.length === 2) {
-      framePinchActive = true;
-      framePinchDist0 = pinchDist(e.touches);
-      framePinchW0 = fWin.w;
-      framePinchH0 = fWin.h;
+      const t0 = e.touches[0], t1 = e.touches[1];
+      const bothOnBand = isPointOnFrameOuterBand(t0.clientX, t0.clientY) && isPointOnFrameOuterBand(t1.clientX, t1.clientY);
+      if (bothOnBand) {
+        // 2点とも外枠の帯の上 → 外枠だけをリサイズ
+        frameOuterPinchActive = true;
+        frameOuterPinchDist0 = pinchDist(e.touches);
+        frameOuterPinchO0 = { ...fOuter };
+        setFrameDragging(true);
+      } else {
+        // それ以外（窓の中、またはまたがっている）→ 窓をリサイズ。
+        // 中心座標・外枠の外側座標をスナップショット（.frame-win-edgeのドラッグと同じく、リサイズ中は固定する）。
+        // 毎フレーム現在地から再計算すると、四捨五入の端数が積み重なって中心がじわじわズレるため、
+        // 開始時の1回だけ記録して使い回す
+        framePinchActive = true;
+        framePinchDist0 = pinchDist(e.touches);
+        framePinchW0 = fWin.w;
+        framePinchH0 = fWin.h;
+        framePinchCX0 = fWin.x + fWin.w / 2;
+        framePinchCY0 = fWin.y + fWin.h / 2;
+        framePinchOuterFixed = {
+          top:    fWin.y - fOuter.top,
+          left:   fWin.x - fOuter.left,
+          right:  fWin.x + fWin.w + fOuter.right,
+          bottom: fWin.y + fWin.h + fOuter.bottom,
+        };
+        setFrameDragging(true);
+      }
     }
   }, { passive: false });
 
   frameOverlay.addEventListener('touchmove', e => {
     e.preventDefault();
+    if (frameOuterPinchActive && e.touches.length === 2) {
+      const d = pinchDist(e.touches);
+      const ratio = d / frameOuterPinchDist0;
+      fOuter.top    = Math.max(F_OUTER_MIN, Math.min(maxOuter('top'),    Math.round(frameOuterPinchO0.top    * ratio)));
+      fOuter.bottom = Math.max(F_OUTER_MIN, Math.min(maxOuter('bottom'), Math.round(frameOuterPinchO0.bottom * ratio)));
+      fOuter.left   = Math.max(F_OUTER_MIN, Math.min(maxOuter('left'),   Math.round(frameOuterPinchO0.left   * ratio)));
+      fOuter.right  = Math.max(F_OUTER_MIN, Math.min(maxOuter('right'),  Math.round(frameOuterPinchO0.right  * ratio)));
+      applyFrameOuterPos();
+      return;
+    }
     if (!framePinchActive || e.touches.length !== 2) return;
     const d = pinchDist(e.touches);
     const ratio = d / framePinchDist0;
-    const newW = Math.max(80,  Math.round(framePinchW0 * ratio));
-    const newH = Math.max(80,  Math.round(framePinchH0 * ratio));
-    // 窓の中心を固定したまま拡縮
-    const cx = fWin.x + fWin.w / 2;
-    const cy = fWin.y + fWin.h / 2;
-    fWin.w = newW;
-    fWin.h = newH;
-    fWin.x = Math.round(cx - newW / 2);
-    fWin.y = Math.round(cy - newH / 2);
+    // 窓の位置はピンチ開始時に固定した座標から計算する（毎回再計算すると端数が積み重なってズレるため）
+    const startLeft = framePinchCX0 - framePinchW0 / 2, startRight  = framePinchCX0 + framePinchW0 / 2;
+    const startTop  = framePinchCY0 - framePinchH0 / 2, startBottom = framePinchCY0 + framePinchH0 / 2;
+    const leftAvail   = startLeft   - (framePinchOuterFixed.left   + F_OUTER_MIN);
+    const rightAvail  = (framePinchOuterFixed.right  - F_OUTER_MIN) - startRight;
+    const topAvail    = startTop    - (framePinchOuterFixed.top    + F_OUTER_MIN);
+    const bottomAvail = (framePinchOuterFixed.bottom - F_OUTER_MIN) - startBottom;
+    const desiredW = Math.max(80, framePinchW0 * ratio);
+    const desiredH = Math.max(80, framePinchH0 * ratio);
+    // 横幅・縦幅それぞれ、片方の辺が外枠にぶつかっても、もう片方の辺だけで上限まで伸び続けられるようにする
+    const wRange = growAxis(startLeft, startRight,  desiredW, leftAvail, rightAvail);
+    const hRange = growAxis(startTop,  startBottom, desiredH, topAvail,  bottomAvail);
+    fWin.x = Math.round(wRange.min);
+    fWin.w = Math.round(wRange.max - wRange.min);
+    fWin.y = Math.round(hRange.min);
+    fWin.h = Math.round(hRange.max - hRange.min);
+    // 安全装置：計算結果が万一外枠の内側からはみ出しても、強制的に収める
+    fWin.x = Math.max(framePinchOuterFixed.left + F_OUTER_MIN, Math.min(fWin.x, framePinchOuterFixed.right  - F_OUTER_MIN - fWin.w));
+    fWin.y = Math.max(framePinchOuterFixed.top  + F_OUTER_MIN, Math.min(fWin.y, framePinchOuterFixed.bottom - F_OUTER_MIN - fWin.h));
+    // 外枠の外側座標から逆算して、外枠の太さを維持（外枠自体は拡大縮小しない）
+    fOuter.top    = fWin.y - framePinchOuterFixed.top;
+    fOuter.left   = fWin.x - framePinchOuterFixed.left;
+    fOuter.right  = framePinchOuterFixed.right  - (fWin.x + fWin.w);
+    fOuter.bottom = framePinchOuterFixed.bottom - (fWin.y + fWin.h);
     applyFrameOuterPos();
   }, { passive: false });
 
   frameOverlay.addEventListener('touchend', e => {
+    if (e.touches.length < 2 && frameOuterPinchActive) {
+      frameOuterPinchActive = false;
+      setFrameDragging(false);
+      saveFrameSettings();
+    }
     if (e.touches.length < 2 && framePinchActive) {
       framePinchActive = false;
+      setFrameDragging(false);
       saveFrameSettings();
     }
   });
@@ -5542,26 +5681,52 @@
     e.preventDefault();
     e.stopPropagation();
     const factor = Math.exp(-e.deltaY * 0.01);
-    const cx = fWin.x + fWin.w / 2;
-    const cy = fWin.y + fWin.h / 2;
-    // 外枠の余白(fOuter)も含めた全体が、画面端から10pxだけ余白を残して画面いっぱいまで広がれる
-    const maxHalfWFromLeft  = (cx                      - fOuter.left) - 10;
-    const maxHalfWFromRight = ((window.innerWidth - cx) - fOuter.right) - 10;
-    const maxHalfHFromTop    = (cy                       - fOuter.top) - 10;
-    const maxHalfHFromBottom = (window.innerHeight - cy) - fOuter.bottom - 10;
-    const maxHalfW = Math.min(maxHalfWFromLeft, maxHalfWFromRight);
-    const maxHalfH = Math.min(maxHalfHFromTop, maxHalfHFromBottom);
-    const maxGrowRatio = Math.min(maxHalfW / (fWin.w / 2), maxHalfH / (fWin.h / 2));
-    const cappedFactor = factor > 1 ? Math.min(factor, Math.max(1, maxGrowRatio)) : factor;
-    const newW = Math.max(80, Math.round(fWin.w * cappedFactor));
-    const newH = Math.max(80, Math.round(fWin.h * cappedFactor));
-    fWin.w = newW;
-    fWin.h = newH;
-    fWin.x = Math.round(cx - newW / 2);
-    fWin.y = Math.round(cy - newH / 2);
+    // カーソルが外枠の帯（窓の外〜外枠の間）の上なら、外枠の太さだけをリサイズする（窓は動かさない）
+    if (isPointOnFrameOuterBand(e.clientX, e.clientY)) {
+      fOuter.top    = Math.max(F_OUTER_MIN, Math.min(maxOuter('top'),    Math.round(fOuter.top    * factor)));
+      fOuter.bottom = Math.max(F_OUTER_MIN, Math.min(maxOuter('bottom'), Math.round(fOuter.bottom * factor)));
+      fOuter.left   = Math.max(F_OUTER_MIN, Math.min(maxOuter('left'),   Math.round(fOuter.left   * factor)));
+      fOuter.right  = Math.max(F_OUTER_MIN, Math.min(maxOuter('right'),  Math.round(fOuter.right  * factor)));
+      applyFrameOuterPos();
+      setFrameDragging(true);
+      clearTimeout(frameWheelPinchTimer);
+      frameWheelPinchTimer = setTimeout(() => { setFrameDragging(false); saveFrameSettings(); }, 200);
+      return;
+    }
+    const startLeft = fWin.x, startRight = fWin.x + fWin.w;
+    const startTop  = fWin.y, startBottom = fWin.y + fWin.h;
+    // 外枠の外側座標をスナップショット（.frame-win-edgeのドラッグと同じく、リサイズ中は固定する）
+    const outerFixed = {
+      top:    fWin.y - fOuter.top,
+      left:   fWin.x - fOuter.left,
+      right:  fWin.x + fWin.w + fOuter.right,
+      bottom: fWin.y + fWin.h + fOuter.bottom,
+    };
+    const leftAvail   = startLeft   - (outerFixed.left   + F_OUTER_MIN);
+    const rightAvail  = (outerFixed.right  - F_OUTER_MIN) - startRight;
+    const topAvail    = startTop    - (outerFixed.top    + F_OUTER_MIN);
+    const bottomAvail = (outerFixed.bottom - F_OUTER_MIN) - startBottom;
+    const desiredW = Math.max(80, fWin.w * factor);
+    const desiredH = Math.max(80, fWin.h * factor);
+    // 横幅・縦幅それぞれ、片方の辺が外枠にぶつかっても、もう片方の辺だけで上限まで伸び続けられるようにする
+    const wRange = growAxis(startLeft, startRight,  desiredW, leftAvail, rightAvail);
+    const hRange = growAxis(startTop,  startBottom, desiredH, topAvail,  bottomAvail);
+    fWin.x = Math.round(wRange.min);
+    fWin.w = Math.round(wRange.max - wRange.min);
+    fWin.y = Math.round(hRange.min);
+    fWin.h = Math.round(hRange.max - hRange.min);
+    // 安全装置：計算結果が万一外枠の内側からはみ出しても、強制的に収める
+    fWin.x = Math.max(outerFixed.left + F_OUTER_MIN, Math.min(fWin.x, outerFixed.right  - F_OUTER_MIN - fWin.w));
+    fWin.y = Math.max(outerFixed.top  + F_OUTER_MIN, Math.min(fWin.y, outerFixed.bottom - F_OUTER_MIN - fWin.h));
+    // 外枠の外側座標から逆算して、外枠の太さを維持（外枠自体は拡大縮小しない）
+    fOuter.top    = fWin.y - outerFixed.top;
+    fOuter.left   = fWin.x - outerFixed.left;
+    fOuter.right  = outerFixed.right  - (fWin.x + fWin.w);
+    fOuter.bottom = outerFixed.bottom - (fWin.y + fWin.h);
     applyFrameOuterPos();
+    setFrameDragging(true);
     clearTimeout(frameWheelPinchTimer);
-    frameWheelPinchTimer = setTimeout(saveFrameSettings, 200);
+    frameWheelPinchTimer = setTimeout(() => { setFrameDragging(false); saveFrameSettings(); }, 200);
   }, { passive: false });
 
   /* ========== 丸定規 ========== */
@@ -5819,8 +5984,9 @@
         const maxR = circleMaxRForScreen();
         cR = Math.max(25, Math.min(maxR, Math.round(cR * factor)));
         syncCircleSizeUI(); applyCircle();
+        setCircleDragging(true);
         clearTimeout(circleWheelPinchTimer);
-        circleWheelPinchTimer = setTimeout(saveCircleSettings, 200);
+        circleWheelPinchTimer = setTimeout(() => { setCircleDragging(false); saveCircleSettings(); }, 200);
         return;
       }
     }
@@ -5882,7 +6048,14 @@
         circleCanvas.classList.remove('rim');
         circleCanvas.style.removeProperty('cursor');
       }
+      // キャンバス自体は画面いっぱいなので、「円の上にいるか」をここで別途判定して薄くする演出と連動させる
+      const distFromCenter = Math.sqrt(dx * dx + dy * dy);
+      circleCanvas.classList.toggle('hover-near', distFromCenter <= cR + 10);
     }
+  });
+  circleCanvas.addEventListener('pointerleave', () => {
+    circleCanvas.classList.remove('hover-near', 'rim');
+    circleCanvas.style.removeProperty('cursor');
   });
   circleCanvas.addEventListener('pointerup', e => {
     if (e.pointerType === 'touch' || e.pointerType === 'pen') return;
@@ -5913,7 +6086,7 @@
         e.preventDefault();
         cTouchMode = 'pinch';
         cDragging = false; cResizing = false;
-        setCircleDragging(false);
+        setCircleDragging(true);
         cPinchDist0 = pinchDist(e.touches) || 1;
         cR0 = cR;
       } else {
@@ -6706,8 +6879,9 @@
           bxHalfH = Math.round(bxHalfH * effFactor);
         }
         applyBox();
+        setBoxDragging(true);
         clearTimeout(boxWheelPinchTimer);
-        boxWheelPinchTimer = setTimeout(saveBoxSettings, 200);
+        boxWheelPinchTimer = setTimeout(() => { setBoxDragging(false); saveBoxSettings(); }, 200);
         return;
       }
     }
@@ -6764,7 +6938,13 @@
         boxCanvas.classList.remove('rim');
         boxCanvas.style.removeProperty('cursor');
       }
+      // キャンバス自体は画面いっぱいなので、「四角の上にいるか」をここで別途判定して薄くする演出と連動させる
+      boxCanvas.classList.toggle('hover-near', hit !== null);
     }
+  });
+  boxCanvas.addEventListener('pointerleave', () => {
+    boxCanvas.classList.remove('hover-near', 'rim');
+    boxCanvas.style.removeProperty('cursor');
   });
   boxCanvas.addEventListener('pointerup', e => {
     if (e.pointerType === 'touch') return; // ペンはマウスと同様に扱う
@@ -6797,7 +6977,7 @@
         e.preventDefault();
         bxTouchMode = 'pinch';
         bxDragging = false; bxResizing = false;
-        setBoxDragging(false);
+        setBoxDragging(true);
         bxPinchDist0 = pinchDist(e.touches) || 1;
         bxHalfW00 = bxHalfW; bxHalfH00 = bxHalfH;
       } else {
