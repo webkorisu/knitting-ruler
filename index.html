@@ -3337,9 +3337,12 @@
     } else if (currentRulerTab === 'frame') {
       if (frameCount < 999) {
         frameCount++;
-        if (frameStep > 0 && fWin.h - frameStep >= 20) {
-          fWin.h     -= frameStep; // 窓を縮める
-          fOuter.bottom += frameStep; // 外枠はそのまま（底辺を固定）
+        // 残りが1段の高さ以上ある間は1段ずつきっちり縮み、
+        // 残りが1段未満になったら、その回で一気に5px（線として見える最小の高さ）まで閉じきる
+        if (frameStep > 0 && fWin.h > 5) {
+          const newH = fWin.h >= frameStep ? fWin.h - frameStep : 5;
+          fOuter.bottom += fWin.h - newH; // 外枠はそのまま（底辺を固定）
+          fWin.h = newH; // 窓を縮める
           applyFrameOuterPos(); applyFrameStyle();
         }
         cpNum.textContent = frameCount;
@@ -3906,11 +3909,10 @@
   /* ========== タッチ：パン＋ピンチ（感度調整） ========== */
   let touches = [], lastPinchDist = 0, lastTouchX = 0, lastTouchY = 0;
 
-  // 編み図のパン・ピンチ処理本体。Circle定規の円の外側タッチからも呼ばれる（共通化）。
+  // 編み図のパン・ピンチ処理本体。Circle定規の円の外側タッチや、Frame定規の窓の内側タッチからも呼ばれる（共通化）。
   function viewerTouchStart(e) {
     if (!img) return;
     if (e.target.closest('#float-panel') || e.target.closest('#ruler-handle')) return;
-    if (e.target.closest('#frame-win-wrap')) return;
     touches = Array.from(e.touches);
     if (touches.length === 1) { lastTouchX = touches[0].clientX; lastTouchY = touches[0].clientY; }
     else if (touches.length === 2) { lastPinchDist = pinchDist(touches); }
@@ -3918,7 +3920,6 @@
   function viewerTouchMove(e) {
     if (!img) return;
     if (e.target.closest('#float-panel') || e.target.closest('#ruler-handle')) return;
-    if (e.target.closest('#frame-win-wrap')) return;
     const now = Array.from(e.touches);
     if (now.length === 1 && touches.length === 1) {
       offsetX += now[0].clientX - lastTouchX;
@@ -4741,6 +4742,12 @@
   function applyFrameOuterPos() {
     const sw = window.innerWidth, sh = window.innerHeight;
 
+    // 安全装置：どの操作が原因でも、外枠の太さが30pxを下回らないことをここで必ず保証する
+    fOuter.top    = Math.max(F_OUTER_MIN, fOuter.top);
+    fOuter.left   = Math.max(F_OUTER_MIN, fOuter.left);
+    fOuter.right  = Math.max(F_OUTER_MIN, fOuter.right);
+    fOuter.bottom = Math.max(F_OUTER_MIN, fOuter.bottom);
+
     // 外枠の外側座標（fOuter は窓からの余白）
     const outerTop    = Math.max(0,  fWin.y - fOuter.top);
     const outerLeft   = Math.max(0,  fWin.x - fOuter.left);
@@ -4773,7 +4780,7 @@
     frameWinWrap.style.top    = fWin.y + 'px';
     frameWinWrap.style.width  = fWin.w + 'px';
     frameWinWrap.style.height = fWin.h + 'px';
-    frameWinWrap.style.pointerEvents = 'none';
+    frameWinWrap.style.pointerEvents = 'all';
 
     // 外枠コーナーの位置更新（中心座標をそのまま渡す。CSSのtransform:translate(-50%,-50%)で中心が合う）
     const setCorner = (id, t, l) => {
@@ -4818,27 +4825,54 @@
 
     // frame-3d-borderをSVGで額縁として描画
     const sw = window.innerWidth, sh = window.innerHeight;
+    // 安全装置：どの操作が原因でも、外枠の太さが30pxを下回らないことをここで必ず保証する
+    fOuter.top    = Math.max(F_OUTER_MIN, fOuter.top);
+    fOuter.left   = Math.max(F_OUTER_MIN, fOuter.left);
+    fOuter.right  = Math.max(F_OUTER_MIN, fOuter.right);
+    fOuter.bottom = Math.max(F_OUTER_MIN, fOuter.bottom);
     const outerLeft   = Math.max(0,  fWin.x - fOuter.left);
     const outerTop    = Math.max(0,  fWin.y - fOuter.top);
     const outerRight  = Math.min(sw, fWin.x + fWin.w + fOuter.right);
     const outerBottom = Math.min(sh, fWin.y + fWin.h + fOuter.bottom);
     const ow = outerRight - outerLeft;
     const oh = outerBottom - outerTop;
-    // 窓の座標（frame-3d-border基準）
-    const wx  = fWin.x - outerLeft;
-    const wy  = fWin.y - outerTop;
-    const ww  = fWin.w;
-    const wh  = fWin.h;
+    // 窓の座標（frame-3d-border基準）。
+    // 外枠が画面端でクランプされている時、窓の位置がキャンバス（0〜ow, 0〜oh）の外に出てしまうことがあるため、
+    // はみ出した分は内側で切り詰めて、穴の形が崩れないようにする
+    let wx  = fWin.x - outerLeft;
+    let wy  = fWin.y - outerTop;
+    let ww  = fWin.w;
+    let wh  = fWin.h;
+    if (wx < 0) { ww += wx; wx = 0; }
+    if (wy < 0) { wh += wy; wy = 0; }
+    if (wx + ww > ow) ww = ow - wx;
+    if (wy + wh > oh) wh = oh - wy;
+    ww = Math.max(0, ww);
+    wh = Math.max(0, wh);
     const rad = 10;
     const fa  = fAlpha;
     const bc  = Math.min(1, fa * 1.6); // 枠線の濃さ（旧border方式と同じ濃さになるよう1.6倍のまま）
     const hl  = Math.min(12, ow/3, oh/3); // ハイライトの太さ：上下左右すべて共通の値にする（Line定規と同じ考え方）
     const M   = 16; // 外側の光がはみ出すための余白（Line定規のapplyRulerStyle()と同じ仕組み）
 
-    const framePathD = `M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad}
-             V${oh-rad} Q${ow},${oh} ${ow-rad},${oh}
-             H${rad} Q0,${oh} 0,${oh-rad}
-             V${rad} Q0,0 ${rad},0 Z
+    // 外枠が画面端でクランプされている辺には丸みを付けない（切れているだけの辺が丸く見えてしまうため）。
+    // 両隣の辺がどちらも画面端でクランプされていない角だけ、本来通り丸くする
+    const clampedLeft   = (fWin.x - fOuter.left) < 0;
+    const clampedTop    = (fWin.y - fOuter.top) < 0;
+    const clampedRight  = (fWin.x + fWin.w + fOuter.right)  > sw;
+    const clampedBottom = (fWin.y + fWin.h + fOuter.bottom) > sh;
+    const radTL = (!clampedLeft  && !clampedTop)    ? rad : 0;
+    const radTR = (!clampedRight && !clampedTop)    ? rad : 0;
+    const radBR = (!clampedRight && !clampedBottom) ? rad : 0;
+    const radBL = (!clampedLeft  && !clampedBottom) ? rad : 0;
+    // 角丸四角形のpathを、角ごとに丸め有無を切り替えて組み立てるヘルパー
+    const framePath = (w, h, rTL, rTR, rBR, rBL) =>
+      `M${rTL},0 H${w-rTR}${rTR>0?` Q${w},0 ${w},${rTR}`:''}` +
+      ` V${h-rBR}${rBR>0?` Q${w},${h} ${w-rBR},${h}`:''}` +
+      ` H${rBL}${rBL>0?` Q0,${h} 0,${h-rBL}`:''}` +
+      ` V${rTL}${rTL>0?` Q0,0 ${rTL},0`:''} Z`;
+
+    const framePathD = `${framePath(ow, oh, radTL, radTR, radBR, radBL)}
              M${wx},${wy} H${wx+ww} V${wy+wh} H${wx} Z`;
 
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow + M*2}" height="${oh + M*2}">
@@ -4863,7 +4897,7 @@
           <feGaussianBlur stdDeviation="4"/>
         </filter>
         <clipPath id="fclip">
-          <rect x="0" y="0" width="${ow}" height="${oh}" rx="${rad}" ry="${rad}"/>
+          <path d="${framePath(ow, oh, radTL, radTR, radBR, radBL)}"/>
         </clipPath>
       </defs>
       <g transform="translate(${M},${M})">
@@ -4877,13 +4911,13 @@
         <!-- ハイライト（本体と同じ丸みでクリップし、角に直線の継ぎ目が出ないようにする。Line定規と同じ仕組み） -->
         <g clip-path="url(#fclip)">
           <path fill="url(#lg_t)"
-            d="M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${hl} H0 V${rad} Q0,0 ${rad},0 Z"/>
+            d="M${radTL},0 H${ow-radTR}${radTR>0?` Q${ow},0 ${ow},${radTR}`:''} V${hl} H0 V${radTL}${radTL>0?` Q0,0 ${radTL},0`:''} Z"/>
           <path fill="url(#lg_b)"
-            d="M0,${oh-hl} H${ow} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
+            d="M0,${oh-hl} H${ow} V${oh-radBR}${radBR>0?` Q${ow},${oh} ${ow-radBR},${oh}`:''} H${radBL}${radBL>0?` Q0,${oh} 0,${oh-radBL}`:''} Z"/>
           <path fill="url(#lg_l)"
-            d="M0,${rad} Q0,0 ${rad},0 H${hl} V${oh} H${rad} Q0,${oh} 0,${oh-rad} Z"/>
+            d="M0,${radTL}${radTL>0?` Q0,0 ${radTL},0`:''} H${hl} V${oh} H${radBL}${radBL>0?` Q0,${oh} 0,${oh-radBL}`:''} Z"/>
           <path fill="url(#lg_r)"
-            d="M${ow-hl},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${oh-rad} Q${ow},${oh} ${ow-rad},${oh} H${ow-hl} Z"/>
+            d="M${ow-hl},0 H${ow-radTR}${radTR>0?` Q${ow},0 ${ow},${radTR}`:''} V${oh-radBR}${radBR>0?` Q${ow},${oh} ${ow-radBR},${oh}`:''} H${ow-hl} Z"/>
         </g>
       </g>
     </svg>`;
@@ -5600,7 +5634,9 @@
         // それ以外（窓の中、またはまたがっている）→ 窓をリサイズ。
         // 中心座標・外枠の外側座標をスナップショット（.frame-win-edgeのドラッグと同じく、リサイズ中は固定する）。
         // 毎フレーム現在地から再計算すると、四捨五入の端数が積み重なって中心がじわじわズレるため、
-        // 開始時の1回だけ記録して使い回す
+        // 開始時の1回だけ記録して使い回す。
+        // 外側座標は、見た目の描画（applyFrameOuterPos）と同じく画面端でクランプしておく
+        // （そうしないと、外枠が画面端をはみ出す位置にある時、計算上の外側座標と実際の見た目がズレてしまう）
         framePinchActive = true;
         framePinchDist0 = pinchDist(e.touches);
         framePinchW0 = fWin.w;
@@ -5608,10 +5644,10 @@
         framePinchCX0 = fWin.x + fWin.w / 2;
         framePinchCY0 = fWin.y + fWin.h / 2;
         framePinchOuterFixed = {
-          top:    fWin.y - fOuter.top,
-          left:   fWin.x - fOuter.left,
-          right:  fWin.x + fWin.w + fOuter.right,
-          bottom: fWin.y + fWin.h + fOuter.bottom,
+          top:    Math.max(0, fWin.y - fOuter.top),
+          left:   Math.max(0, fWin.x - fOuter.left),
+          right:  Math.min(window.innerWidth,  fWin.x + fWin.w + fOuter.right),
+          bottom: Math.min(window.innerHeight, fWin.y + fWin.h + fOuter.bottom),
         };
         setFrameDragging(true);
       }
@@ -5657,6 +5693,11 @@
     fOuter.left   = fWin.x - framePinchOuterFixed.left;
     fOuter.right  = framePinchOuterFixed.right  - (fWin.x + fWin.w);
     fOuter.bottom = framePinchOuterFixed.bottom - (fWin.y + fWin.h);
+    // 安全装置：外枠の太さが万一30pxを下回っても、描画する直前に強制的に30pxへ戻す
+    fOuter.top    = Math.max(F_OUTER_MIN, fOuter.top);
+    fOuter.left   = Math.max(F_OUTER_MIN, fOuter.left);
+    fOuter.right  = Math.max(F_OUTER_MIN, fOuter.right);
+    fOuter.bottom = Math.max(F_OUTER_MIN, fOuter.bottom);
     applyFrameOuterPos();
   }, { passive: false });
 
@@ -5671,6 +5712,44 @@
       setFrameDragging(false);
       saveFrameSettings();
     }
+  });
+
+  // ===== 窓の内側（frameWinWrap）専用のタッチ処理 =====
+  // frameWinWrapは窓の内側だけを覆う透明な板。指1本の操作（編み図のパン・タップ計測など）は
+  // 編み図側にそのまま委譲し、指2本になったら委譲をやめて、frame-overlay側の既存のピンチ判定
+  // （bothOnBand等）にバブリングでそのまま任せる（＝窓の中でつまんでも確実にframe-overlayに届く）。
+  let frameWinTouchMode = null;
+  frameWinWrap.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+      e.preventDefault();
+      e.stopPropagation();
+      frameWinTouchMode = 'viewer';
+      viewerTouchStart(e);
+    } else if (e.touches.length >= 2) {
+      // 2本目以降が触れたら委譲モードを解除し、frame-overlay側のピンチ判定に譲る
+      frameWinTouchMode = null;
+    }
+  }, { passive: false });
+  frameWinWrap.addEventListener('touchmove', e => {
+    if (frameWinTouchMode === 'viewer') {
+      e.preventDefault();
+      e.stopPropagation();
+      viewerTouchMove(e);
+    }
+  }, { passive: false });
+  frameWinWrap.addEventListener('touchend', e => {
+    if (frameWinTouchMode === 'viewer') {
+      viewerTouchEnd(e);
+      e.stopPropagation();
+    }
+    frameWinTouchMode = null;
+  }, { passive: false });
+  frameWinWrap.addEventListener('touchcancel', () => {
+    frameWinTouchMode = null;
+  });
+  // マウスでのドラッグ（編み図のパン）も同様に委譲する
+  frameWinWrap.addEventListener('mousedown', e => {
+    viewerMouseDown(e);
   });
 
   // ===== 窓定規：トラックパッドのピンチ（ctrlKey付きwheel）=====
@@ -5695,12 +5774,13 @@
     }
     const startLeft = fWin.x, startRight = fWin.x + fWin.w;
     const startTop  = fWin.y, startBottom = fWin.y + fWin.h;
-    // 外枠の外側座標をスナップショット（.frame-win-edgeのドラッグと同じく、リサイズ中は固定する）
+    // 外枠の外側座標をスナップショット（.frame-win-edgeのドラッグと同じく、リサイズ中は固定する）。
+    // 見た目の描画（applyFrameOuterPos）と同じく画面端でクランプしておく
     const outerFixed = {
-      top:    fWin.y - fOuter.top,
-      left:   fWin.x - fOuter.left,
-      right:  fWin.x + fWin.w + fOuter.right,
-      bottom: fWin.y + fWin.h + fOuter.bottom,
+      top:    Math.max(0, fWin.y - fOuter.top),
+      left:   Math.max(0, fWin.x - fOuter.left),
+      right:  Math.min(window.innerWidth,  fWin.x + fWin.w + fOuter.right),
+      bottom: Math.min(window.innerHeight, fWin.y + fWin.h + fOuter.bottom),
     };
     const leftAvail   = startLeft   - (outerFixed.left   + F_OUTER_MIN);
     const rightAvail  = (outerFixed.right  - F_OUTER_MIN) - startRight;
@@ -5723,6 +5803,11 @@
     fOuter.left   = fWin.x - outerFixed.left;
     fOuter.right  = outerFixed.right  - (fWin.x + fWin.w);
     fOuter.bottom = outerFixed.bottom - (fWin.y + fWin.h);
+    // 安全装置：外枠の太さが万一30pxを下回っても、描画する直前に強制的に30pxへ戻す
+    fOuter.top    = Math.max(F_OUTER_MIN, fOuter.top);
+    fOuter.left   = Math.max(F_OUTER_MIN, fOuter.left);
+    fOuter.right  = Math.max(F_OUTER_MIN, fOuter.right);
+    fOuter.bottom = Math.max(F_OUTER_MIN, fOuter.bottom);
     applyFrameOuterPos();
     setFrameDragging(true);
     clearTimeout(frameWheelPinchTimer);
