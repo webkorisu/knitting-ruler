@@ -4974,7 +4974,7 @@
   }
 
   function resetFrameDefault() {
-    frameStep = 0; frameStepBase = 0; frameCount = 0; showFrameCounter = true;
+    showFrameCounter = true;
     document.getElementById('toggle-frame-counter').checked = true;
     syncGuideRowUI('frame');
     const DEFAULT_COLOR = '#b2aaaa';
@@ -5714,42 +5714,110 @@
     }
   });
 
-  // ===== 窓の内側（frameWinWrap）専用のタッチ処理 =====
-  // frameWinWrapは窓の内側だけを覆う透明な板。指1本の操作（編み図のパン・タップ計測など）は
-  // 編み図側にそのまま委譲し、指2本になったら委譲をやめて、frame-overlay側の既存のピンチ判定
-  // （bothOnBand等）にバブリングでそのまま任せる（＝窓の中でつまんでも確実にframe-overlayに届く）。
+  // ===== 窓の内側（frameWinWrap）専用のタッチ・マウス処理 =====
+  // frameWinWrapは窓の内側だけを覆う透明な板。指1本／マウスドラッグでは「窓（フレーム全体）を動かす」
+  // （.frame-panelの帯をドラッグする時と同じ移動ロジック）。指2本になったら移動をやめて、
+  // frame-overlay側の既存のピンチ判定（bothOnBand等）にバブリングでそのまま任せる
+  // （＝窓の中でつまんでも確実にframe-overlayに届く）。
+  let frameWinDragStartX = 0, frameWinDragStartY = 0;
+  let frameWinDragStartWinX = 0, frameWinDragStartWinY = 0;
+  let frameWinDragStartOuter = { top: 0, left: 0, bottom: 0, right: 0 };
+  function frameWinMoveStart(clientX, clientY) {
+    frameWinDragStartX = clientX; frameWinDragStartY = clientY;
+    frameWinDragStartWinX = fWin.x; frameWinDragStartWinY = fWin.y;
+    frameWinDragStartOuter = { ...fOuter };
+    setFrameDragging(true);
+  }
+  function frameWinMoveTo(clientX, clientY) {
+    const dx = clientX - frameWinDragStartX, dy = clientY - frameWinDragStartY;
+    const scw = window.innerWidth, sch = window.innerHeight;
+    // 90%まで隠れてOKだが、最低44px（指1本分）は必ず見えるよう保証（.frame-panelの帯ドラッグと同じ計算式）
+    const outerW = fWin.w + frameWinDragStartOuter.left + frameWinDragStartOuter.right;
+    const outerH = fWin.h + frameWinDragStartOuter.top  + frameWinDragStartOuter.bottom;
+    const visX = Math.max(44, outerW * 0.1);
+    const visY = Math.max(44, outerH * 0.1);
+    const minX = visX - fWin.w - frameWinDragStartOuter.right;
+    const minY = visY - fWin.h - frameWinDragStartOuter.bottom;
+    const maxX = scw - visX + frameWinDragStartOuter.left;
+    const maxY = sch - visY + frameWinDragStartOuter.top;
+    fWin.x = Math.max(minX, Math.min(maxX, frameWinDragStartWinX + dx));
+    fWin.y = Math.max(minY, Math.min(maxY, frameWinDragStartWinY + dy));
+    applyFrameOuterPos();
+  }
+  function frameWinMoveEnd() {
+    setFrameDragging(false);
+    // ドラッグ後に強制クランプ：最低44px（指1本分）は必ず画面内に残す
+    const outerW = fWin.w + fOuter.left + fOuter.right;
+    const outerH = fWin.h + fOuter.top  + fOuter.bottom;
+    const visX = Math.max(44, outerW * 0.1);
+    const visY = Math.max(44, outerH * 0.1);
+    const minX = visX - fWin.w - fOuter.right;
+    const minY = visY - fWin.h - fOuter.bottom;
+    const maxX = window.innerWidth  - visX + fOuter.left;
+    const maxY = window.innerHeight - visY + fOuter.top;
+    fWin.x = Math.max(minX, Math.min(maxX, fWin.x));
+    fWin.y = Math.max(minY, Math.min(maxY, fWin.y));
+    applyFrameOuterPos();
+    saveFrameSettings();
+  }
+
+  // frame-win-drag（中央ドラッグ）／frame-win-edge／frame-win-corner は、それぞれ自分自身の
+  // pointerdown/pointermove（窓の移動・リサイズ）ですでに処理しているので、その上ではここでは何もしない。
+  // ここが処理するのは、それら専用ハンドルに当たらない「隙間」だけ（縁のごく細い帯など）。
+  function isOnFrameWinControl(target) {
+    return !!(target.closest('#frame-win-drag') || target.closest('.frame-win-edge') || target.closest('.frame-win-corner'));
+  }
+
   let frameWinTouchMode = null;
   frameWinWrap.addEventListener('touchstart', e => {
+    if (isOnFrameWinControl(e.target)) return; // 専用ハンドル側のpointerdownに任せる
     if (e.touches.length === 1) {
       e.preventDefault();
       e.stopPropagation();
-      frameWinTouchMode = 'viewer';
-      viewerTouchStart(e);
+      frameWinTouchMode = 'move';
+      const t = e.touches[0];
+      frameWinMoveStart(t.clientX, t.clientY);
     } else if (e.touches.length >= 2) {
-      // 2本目以降が触れたら委譲モードを解除し、frame-overlay側のピンチ判定に譲る
+      // 2本目以降が触れたら移動モードを解除し、frame-overlay側のピンチ判定に譲る
+      if (frameWinTouchMode === 'move') setFrameDragging(false);
       frameWinTouchMode = null;
     }
   }, { passive: false });
   frameWinWrap.addEventListener('touchmove', e => {
-    if (frameWinTouchMode === 'viewer') {
+    if (frameWinTouchMode === 'move' && e.touches.length === 1) {
       e.preventDefault();
       e.stopPropagation();
-      viewerTouchMove(e);
+      const t = e.touches[0];
+      frameWinMoveTo(t.clientX, t.clientY);
     }
   }, { passive: false });
   frameWinWrap.addEventListener('touchend', e => {
-    if (frameWinTouchMode === 'viewer') {
-      viewerTouchEnd(e);
+    if (frameWinTouchMode === 'move') {
+      frameWinMoveEnd();
       e.stopPropagation();
     }
     frameWinTouchMode = null;
   }, { passive: false });
   frameWinWrap.addEventListener('touchcancel', () => {
+    if (frameWinTouchMode === 'move') setFrameDragging(false);
     frameWinTouchMode = null;
   });
-  // マウスでのドラッグ（編み図のパン）も同様に委譲する
+  // マウスでのドラッグも同様に「窓を動かす」動作にする（隙間のみ。専用ハンドル上は自分のpointerdownに任せる）
+  let frameWinMouseDragging = false;
   frameWinWrap.addEventListener('mousedown', e => {
-    viewerMouseDown(e);
+    if (isOnFrameWinControl(e.target)) return;
+    frameWinMouseDragging = true;
+    frameWinMoveStart(e.clientX, e.clientY);
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', e => {
+    if (!frameWinMouseDragging) return;
+    frameWinMoveTo(e.clientX, e.clientY);
+  });
+  window.addEventListener('mouseup', () => {
+    if (!frameWinMouseDragging) return;
+    frameWinMouseDragging = false;
+    frameWinMoveEnd();
   });
 
   // ===== 窓定規：トラックパッドのピンチ（ctrlKey付きwheel）=====
@@ -5981,7 +6049,7 @@
   // リセット
   window.resetCircleDefault = function() {
     cR = 50; cColor = '#b2aaaa'; cAlpha = 0.80;
-    circleStep = 0; circleStepBase = 0; circleCount = 0; showCircleCounter = true;
+    showCircleCounter = true;
     cX = Math.round(window.innerWidth  / 2);
     // テキスト2行＋注意文2行の下端 + 35px + 半径 の位置に円の中心を配置（テキストと重ならないように）
     const sh = window.innerHeight;
@@ -6705,7 +6773,7 @@
     bxSquareColor = null; bxSquareAlpha = null; // 記憶していた色・濃さもリセット
     bxRectColor = null; bxRectAlpha = null;
     bxIsSquareMode = wasSquareMode;
-    boxStep = 0; boxStepBase = 0; boxCount = 0; showBoxCounter = true;
+    showBoxCounter = true;
     bxX = Math.round(window.innerWidth  / 2);
     const sh = window.innerHeight;
     const textCenterY = sh / 2;
