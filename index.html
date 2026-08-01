@@ -1789,7 +1789,7 @@
       font-size: 11px;
       font-weight: 700;
       color: #FFFFFF;
-      background: #c2baba;
+      background: #b2aaaa;
       border: none;
       border-radius: 20px;
       letter-spacing: .06em;
@@ -1981,6 +1981,69 @@
     }
     .reload-latest-btn:hover { background: #f4faf8; border-color: var(--primary); }
     .reload-latest-btn:active { transform: scale(.97); }
+
+    /* フッター：Xリンク・最終更新日 */
+    .x-footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 2px 0;
+    }
+    .x-footer-icons {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .x-icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      text-decoration: none;
+      transition: background .2s, border-color .2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .x-icon-btn svg { fill: var(--text-sub); }
+    .x-icon-btn:hover { background: #f4faf8; border-color: var(--border); }
+    .x-icon-btn:hover svg { fill: var(--text-sub); }
+    /* ホバー時の小さなツールチップ（マウスのある機種だけ。タッチ画面では:hoverが貼り付くため出さない） */
+    @media (hover: hover) {
+      .x-icon-btn { position: relative; }
+      .x-icon-btn::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: calc(100% + 6px);
+        left: 0;
+        transform: translateY(4px);
+        background: var(--text);
+        color: #fff;
+        font-family: 'Zen Maru Gothic', sans-serif;
+        font-size: 10px;
+        letter-spacing: .04em;
+        padding: 4px 8px;
+        border-radius: 6px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .15s, transform .15s;
+        z-index: 20;
+      }
+      .x-icon-btn:hover::after {
+        opacity: .88;
+        transform: translateY(0);
+      }
+    }
+    .last-updated {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 10px;
+      color: var(--text-sub);
+      opacity: .7;
+      letter-spacing: .04em;
+    }
 
     /* パネルセクション区切り */
     .panel-divider {
@@ -2542,7 +2605,7 @@
       <!-- アコーディオン①カスタマイズ -->
       <div class="card-accordion" id="box-acc-custom">
         <button class="card-accordion-btn" onclick="toggleCardAcc('box-acc-custom')">
-          <span>Box定規のカスタマイズ</span>
+          <span>ボックス定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:20px 12px 20px; gap:20px;">
@@ -2637,8 +2700,8 @@
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 14px; gap:12px;">
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">Box定規（正方形または長方形）が1段ずつ拡大縮小します</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
-          <strong style="font-weight:700; color:var(--text);">OFF</strong>：Box定規をドラッグすると、手動で動かせます。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">ボックス定規（正方形または長方形）が1段ずつ拡大縮小します</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
+          <strong style="font-weight:700; color:var(--text);">OFF</strong>：ボックス定規をドラッグすると、手動で動かせます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。<br>
           ※ONの間も定規の位置をドラッグで微調整できます。編み図の歪みなどでズレた時に便利です。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
@@ -2710,6 +2773,27 @@
           <p>📱 ホーム画面に追加してご利用の場合、アップデート後もすぐには最新版に切り替わらないことがあります。反映されない時は、アプリスイッチャーから一度完全に閉じて開き直すか、下のボタンで最新版を読み込み直せます（お気に入り定規などの保存データが消えることはありません）。</p>
           <button type="button" class="reload-latest-btn" onclick="reloadLatestVersion()">🔄 最新版を読み込み直す</button>
         </div>
+      </div>
+
+      <div class="x-footer-row">
+        <div class="x-footer-icons">
+          <a href="https://x.com/yuttyan4444" target="_blank" rel="noopener noreferrer"
+             aria-label="XでYUCCHIをフォロー" data-tooltip="Xへ" class="x-icon-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.254 5.622L18.244 2.25Zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77Z"/>
+            </svg>
+          </a>
+          <a href="https://webkorisu.github.io/yucchis-portal/" target="_blank" rel="noopener noreferrer"
+             aria-label="✿ YUCCHIのアプリ一覧を開く" data-tooltip="アプリ一覧" class="x-icon-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3"  y="3"  width="8" height="8" rx="2.2"/>
+              <rect x="13" y="3"  width="8" height="8" rx="2.2"/>
+              <rect x="3"  y="13" width="8" height="8" rx="2.2"/>
+              <rect x="13" y="13" width="8" height="8" rx="2.2"/>
+            </svg>
+          </a>
+        </div>
+        <div class="last-updated">最終更新：2026.08.01</div>
       </div>
 
     </div>
