@@ -1612,7 +1612,7 @@
       background: var(--primary);
       border: none;
       border-radius: 20px;
-      padding: 5px 12px;
+      padding: 4px 12px 6px;
       cursor: pointer;
       white-space: nowrap;
       flex-shrink: 0;
@@ -1905,7 +1905,7 @@
       font-weight: 700;
       letter-spacing: .06em;
       border-radius: var(--radius-sm);
-      padding: 8px 20px;
+      padding: 7px 20px 9px;
       cursor: pointer;
       border: 1.5px solid var(--border);
       transition: background .12s, transform .1s, opacity .15s;
@@ -2159,7 +2159,7 @@
     <span id="measure-hint" style="font-size:13px; font-weight:700; color:var(--text); white-space:normal; flex-shrink:1; min-width:0; text-align:left; line-height:1;">編み図を拡大して1点目をタップ</span>
 
     <!-- 拡大調整フェーズ専用：拡大完了ボタン -->
-    <button id="measure-zoomdone-btn" style="display:none; background:var(--primary); border:none; border-radius:16px; padding:6px 14px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; color:var(--text); cursor:pointer; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.10); flex-shrink:0; -webkit-tap-highlight-color:transparent;">完了</button>
+    <button id="measure-zoomdone-btn" style="display:none; background:var(--primary); border:none; border-radius:16px; padding:5px 14px 7px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; color:var(--text); cursor:pointer; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.10); flex-shrink:0; -webkit-tap-highlight-color:transparent;">完了</button>
 
     <!-- Box定規専用：計測前に縦/横を選ぶトグル -->
     <div id="measure-axis-toggle" style="display:none; align-items:center; gap:4px; flex-shrink:0; background:var(--bg); border-radius:14px; padding:3px;">
@@ -2363,8 +2363,8 @@
         <div class="card-accordion-body" style="padding:14px 12px 14px; gap:12px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">ライン定規が1段ずつ動きます</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
           <strong style="font-weight:700; color:var(--text);">OFF</strong>：ライン定規をドラッグすると、手動で動かせます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。<br>
-          ※ONの間も定規の位置をドラッグで微調整できます。編み図の歪みなどでズレた時に便利です。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使えます。<br>
+          ※ONの間も定規の位置をドラッグで微調整でき、編み図の歪みなどでズレた時に便利です。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
           カウンターの「計測」ボタンを押し、編み図の1段の高さを計測してください。<br>
           ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
@@ -2474,8 +2474,8 @@
         <div class="card-accordion-body" style="padding:14px 12px 14px; gap:12px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して、<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">フレーム定規の窓枠の上側は固定されたまま、窓枠の下側が1段ずつ動きます</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
           <strong style="font-weight:700; color:var(--text);">OFF</strong>：フレーム定規をドラッグすると、手動で動かせます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。<br>
-          ※ONの間も定規の位置をドラッグで微調整できます。編み図の歪みなどでズレた時に便利です。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使えます。<br>
+          ※ONの間も定規の位置をドラッグで微調整でき、編み図の歪みなどでズレた時に便利です。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
           カウンターの「計測」ボタンを押し、編み図の1段の高さを計測してください。<br>
           ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
@@ -2584,9 +2584,9 @@
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 14px; gap:12px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">サークル定規が1段ずつ拡大縮小します</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
-          <strong style="font-weight:700; color:var(--text);">OFF</strong>：サークル定規をドラッグすると、手動で動かせます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。<br>
-          ※ONの間も定規の位置をドラッグで微調整できます。編み図の歪みなどでズレた時に便利です。</p>
+          <strong style="font-weight:700; color:var(--text);">OFF</strong>：サークル定規をドラッグまたはピンチすると拡大縮小できます。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使えます。<br>
+          ※ONの間も定規の位置をドラッグで微調整でき、編み図の歪みなどでズレた時に便利です。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
           カウンターの「計測」ボタンを押し、編み図の1段の高さを計測してください。<br>
           ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
@@ -2701,9 +2701,9 @@
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 14px; gap:12px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">ボックス定規（正方形または長方形）が1段ずつ拡大縮小します</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
-          <strong style="font-weight:700; color:var(--text);">OFF</strong>：ボックス定規をドラッグすると、手動で動かせます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使える機能です。<br>
-          ※ONの間も定規の位置をドラッグで微調整できます。編み図の歪みなどでズレた時に便利です。</p>
+          <strong style="font-weight:700; color:var(--text);">OFF</strong>：ボックス定規をドラッグまたはピンチすると拡大縮小できます。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※段数カウンターがONの時に使えます。<br>
+          ※ONの間も定規の位置をドラッグで微調整でき、編み図の歪みなどでズレた時に便利です。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">【1段の高さの計測方法】<br>
           カウンターの「計測」ボタンを押し、編み図の1段の高さを計測してください。<br>
           ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
@@ -3382,6 +3382,38 @@
     return 0;
   }
 
+  // Frame定規：窓が閉じきった時に出す確認モーダル（「＋」で閉じきった瞬間／閉じきった状態でさらに押した時の両方から呼ぶ）
+  // どちらを選んでも窓は元のサイズに開き直す（次の模様をまた測れる状態にする）。違うのはカウントの数字だけ：
+  // 「続ける」は今の数字のまま、「0に戻す」は0から。
+  function showFrameLimitModal() {
+    showModal(
+      '窓が閉じきりました。\n窓は元のサイズに開き直します。\nカウントは続けますか？',
+      '続ける',
+      () => {
+        frameLimitAcknowledged = true;
+        if (frameSegStartH != null) {
+          fWin.h = frameSegStartH;
+          fOuter = { ...frameSegStartOuter };
+          applyFrameOuterPos(); applyFrameStyle();
+        }
+        saveFrameSettings();
+      },
+      true,
+      '0に戻す',
+      () => {
+        frameCount = 0;
+        frameLimitAcknowledged = false;
+        if (frameSegStartH != null) {
+          fWin.h = frameSegStartH;
+          fOuter = { ...frameSegStartOuter };
+          applyFrameOuterPos(); applyFrameStyle();
+        }
+        cpNum.textContent = frameCount;
+        saveFrameSettings();
+      }
+    );
+  }
+
   cpPlus.addEventListener('click', e => {
     e.stopPropagation();
     if (currentRulerTab === 'circle') {
@@ -3417,17 +3449,45 @@
       }
     } else if (currentRulerTab === 'frame') {
       if (frameCount < 999) {
+        const guideActive = frameStep > 0;
+        // まだこの区間の「元サイズ」を記録していなければ、今の窓サイズを記録しておく
+        // （カウントが0かどうかではなく「記録済みかどうか」で判定。前回からの続きでカウントが0以外の
+        //   状態でこの機能を使い始めても、ちゃんと今の状態が基準として記録される）
+        if (guideActive && frameSegStartH === null) {
+          frameSegStartH = fWin.h;
+          frameSegStartOuter = { ...fOuter };
+        }
+        // 窓が開いている（＝手動でドラッグして開き直された等）のを確認できたら、
+        // 「続ける」を選んだ記憶をリセットしておく。次にまた閉じた時にちゃんと聞き直すため
+        if (guideActive && fWin.h > 5 && frameLimitAcknowledged) {
+          frameLimitAcknowledged = false;
+        }
+        // すでに窓が閉じきっている状態でさらに「＋」が押された場合（モーダルを閉じただけで
+        // 未回答のまま、など）は、カウントを進める前に確認モーダルを出す
+        if (guideActive && fWin.h <= 5 && !frameLimitAcknowledged) {
+          showFrameLimitModal();
+          return;
+        }
         frameCount++;
         // 残りが1段の高さ以上ある間は1段ずつきっちり縮み、
         // 残りが1段未満になったら、その回で一気に5px（線として見える最小の高さ）まで閉じきる
-        if (frameStep > 0 && fWin.h > 5) {
+        let justClosed = false;
+        if (guideActive && fWin.h > 5) {
           const newH = fWin.h >= frameStep ? fWin.h - frameStep : 5;
           fOuter.bottom += fWin.h - newH; // 外枠はそのまま（底辺を固定）
           fWin.h = newH; // 窓を縮める
           applyFrameOuterPos(); applyFrameStyle();
+          justClosed = (newH <= 5);
         }
         cpNum.textContent = frameCount;
         saveFrameSettings();
+        // 今回の「＋」でちょうど窓が閉じきったら、閉じきった状態を一瞬見せてから確認モーダルを出す
+        // （次にもう一度「＋」を押すまで待たせない。連打で二重に出ないよう、実行時に状態を再確認する）
+        if (guideActive && justClosed && !frameLimitAcknowledged) {
+          setTimeout(() => {
+            if (fWin.h <= 5 && !frameLimitAcknowledged) showFrameLimitModal();
+          }, 500);
+        }
       }
     } else {
       if (rowCount < 999) {
@@ -3477,6 +3537,12 @@
           fWin.h     += frameStep; // 窓を広げる
           fOuter.bottom -= frameStep; // 外枠はそのまま
           applyFrameOuterPos(); applyFrameStyle();
+        }
+        if (frameCount === 0) {
+          // 手動で0まで戻した時も、次にまた閉じきった時にちゃんとモーダルが出るようにしておく
+          frameLimitAcknowledged = false;
+          frameSegStartH = null;
+          frameSegStartOuter = null;
         }
         cpNum.textContent = frameCount;
         saveFrameSettings();
@@ -4100,13 +4166,14 @@
   const modalCancel  = document.getElementById('modal-cancel');
   const modalConfirm = document.getElementById('modal-confirm');
 
-  function showModal(msg, confirmLabel, onConfirm, showCancel = true) {
+  function showModal(msg, confirmLabel, onConfirm, showCancel = true, cancelLabel = 'キャンセル', onCancel = null) {
     modalMsg.textContent = msg;
     modalConfirm.textContent = confirmLabel;
+    modalCancel.textContent = cancelLabel;
     modalCancel.style.display = showCancel ? '' : 'none';
     modalOverlay.classList.add('open');
     modalConfirm.onclick = () => { closeModal(); onConfirm(); };
-    modalCancel.onclick  = () => closeModal();
+    modalCancel.onclick  = () => { closeModal(); if (onCancel) onCancel(); };
     modalOverlay.onclick = e => { if (e.target === modalOverlay) closeModal(); };
   }
   function closeModal() { modalOverlay.classList.remove('open'); }
@@ -4790,6 +4857,9 @@
   let frameStepBase = 0;   // 計測した実寸（段ガイドOFFでも保持、未計測なら0）
   let frameGuideOn = false; // Frame定規の段ガイドON/OFF状態（タブ切替時もこの値が真実の源）
   let frameCount = 0;
+  let frameSegStartH = null;      // カウント0から数え始めた時点の窓の高さ（「0に戻す」で復元する用）
+  let frameSegStartOuter = null;  // 同上、外枠の余白
+  let frameLimitAcknowledged = false; // 窓が閉じきった状態で「続ける」を選んだかどうか（選ぶまではモーダルを出す）
   let showFrameCounter = true;
   let fColor = '#b2aaaa';
   let fAlpha = 0.80;
