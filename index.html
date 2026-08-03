@@ -3383,19 +3383,27 @@
   }
 
   // Frame定規：窓が閉じきった時に出す確認モーダル（「＋」で閉じきった瞬間／閉じきった状態でさらに押した時の両方から呼ぶ）
-  // どちらを選んでも窓は元のサイズに開き直す（次の模様をまた測れる状態にする）。違うのはカウントの数字だけ：
+  // どちらを選んでも窓は「高さ」だけ元に戻す（次の模様をまた測れる状態にする）。違うのはカウントの数字だけ：
   // 「続ける」は今の数字のまま、「0に戻す」は0から。
+  // 開き直す時、上・左・右の余白（編み図の歪み補正など、手動で微調整した分）には一切触らない。
+  // 触るのは「窓の高さ」と、それとセットで動く「外枠の下側の余白」だけ（閉じた分をそのまま足し戻す）。
+  function reopenFrameWindow() {
+    if (frameSegStartH == null) return;
+    const closedAmount = frameSegStartH - fWin.h; // 今回閉じた分の高さ
+    fWin.h = frameSegStartH;
+    fOuter.bottom -= closedAmount; // 下側の余白だけ、閉じた分をそのまま戻す（上・左・右はノータッチ）
+    applyFrameOuterPos(); applyFrameStyle();
+    // 基準値そのものは空にせず保持しておく（万一の理由で更新が起きなくても、必ずこの高さまでは開けるように）。
+    // 「次に窓の高さを触ったら、その値を新しい基準にする」というフラグだけ立てる
+    frameSegNeedsRecapture = true;
+  }
   function showFrameLimitModal() {
     showModal(
-      '窓が閉じきりました。\n窓は元のサイズに開き直します。\nカウントは続けますか？',
+      '窓を元のサイズに開き直します。\nカウントを続けますか？',
       '続ける',
       () => {
         frameLimitAcknowledged = true;
-        if (frameSegStartH != null) {
-          fWin.h = frameSegStartH;
-          fOuter = { ...frameSegStartOuter };
-          applyFrameOuterPos(); applyFrameStyle();
-        }
+        reopenFrameWindow();
         saveFrameSettings();
       },
       true,
@@ -3403,11 +3411,7 @@
       () => {
         frameCount = 0;
         frameLimitAcknowledged = false;
-        if (frameSegStartH != null) {
-          fWin.h = frameSegStartH;
-          fOuter = { ...frameSegStartOuter };
-          applyFrameOuterPos(); applyFrameStyle();
-        }
+        reopenFrameWindow();
         cpNum.textContent = frameCount;
         saveFrameSettings();
       }
@@ -3450,12 +3454,13 @@
     } else if (currentRulerTab === 'frame') {
       if (frameCount < 999) {
         const guideActive = frameStep > 0;
-        // まだこの区間の「元サイズ」を記録していなければ、今の窓サイズを記録しておく
-        // （カウントが0かどうかではなく「記録済みかどうか」で判定。前回からの続きでカウントが0以外の
-        //   状態でこの機能を使い始めても、ちゃんと今の状態が基準として記録される）
-        if (guideActive && frameSegStartH === null) {
+        // まだこの区間の「元サイズ」を記録していなければ、または前回窓を開き直した後で
+        // 更新が必要な状態なら、今の窓サイズを新しい基準として記録し直す
+        // （前回の開き直しから今回のカウント再開までの間に、手動で窓の高さを微調整していれば、
+        //   その調整後の高さがそのまま新しい基準になる）
+        if (guideActive && (frameSegStartH === null || frameSegNeedsRecapture)) {
           frameSegStartH = fWin.h;
-          frameSegStartOuter = { ...fOuter };
+          frameSegNeedsRecapture = false;
         }
         // 窓が開いている（＝手動でドラッグして開き直された等）のを確認できたら、
         // 「続ける」を選んだ記憶をリセットしておく。次にまた閉じた時にちゃんと聞き直すため
@@ -3542,7 +3547,6 @@
           // 手動で0まで戻した時も、次にまた閉じきった時にちゃんとモーダルが出るようにしておく
           frameLimitAcknowledged = false;
           frameSegStartH = null;
-          frameSegStartOuter = null;
         }
         cpNum.textContent = frameCount;
         saveFrameSettings();
@@ -4857,8 +4861,8 @@
   let frameStepBase = 0;   // 計測した実寸（段ガイドOFFでも保持、未計測なら0）
   let frameGuideOn = false; // Frame定規の段ガイドON/OFF状態（タブ切替時もこの値が真実の源）
   let frameCount = 0;
-  let frameSegStartH = null;      // カウント0から数え始めた時点の窓の高さ（「0に戻す」で復元する用）
-  let frameSegStartOuter = null;  // 同上、外枠の余白
+  let frameSegStartH = null;      // カウント0から数え始めた時点の窓の高さ（窓を開き直す時、この高さまで戻す）
+  let frameSegNeedsRecapture = false; // trueの間、次に「＋」を押した瞬間の高さを新しい基準として記録し直す
   let frameLimitAcknowledged = false; // 窓が閉じきった状態で「続ける」を選んだかどうか（選ぶまではモーダルを出す）
   let showFrameCounter = true;
   let fColor = '#b2aaaa';
@@ -5003,7 +5007,8 @@
     const rad = 10;
     const fa  = fAlpha;
     const bc  = Math.min(1, fa * 1.6); // 枠線の濃さ（旧border方式と同じ濃さになるよう1.6倍のまま）
-    const hl  = Math.min(12, ow/3, oh/3); // ハイライトの太さ：上下左右すべて共通の値にする（Line定規と同じ考え方）
+    const hl  = Math.min(12, ow/3, oh/3); // ハイライトの太さ：外枠側。上下左右すべて共通の値にする（Line定規と同じ考え方）
+    const hlWin = Math.min(8, hl, ww/3, wh/3); // ハイライトの太さ：窓側だけ細めにする（丸みの錯覚を和らげるため）
     const M   = 16; // 外側の光がはみ出すための余白（Line定規のapplyRulerStyle()と同じ仕組み）
 
     // 外枠が画面端でクランプされている辺には丸みを付けない（切れているだけの辺が丸く見えてしまうため）。
@@ -5016,15 +5021,23 @@
     const radTR = (!clampedRight && !clampedTop)    ? rad : 0;
     const radBR = (!clampedRight && !clampedBottom) ? rad : 0;
     const radBL = (!clampedLeft  && !clampedBottom) ? rad : 0;
+    // 窓自体の角丸（窓が小さい時に破綻しないよう、窓の縦横の半分を上限にする）
+    const winRad = Math.max(0, Math.min(rad, ww/2, wh/2));
     // 角丸四角形のpathを、角ごとに丸め有無を切り替えて組み立てるヘルパー
     const framePath = (w, h, rTL, rTR, rBR, rBL) =>
       `M${rTL},0 H${w-rTR}${rTR>0?` Q${w},0 ${w},${rTR}`:''}` +
       ` V${h-rBR}${rBR>0?` Q${w},${h} ${w-rBR},${h}`:''}` +
       ` H${rBL}${rBL>0?` Q0,${h} 0,${h-rBL}`:''}` +
       ` V${rTL}${rTL>0?` Q0,0 ${rTL},0`:''} Z`;
+    // 窓（角丸四角形）のpathを組み立てるヘルパー。x,yのオフセット付き
+    const windowPath = (x, y, w, h, r) =>
+      `M${x+r},${y} H${x+w-r}${r>0?` Q${x+w},${y} ${x+w},${y+r}`:''}` +
+      ` V${y+h-r}${r>0?` Q${x+w},${y+h} ${x+w-r},${y+h}`:''}` +
+      ` H${x+r}${r>0?` Q${x},${y+h} ${x},${y+h-r}`:''}` +
+      ` V${y+r}${r>0?` Q${x},${y} ${x+r},${y}`:''} Z`;
 
     const framePathD = `${framePath(ow, oh, radTL, radTR, radBR, radBL)}
-             M${wx},${wy} H${wx+ww} V${wy+wh} H${wx} Z`;
+             ${windowPath(wx, wy, ww, wh, winRad)}`;
 
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow + M*2}" height="${oh + M*2}">
       <defs>
@@ -5044,11 +5057,30 @@
           <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
+        <radialGradient id="lg_corner_tl" gradientUnits="userSpaceOnUse" cx="${wx+winRad}" cy="${wy+winRad}" r="${winRad+hlWin||1}">
+          <stop offset="${(winRad/(winRad+hlWin||1))*100}%" stop-color="rgba(255,255,255,0.22)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </radialGradient>
+        <radialGradient id="lg_corner_tr" gradientUnits="userSpaceOnUse" cx="${wx+ww-winRad}" cy="${wy+winRad}" r="${winRad+hlWin||1}">
+          <stop offset="${(winRad/(winRad+hlWin||1))*100}%" stop-color="rgba(255,255,255,0.22)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </radialGradient>
+        <radialGradient id="lg_corner_br" gradientUnits="userSpaceOnUse" cx="${wx+ww-winRad}" cy="${wy+wh-winRad}" r="${winRad+hlWin||1}">
+          <stop offset="${(winRad/(winRad+hlWin||1))*100}%" stop-color="rgba(255,255,255,0.22)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </radialGradient>
+        <radialGradient id="lg_corner_bl" gradientUnits="userSpaceOnUse" cx="${wx+winRad}" cy="${wy+wh-winRad}" r="${winRad+hlWin||1}">
+          <stop offset="${(winRad/(winRad+hlWin||1))*100}%" stop-color="rgba(255,255,255,0.22)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </radialGradient>
         <filter id="fglow" x="-100%" y="-100%" width="300%" height="300%" color-interpolation-filters="sRGB">
           <feGaussianBlur stdDeviation="4"/>
         </filter>
         <clipPath id="fclip">
           <path d="${framePath(ow, oh, radTL, radTR, radBR, radBL)}"/>
+        </clipPath>
+        <clipPath id="fclipRing">
+          <path clip-rule="evenodd" d="${framePathD}"/>
         </clipPath>
       </defs>
       <g transform="translate(${M},${M})">
@@ -5059,7 +5091,7 @@
         <path fill="rgba(${r},${g},${b},${fa})" stroke="rgba(${r},${g},${b},${bc})" stroke-width="1.5"
           fill-rule="evenodd"
           d="${framePathD}"/>
-        <!-- ハイライト（本体と同じ丸みでクリップし、角に直線の継ぎ目が出ないようにする。Line定規と同じ仕組み） -->
+        <!-- ハイライト（外枠側。本体と同じ丸みでクリップし、角に直線の継ぎ目が出ないようにする。Line定規と同じ仕組み） -->
         <g clip-path="url(#fclip)">
           <path fill="url(#lg_t)"
             d="M${radTL},0 H${ow-radTR}${radTR>0?` Q${ow},0 ${ow},${radTR}`:''} V${hl} H0 V${radTL}${radTL>0?` Q0,0 ${radTL},0`:''} Z"/>
@@ -5069,6 +5101,24 @@
             d="M0,${radTL}${radTL>0?` Q0,0 ${radTL},0`:''} H${hl} V${oh} H${radBL}${radBL>0?` Q0,${oh} 0,${oh-radBL}`:''} Z"/>
           <path fill="url(#lg_r)"
             d="M${ow-hl},0 H${ow-radTR}${radTR>0?` Q${ow},0 ${ow},${radTR}`:''} V${oh-radBR}${radBR>0?` Q${ow},${oh} ${ow-radBR},${oh}`:''} H${ow-hl} Z"/>
+        </g>
+        <!-- ハイライト（窓側。窓に近い側が明るく、フレーム本体に向かって消えていく）。
+             辺は直線部分だけの単純な長方形、角は重ならない扇形（ドーナツを4等分した形）で、
+             隙間も二重の重なりもないように分担する -->
+        <g clip-path="url(#fclipRing)">
+          <rect fill="url(#lg_b)" x="${wx+winRad}" y="${wy-hlWin}" width="${ww-2*winRad}" height="${hlWin}"/>
+          <rect fill="url(#lg_t)" x="${wx+winRad}" y="${wy+wh}" width="${ww-2*winRad}" height="${hlWin}"/>
+          <rect fill="url(#lg_r)" x="${wx-hlWin}" y="${wy+winRad}" width="${hlWin}" height="${wh-2*winRad}"/>
+          <rect fill="url(#lg_l)" x="${wx+ww}" y="${wy+winRad}" width="${hlWin}" height="${wh-2*winRad}"/>
+          <!-- 4隅：窓の角丸（内側半径winRad）と、そこからhlWin分外側（外側半径winRad+hlWin）の間だけを扇形で塗る -->
+          <path fill="url(#lg_corner_tl)"
+            d="M${wx+winRad},${wy-hlWin} A${winRad+hlWin},${winRad+hlWin} 0 0,0 ${wx-hlWin},${wy+winRad} L${wx},${wy+winRad} A${winRad},${winRad} 0 0,1 ${wx+winRad},${wy} Z"/>
+          <path fill="url(#lg_corner_tr)"
+            d="M${wx+ww-winRad},${wy-hlWin} A${winRad+hlWin},${winRad+hlWin} 0 0,1 ${wx+ww+hlWin},${wy+winRad} L${wx+ww},${wy+winRad} A${winRad},${winRad} 0 0,0 ${wx+ww-winRad},${wy} Z"/>
+          <path fill="url(#lg_corner_br)"
+            d="M${wx+ww+hlWin},${wy+wh-winRad} A${winRad+hlWin},${winRad+hlWin} 0 0,1 ${wx+ww-winRad},${wy+wh+hlWin} L${wx+ww-winRad},${wy+wh} A${winRad},${winRad} 0 0,0 ${wx+ww},${wy+wh-winRad} Z"/>
+          <path fill="url(#lg_corner_bl)"
+            d="M${wx+winRad},${wy+wh+hlWin} A${winRad+hlWin},${winRad+hlWin} 0 0,1 ${wx-hlWin},${wy+wh-winRad} L${wx},${wy+wh-winRad} A${winRad},${winRad} 0 0,0 ${wx+winRad},${wy+wh} Z"/>
         </g>
       </g>
     </svg>`;
