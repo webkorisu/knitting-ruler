@@ -3035,19 +3035,19 @@
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow + M*2}" height="${oh + M*2}">
       <defs>
         <linearGradient id="rlg_t" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="rlg_b" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="rlg_l" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="rlg_r" x1="1" y1="0" x2="0" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <filter id="rglow" x="-100%" y="-100%" width="300%" height="300%" color-interpolation-filters="sRGB">
@@ -3474,11 +3474,12 @@
           return;
         }
         frameCount++;
-        // 残りが1段の高さ以上ある間は1段ずつきっちり縮み、
-        // 残りが1段未満になったら、その回で一気に5px（線として見える最小の高さ）まで閉じきる
+        // 残りから1段分を引いてもまだ5px以上残る間は、毎回きっちり1段分縮む。
+        // 引いた結果が5px未満になる（＝高さが段の倍数でちょうど0になる場合を含む）なら、
+        // その回で一気に5px（線として見える最小の高さ）まで閉じきる
         let justClosed = false;
         if (guideActive && fWin.h > 5) {
-          const newH = fWin.h >= frameStep ? fWin.h - frameStep : 5;
+          const newH = (fWin.h - frameStep >= 5) ? fWin.h - frameStep : 5;
           fOuter.bottom += fWin.h - newH; // 外枠はそのまま（底辺を固定）
           fWin.h = newH; // 窓を縮める
           applyFrameOuterPos(); applyFrameStyle();
@@ -5023,6 +5024,7 @@
     const radBL = (!clampedLeft  && !clampedBottom) ? rad : 0;
     // 窓自体の角丸（窓が小さい時に破綻しないよう、窓の縦横の半分を上限にする）
     const winRad = Math.max(0, Math.min(rad, ww/2, wh/2));
+    const cStart = (winRad / (winRad + hlWin || 1)) * 100; // 窓の角グラデーション：明るい部分の開始位置(%)
     // 角丸四角形のpathを、角ごとに丸め有無を切り替えて組み立てるヘルパー
     const framePath = (w, h, rTL, rTR, rBR, rBL) =>
       `M${rTL},0 H${w-rTR}${rTR>0?` Q${w},0 ${w},${rTR}`:''}` +
@@ -5042,35 +5044,52 @@
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow + M*2}" height="${oh + M*2}">
       <defs>
         <linearGradient id="lg_t" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="lg_b" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="lg_l" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="lg_r" x1="1" y1="0" x2="0" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </linearGradient>
+        <!-- 窓側専用（外枠より少し控えめな濃さ0.15） -->
+        <linearGradient id="lg_t_win" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </linearGradient>
+        <linearGradient id="lg_b_win" x1="0" y1="1" x2="0" y2="0">
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </linearGradient>
+        <linearGradient id="lg_l_win" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+        </linearGradient>
+        <linearGradient id="lg_r_win" x1="1" y1="0" x2="0" y2="0">
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <radialGradient id="lg_corner_tl" gradientUnits="userSpaceOnUse" cx="${wx+winRad}" cy="${wy+winRad}" r="${winRad+hlWin||1}">
-          <stop offset="${(winRad/(winRad+hlWin||1))*100}%" stop-color="rgba(255,255,255,0.22)"/>
+          <stop offset="${cStart}%" stop-color="rgba(255,255,255,0.2)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </radialGradient>
         <radialGradient id="lg_corner_tr" gradientUnits="userSpaceOnUse" cx="${wx+ww-winRad}" cy="${wy+winRad}" r="${winRad+hlWin||1}">
-          <stop offset="${(winRad/(winRad+hlWin||1))*100}%" stop-color="rgba(255,255,255,0.22)"/>
+          <stop offset="${cStart}%" stop-color="rgba(255,255,255,0.2)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </radialGradient>
         <radialGradient id="lg_corner_br" gradientUnits="userSpaceOnUse" cx="${wx+ww-winRad}" cy="${wy+wh-winRad}" r="${winRad+hlWin||1}">
-          <stop offset="${(winRad/(winRad+hlWin||1))*100}%" stop-color="rgba(255,255,255,0.22)"/>
+          <stop offset="${cStart}%" stop-color="rgba(255,255,255,0.2)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </radialGradient>
         <radialGradient id="lg_corner_bl" gradientUnits="userSpaceOnUse" cx="${wx+winRad}" cy="${wy+wh-winRad}" r="${winRad+hlWin||1}">
-          <stop offset="${(winRad/(winRad+hlWin||1))*100}%" stop-color="rgba(255,255,255,0.22)"/>
+          <stop offset="${cStart}%" stop-color="rgba(255,255,255,0.2)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </radialGradient>
         <filter id="fglow" x="-100%" y="-100%" width="300%" height="300%" color-interpolation-filters="sRGB">
@@ -5106,10 +5125,10 @@
              辺は直線部分だけの単純な長方形、角は重ならない扇形（ドーナツを4等分した形）で、
              隙間も二重の重なりもないように分担する -->
         <g clip-path="url(#fclipRing)">
-          <rect fill="url(#lg_b)" x="${wx+winRad}" y="${wy-hlWin}" width="${ww-2*winRad}" height="${hlWin}"/>
-          <rect fill="url(#lg_t)" x="${wx+winRad}" y="${wy+wh}" width="${ww-2*winRad}" height="${hlWin}"/>
-          <rect fill="url(#lg_r)" x="${wx-hlWin}" y="${wy+winRad}" width="${hlWin}" height="${wh-2*winRad}"/>
-          <rect fill="url(#lg_l)" x="${wx+ww}" y="${wy+winRad}" width="${hlWin}" height="${wh-2*winRad}"/>
+          <rect fill="url(#lg_b_win)" x="${wx+winRad}" y="${wy-hlWin}" width="${ww-2*winRad}" height="${hlWin}"/>
+          <rect fill="url(#lg_t_win)" x="${wx+winRad}" y="${wy+wh}" width="${ww-2*winRad}" height="${hlWin}"/>
+          <rect fill="url(#lg_r_win)" x="${wx-hlWin}" y="${wy+winRad}" width="${hlWin}" height="${wh-2*winRad}"/>
+          <rect fill="url(#lg_l_win)" x="${wx+ww}" y="${wy+winRad}" width="${hlWin}" height="${wh-2*winRad}"/>
           <!-- 4隅：窓の角丸（内側半径winRad）と、そこからhlWin分外側（外側半径winRad+hlWin）の間だけを扇形で塗る -->
           <path fill="url(#lg_corner_tl)"
             d="M${wx+winRad},${wy-hlWin} A${winRad+hlWin},${winRad+hlWin} 0 0,0 ${wx-hlWin},${wy+winRad} L${wx},${wy+winRad} A${winRad},${winRad} 0 0,1 ${wx+winRad},${wy} Z"/>
@@ -6145,11 +6164,12 @@
     const size = cR * 2;
     const hiW  = Math.min(cR * 0.22, 12); // ハイライトの太さ（上限は他の3定規と統一して12px）
     const M    = 16; // 外側の光がはみ出すための余白（Line/Frame/Box定規と同じ仕組み）
+    const cHiStart = Math.max(0, (1 - hiW / cR) * 100); // ハイライトが効き始める位置(%)
 
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size + M*2}" height="${size + M*2}">
       <defs>
         <radialGradient id="clg_hi" cx="50%" cy="50%" r="50%">
-          <stop offset="${Math.max(0, (1 - hiW / cR) * 100)}%" stop-color="rgba(255,255,255,0)"/>
+          <stop offset="${cHiStart}%" stop-color="rgba(255,255,255,0)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0.22)"/>
         </radialGradient>
         <filter id="cglow" x="-100%" y="-100%" width="300%" height="300%" color-interpolation-filters="sRGB">
@@ -6729,19 +6749,19 @@
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow + M*2}" height="${oh + M*2}">
       <defs>
         <linearGradient id="sqlg_t" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="sqlg_b" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="sqlg_l" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <linearGradient id="sqlg_r" x1="1" y1="0" x2="0" y2="0">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
         <filter id="sqglow" x="-100%" y="-100%" width="300%" height="300%" color-interpolation-filters="sRGB">
