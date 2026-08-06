@@ -8264,6 +8264,26 @@
         drawImage();
         updateZoomLabel();
         preMeasureScale = null; preMeasureOffsetX = null; preMeasureOffsetY = null;
+        // 表示サイズを戻した分、「1段の高さ」も新しいscaleに合わせて再計算する
+        // （計測した瞬間の拡大率のままの生のピクセル値を使い続けないように。Line/Frame/Circle/Box共通）
+        const gpStep = document.getElementById('gp-step-label');
+        if (currentRulerTab === 'band' && rulerBaseStep > 0) {
+          rulerStep = Math.max(1, Math.round(rulerBaseStep * scale));
+          const stepEl = document.getElementById('ruler-step');
+          const stepLabelEl = document.getElementById('ruler-step-label');
+          if (stepEl) stepEl.value = rulerStep;
+          if (stepLabelEl) stepLabelEl.textContent = rulerStep + ' px';
+          if (gpStep) gpStep.textContent = '1段：' + rulerStep + ' px';
+        } else if (currentRulerTab === 'frame' && frameStepBase > 0 && frameStep > 0) {
+          frameStep = Math.max(1, Math.round(frameStepBase * scale));
+          if (gpStep) gpStep.textContent = '1段：' + frameStep + ' px';
+        } else if (currentRulerTab === 'circle' && circleStepBase > 0 && circleStep > 0) {
+          circleStep = Math.max(1, Math.round(circleStepBase * scale));
+          if (gpStep) gpStep.textContent = '1段：' + circleStep + ' px';
+        } else if (currentRulerTab === 'box' && boxStepBase > 0 && boxStep > 0) {
+          boxStep = Math.max(1, Math.round(boxStepBase * scale));
+          if (gpStep) gpStep.textContent = '1段：' + boxStep + ' px';
+        }
       }
       overlay.style.display = 'none';
       overlay.style.pointerEvents = 'none';
