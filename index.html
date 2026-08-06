@@ -895,6 +895,8 @@
     }
     .toggle-switch input:checked + .toggle-knob { background: #D4B5C4; }
     .toggle-switch input:checked + .toggle-knob::before { transform: translateX(16px); }
+    .toggle-switch input:disabled + .toggle-knob { opacity: .45; }
+    .toggle-switch:has(input:disabled) { cursor: not-allowed; }
 
     /* ===== 窓定規オーバーレイ ===== */
     #frame-overlay {
@@ -1405,6 +1407,11 @@
       box-shadow: 0 1px 1px rgba(0,0,0,0.10);
       transform: scale(.95);
     }
+    #gp-measure-btn:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
     #gp-measure-btn-text {
       display: inline-block;
       transform: translateY(-1px);
@@ -1544,6 +1551,8 @@
       box-sizing: border-box;
     }
     .cp-btn:active { transform: scale(.9); }
+    .cp-btn:disabled { opacity: .35; cursor: not-allowed; }
+    .cp-btn:disabled:active { transform: none; }
     #cp-plus:active  { color: #D992A8; }
     #cp-minus:active { color: #8CB8DC; }
     .cp-btn.reset  { font-size: 18px; color: var(--text-sub); width: 44px; }
@@ -2785,8 +2794,8 @@
           </a>
           <a href="https://webkorisu.github.io/yucchis-portal/" target="_blank" rel="noopener noreferrer"
              aria-label="✿ YUCCHIのアプリ一覧を開く" data-tooltip="アプリ一覧へ" class="x-icon-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2L3 10V22H21V10L12 2ZM9.5 14H14.5V19H9.5Z"/>
+            <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 1 L23 13 L21 13 L21 22 L14 22 L14 16 L10 16 L10 22 L3 22 L3 13 L1 13 Z"/>
             </svg>
           </a>
         </div>
@@ -3145,8 +3154,10 @@
   refreshGpStepLabelLook();
 
   // 「1段：66px」をタップした時、微調整カードの表示を切り替える（未計測の時は開かない）
+  let stepAdjustLocked = false; // 計測中はtrue（微調整カードを開けなくする）
   function toggleStepAdjust(e) {
     if (e) e.stopPropagation();
+    if (stepAdjustLocked) return;
     if (gpStepLabel.textContent === '未計測') return;
     const card = document.getElementById('step-adjust-card');
     if (!card) return;
@@ -4139,13 +4150,12 @@
       rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - hVisiblePct, rulerLeft));
     }
     applyRulerPos();
-    // Frame定規：再配置
+    // Frame定規：再配置（画面サイズが変わるとクランプ判定も変わるので、見た目も一緒に再描画する）
     if (typeof applyFrameOuterPos === 'function') applyFrameOuterPos();
+    if (typeof applyFrameStyle === 'function') applyFrameStyle();
     // Circle定規：位置だけ画面内に収まるようクランプ（サイズは変えない。直径の10%だけ画面内に見えていればOK）
     if (typeof applyCircle === 'function') {
-      const margin = cR * 0.8;
-      cX = Math.max(-margin, Math.min(window.innerWidth  + margin, cX));
-      cY = Math.max(-margin, Math.min(window.innerHeight + margin, cY));
+      clampCircleCenter();
       resizeCircleCanvas();
     }
     // Box定規：位置だけ画面内に収まるようクランプ（サイズは変えない。10%だけ画面内に見えていればOK）
@@ -5023,24 +5033,34 @@
     const radTR = (!clampedRight && !clampedTop)    ? rad : 0;
     const radBR = (!clampedRight && !clampedBottom) ? rad : 0;
     const radBL = (!clampedLeft  && !clampedBottom) ? rad : 0;
-    // 窓自体の角丸（窓が小さい時に破綻しないよう、窓の縦横の半分を上限にする）
+    // 窓自体の角丸（窓が小さい時に破綻しないよう、窓の縦横の半分を上限にする）。
+    // ここは外枠のクランプ状態ではなく「窓自身が画面端に届いているかどうか」で判定する
+    // （外枠の余白ぶん早めに四角くなってしまい、窓自体はまだ余裕があるのに角丸が消えて見えるのを防ぐため）
     const winRad = Math.max(0, Math.min(rad, ww/2, wh/2));
-    const cStart = (winRad / (winRad + hlWin || 1)) * 100; // 窓の角グラデーション：明るい部分の開始位置(%)
+    const winClampedLeft   = fWin.x < 0;
+    const winClampedTop    = fWin.y < 0;
+    const winClampedRight  = (fWin.x + fWin.w) > sw;
+    const winClampedBottom = (fWin.y + fWin.h) > sh;
+    const winRadTL = (!winClampedLeft  && !winClampedTop)    ? winRad : 0;
+    const winRadTR = (!winClampedRight && !winClampedTop)    ? winRad : 0;
+    const winRadBR = (!winClampedRight && !winClampedBottom) ? winRad : 0;
+    const winRadBL = (!winClampedLeft  && !winClampedBottom) ? winRad : 0;
+    const cStartFor = r => (r / (r + hlWin || 1)) * 100; // 窓の角グラデーション：明るい部分の開始位置(%)
     // 角丸四角形のpathを、角ごとに丸め有無を切り替えて組み立てるヘルパー
     const framePath = (w, h, rTL, rTR, rBR, rBL) =>
       `M${rTL},0 H${w-rTR}${rTR>0?` Q${w},0 ${w},${rTR}`:''}` +
       ` V${h-rBR}${rBR>0?` Q${w},${h} ${w-rBR},${h}`:''}` +
       ` H${rBL}${rBL>0?` Q0,${h} 0,${h-rBL}`:''}` +
       ` V${rTL}${rTL>0?` Q0,0 ${rTL},0`:''} Z`;
-    // 窓（角丸四角形）のpathを組み立てるヘルパー。x,yのオフセット付き
-    const windowPath = (x, y, w, h, r) =>
-      `M${x+r},${y} H${x+w-r}${r>0?` Q${x+w},${y} ${x+w},${y+r}`:''}` +
-      ` V${y+h-r}${r>0?` Q${x+w},${y+h} ${x+w-r},${y+h}`:''}` +
-      ` H${x+r}${r>0?` Q${x},${y+h} ${x},${y+h-r}`:''}` +
-      ` V${y+r}${r>0?` Q${x},${y} ${x+r},${y}`:''} Z`;
+    // 窓（角丸四角形）のpathを組み立てるヘルパー。x,yのオフセット付き、4隅それぞれ個別の丸みに対応
+    const windowPath = (x, y, w, h, rTL, rTR, rBR, rBL) =>
+      `M${x+rTL},${y} H${x+w-rTR}${rTR>0?` Q${x+w},${y} ${x+w},${y+rTR}`:''}` +
+      ` V${y+h-rBR}${rBR>0?` Q${x+w},${y+h} ${x+w-rBR},${y+h}`:''}` +
+      ` H${x+rBL}${rBL>0?` Q${x},${y+h} ${x},${y+h-rBL}`:''}` +
+      ` V${y+rTL}${rTL>0?` Q${x},${y} ${x+rTL},${y}`:''} Z`;
 
     const framePathD = `${framePath(ow, oh, radTL, radTR, radBR, radBL)}
-             ${windowPath(wx, wy, ww, wh, winRad)}`;
+             ${windowPath(wx, wy, ww, wh, winRadTL, winRadTR, winRadBR, winRadBL)}`;
 
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow + M*2}" height="${oh + M*2}">
       <defs>
@@ -5077,20 +5097,20 @@
                     <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </linearGradient>
-        <radialGradient id="lg_corner_tl" gradientUnits="userSpaceOnUse" cx="${wx+winRad}" cy="${wy+winRad}" r="${winRad+hlWin||1}">
-          <stop offset="${cStart}%" stop-color="rgba(255,255,255,0.2)"/>
+        <radialGradient id="lg_corner_tl" gradientUnits="userSpaceOnUse" cx="${wx+winRadTL}" cy="${wy+winRadTL}" r="${winRadTL+hlWin||1}">
+          <stop offset="${cStartFor(winRadTL)}%" stop-color="rgba(255,255,255,0.2)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </radialGradient>
-        <radialGradient id="lg_corner_tr" gradientUnits="userSpaceOnUse" cx="${wx+ww-winRad}" cy="${wy+winRad}" r="${winRad+hlWin||1}">
-          <stop offset="${cStart}%" stop-color="rgba(255,255,255,0.2)"/>
+        <radialGradient id="lg_corner_tr" gradientUnits="userSpaceOnUse" cx="${wx+ww-winRadTR}" cy="${wy+winRadTR}" r="${winRadTR+hlWin||1}">
+          <stop offset="${cStartFor(winRadTR)}%" stop-color="rgba(255,255,255,0.2)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </radialGradient>
-        <radialGradient id="lg_corner_br" gradientUnits="userSpaceOnUse" cx="${wx+ww-winRad}" cy="${wy+wh-winRad}" r="${winRad+hlWin||1}">
-          <stop offset="${cStart}%" stop-color="rgba(255,255,255,0.2)"/>
+        <radialGradient id="lg_corner_br" gradientUnits="userSpaceOnUse" cx="${wx+ww-winRadBR}" cy="${wy+wh-winRadBR}" r="${winRadBR+hlWin||1}">
+          <stop offset="${cStartFor(winRadBR)}%" stop-color="rgba(255,255,255,0.2)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </radialGradient>
-        <radialGradient id="lg_corner_bl" gradientUnits="userSpaceOnUse" cx="${wx+winRad}" cy="${wy+wh-winRad}" r="${winRad+hlWin||1}">
-          <stop offset="${cStart}%" stop-color="rgba(255,255,255,0.2)"/>
+        <radialGradient id="lg_corner_bl" gradientUnits="userSpaceOnUse" cx="${wx+winRadBL}" cy="${wy+wh-winRadBL}" r="${winRadBL+hlWin||1}">
+          <stop offset="${cStartFor(winRadBL)}%" stop-color="rgba(255,255,255,0.2)"/>
           <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
         </radialGradient>
         <filter id="fglow" x="-100%" y="-100%" width="300%" height="300%" color-interpolation-filters="sRGB">
@@ -5126,19 +5146,20 @@
              辺は直線部分だけの単純な長方形、角は重ならない扇形（ドーナツを4等分した形）で、
              隙間も二重の重なりもないように分担する -->
         <g clip-path="url(#fclipRing)">
-          <rect fill="url(#lg_b_win)" x="${wx+winRad}" y="${wy-hlWin}" width="${ww-2*winRad}" height="${hlWin}"/>
-          <rect fill="url(#lg_t_win)" x="${wx+winRad}" y="${wy+wh}" width="${ww-2*winRad}" height="${hlWin}"/>
-          <rect fill="url(#lg_r_win)" x="${wx-hlWin}" y="${wy+winRad}" width="${hlWin}" height="${wh-2*winRad}"/>
-          <rect fill="url(#lg_l_win)" x="${wx+ww}" y="${wy+winRad}" width="${hlWin}" height="${wh-2*winRad}"/>
-          <!-- 4隅：窓の角丸（内側半径winRad）と、そこからhlWin分外側（外側半径winRad+hlWin）の間だけを扇形で塗る -->
-          <path fill="url(#lg_corner_tl)"
-            d="M${wx+winRad},${wy-hlWin} A${winRad+hlWin},${winRad+hlWin} 0 0,0 ${wx-hlWin},${wy+winRad} L${wx},${wy+winRad} A${winRad},${winRad} 0 0,1 ${wx+winRad},${wy} Z"/>
-          <path fill="url(#lg_corner_tr)"
-            d="M${wx+ww-winRad},${wy-hlWin} A${winRad+hlWin},${winRad+hlWin} 0 0,1 ${wx+ww+hlWin},${wy+winRad} L${wx+ww},${wy+winRad} A${winRad},${winRad} 0 0,0 ${wx+ww-winRad},${wy} Z"/>
-          <path fill="url(#lg_corner_br)"
-            d="M${wx+ww+hlWin},${wy+wh-winRad} A${winRad+hlWin},${winRad+hlWin} 0 0,1 ${wx+ww-winRad},${wy+wh+hlWin} L${wx+ww-winRad},${wy+wh} A${winRad},${winRad} 0 0,0 ${wx+ww},${wy+wh-winRad} Z"/>
-          <path fill="url(#lg_corner_bl)"
-            d="M${wx+winRad},${wy+wh+hlWin} A${winRad+hlWin},${winRad+hlWin} 0 0,1 ${wx-hlWin},${wy+wh-winRad} L${wx},${wy+wh-winRad} A${winRad},${winRad} 0 0,0 ${wx+winRad},${wy+wh} Z"/>
+          <rect fill="url(#lg_b_win)" x="${wx+winRadTL}" y="${wy-hlWin}" width="${ww-winRadTL-winRadTR}" height="${hlWin}"/>
+          <rect fill="url(#lg_t_win)" x="${wx+winRadBL}" y="${wy+wh}" width="${ww-winRadBL-winRadBR}" height="${hlWin}"/>
+          <rect fill="url(#lg_r_win)" x="${wx-hlWin}" y="${wy+winRadTL}" width="${hlWin}" height="${wh-winRadTL-winRadBL}"/>
+          <rect fill="url(#lg_l_win)" x="${wx+ww}" y="${wy+winRadTR}" width="${hlWin}" height="${wh-winRadTR-winRadBR}"/>
+          <!-- 4隅：窓の角丸（内側半径winRad）と、そこからhlWin分外側（外側半径winRad+hlWin）の間だけを扇形で塗る。
+               画面端でクランプされて丸みがない角（半径0）は、辺同士がそのまま直角にぶつかるので扇形は描かない -->
+          ${winRadTL > 0 ? `<path fill="url(#lg_corner_tl)"
+            d="M${wx+winRadTL},${wy-hlWin} A${winRadTL+hlWin},${winRadTL+hlWin} 0 0,0 ${wx-hlWin},${wy+winRadTL} L${wx},${wy+winRadTL} A${winRadTL},${winRadTL} 0 0,1 ${wx+winRadTL},${wy} Z"/>` : ''}
+          ${winRadTR > 0 ? `<path fill="url(#lg_corner_tr)"
+            d="M${wx+ww-winRadTR},${wy-hlWin} A${winRadTR+hlWin},${winRadTR+hlWin} 0 0,1 ${wx+ww+hlWin},${wy+winRadTR} L${wx+ww},${wy+winRadTR} A${winRadTR},${winRadTR} 0 0,0 ${wx+ww-winRadTR},${wy} Z"/>` : ''}
+          ${winRadBR > 0 ? `<path fill="url(#lg_corner_br)"
+            d="M${wx+ww+hlWin},${wy+wh-winRadBR} A${winRadBR+hlWin},${winRadBR+hlWin} 0 0,1 ${wx+ww-winRadBR},${wy+wh+hlWin} L${wx+ww-winRadBR},${wy+wh} A${winRadBR},${winRadBR} 0 0,0 ${wx+ww},${wy+wh-winRadBR} Z"/>` : ''}
+          ${winRadBL > 0 ? `<path fill="url(#lg_corner_bl)"
+            d="M${wx+winRadBL},${wy+wh+hlWin} A${winRadBL+hlWin},${winRadBL+hlWin} 0 0,1 ${wx-hlWin},${wy+wh-winRadBL} L${wx},${wy+wh-winRadBL} A${winRadBL},${winRadBL} 0 0,0 ${wx+winRadBL},${wy+wh} Z"/>` : ''}
         </g>
       </g>
     </svg>`;
@@ -5464,7 +5485,7 @@
     applyFrameOuterPos();
     e.preventDefault();
   });
-  frameWinDrag.addEventListener('pointerup',     () => { fWinDragging = false; saveFrameSettings(); });
+  frameWinDrag.addEventListener('pointerup',     () => { fWinDragging = false; applyFrameStyle(); saveFrameSettings(); });
   frameWinDrag.addEventListener('pointercancel', () => { fWinDragging = false; });
 
   // 窓の辺リサイズ（外枠の外側座標は固定）
@@ -5512,7 +5533,7 @@
       applyFrameOuterPos();
       e.preventDefault();
     });
-    el.addEventListener('pointerup',     () => { dragging = false; saveFrameSettings(); });
+    el.addEventListener('pointerup',     () => { dragging = false; applyFrameStyle(); saveFrameSettings(); });
     el.addEventListener('pointercancel', () => { dragging = false; });
   });
 
@@ -5563,7 +5584,7 @@
       applyFrameOuterPos();
       e.preventDefault();
     });
-    el.addEventListener('pointerup',     () => { dragging = false; saveFrameSettings(); });
+    el.addEventListener('pointerup',     () => { dragging = false; applyFrameStyle(); saveFrameSettings(); });
     el.addEventListener('pointercancel', () => { dragging = false; });
   });
 
@@ -5601,7 +5622,7 @@
       applyFrameOuterPos(); applyFrameStyle();
       e.preventDefault();
     });
-    el.addEventListener('pointerup',     () => { dragging = false; saveFrameSettings(); });
+    el.addEventListener('pointerup',     () => { dragging = false; applyFrameStyle(); saveFrameSettings(); });
     el.addEventListener('pointercancel', () => { dragging = false; });
   });
 
@@ -5716,6 +5737,7 @@
         fWin.x = Math.max(minX, Math.min(maxX, fWin.x));
         fWin.y = Math.max(minY, Math.min(maxY, fWin.y));
         applyFrameOuterPos();
+        applyFrameStyle(); // 角丸のクランプ判定（画面端かどうか）が動いた時のためにも、見た目を必ず再描画する
       }
       saveFrameSettings();
     });
@@ -5754,7 +5776,7 @@
       applyFrameOuterPos();
       e.preventDefault();
     });
-    el.addEventListener('pointerup',     () => { dragging = false; saveFrameSettings(); });
+    el.addEventListener('pointerup',     () => { dragging = false; applyFrameStyle(); saveFrameSettings(); });
     el.addEventListener('pointercancel', () => { dragging = false; });
   });
 
@@ -5926,11 +5948,13 @@
     if (e.touches.length < 2 && frameOuterPinchActive) {
       frameOuterPinchActive = false;
       setFrameDragging(false);
+      applyFrameStyle();
       saveFrameSettings();
     }
     if (e.touches.length < 2 && framePinchActive) {
       framePinchActive = false;
       setFrameDragging(false);
+      applyFrameStyle();
       saveFrameSettings();
     }
   });
@@ -5979,6 +6003,7 @@
     fWin.x = Math.max(minX, Math.min(maxX, fWin.x));
     fWin.y = Math.max(minY, Math.min(maxY, fWin.y));
     applyFrameOuterPos();
+    applyFrameStyle(); // 角丸のクランプ判定（画面端かどうか）が動いた時のためにも、見た目を必ず再描画する
     saveFrameSettings();
   }
 
@@ -6058,7 +6083,7 @@
       applyFrameOuterPos();
       setFrameDragging(true);
       clearTimeout(frameWheelPinchTimer);
-      frameWheelPinchTimer = setTimeout(() => { setFrameDragging(false); saveFrameSettings(); }, 200);
+      frameWheelPinchTimer = setTimeout(() => { setFrameDragging(false); applyFrameStyle(); saveFrameSettings(); }, 200);
       return;
     }
     const startLeft = fWin.x, startRight = fWin.x + fWin.w;
@@ -6100,7 +6125,7 @@
     applyFrameOuterPos();
     setFrameDragging(true);
     clearTimeout(frameWheelPinchTimer);
-    frameWheelPinchTimer = setTimeout(() => { setFrameDragging(false); saveFrameSettings(); }, 200);
+    frameWheelPinchTimer = setTimeout(() => { setFrameDragging(false); applyFrameStyle(); saveFrameSettings(); }, 200);
   }, { passive: false });
 
   /* ========== 丸定規 ========== */
@@ -6147,6 +6172,24 @@
       cY = Math.round(window.innerHeight / 2);
     }
     applyCircle();
+  }
+
+  // Circle定規：中心(cX,cY)が画面から離れすぎないよう、実際の距離ベースでクランプする。
+  // X軸・Y軸を別々にクランプすると、斜め方向にドラッグした時に画面の四隅をすり抜けて
+  // 円が完全に画面外に消えてしまうことがあったため（各軸は条件を満たしていても、
+  // 実際の中心〜画面までの距離は半径より遠いということが起こり得た）、距離ベースの判定に統一する
+  function clampCircleCenter() {
+    // 90%まで隠れてOKだが、最低44px（指1本分）は必ず見えるよう保証
+    const margin = Math.min(cR * 0.8, Math.max(0, cR - 44));
+    const nearestX = Math.max(0, Math.min(window.innerWidth, cX));
+    const nearestY = Math.max(0, Math.min(window.innerHeight, cY));
+    const dx = cX - nearestX, dy = cY - nearestY;
+    const dist = Math.hypot(dx, dy);
+    if (dist > margin) {
+      const ratio = dist > 0 ? margin / dist : 0;
+      cX = nearestX + dx * ratio;
+      cY = nearestY + dy * ratio;
+    }
   }
 
   function applyCircle() {
@@ -6210,9 +6253,7 @@
       // 画面サイズに収まるようにクランプ（直径の10%だけ画面内に見えていればOK）
       const maxR = Math.min(window.innerWidth, window.innerHeight) * 0.45;
       cR = Math.min(cR, maxR);
-      const margin = cR * 0.8;
-      cX = Math.max(-margin, Math.min(window.innerWidth  + margin, cX));
-      cY = Math.max(-margin, Math.min(window.innerHeight + margin, cY));
+      clampCircleCenter();
       if (s.circleStep  != null) circleStep  = s.circleStep;
       // circleStepBaseが未保存の旧データの場合、旧circleStepの値を引き継ぐ
       if (s.circleStepBase != null) circleStepBase = s.circleStepBase;
@@ -6409,10 +6450,9 @@
       syncCircleSizeUI();
       applyCircle();
     } else if (cDragging) {
-      // 90%まで隠れてOKだが、最低44px（指1本分）は必ず見えるよう保証
-      const margin = Math.min(cR * 0.8, Math.max(0, cR - 44));
-      cX = Math.max(-margin, Math.min(window.innerWidth  + margin, cCX0 + e.clientX - cDragStartX));
-      cY = Math.max(-margin, Math.min(window.innerHeight + margin, cCY0 + e.clientY - cDragStartY));
+      cX = cCX0 + e.clientX - cDragStartX;
+      cY = cCY0 + e.clientY - cDragStartY;
+      clampCircleCenter();
       applyCircle();
     } else {
       // ホバー中：rim上かどうかでカーソル切替
@@ -6512,10 +6552,9 @@
       e.preventDefault();
       const t = e.touches[0];
       cTouchMoved = true;
-      // 90%まで隠れてOKだが、最低44px（指1本分）は必ず見えるよう保証
-      const margin = Math.min(cR * 0.8, Math.max(0, cR - 44));
-      cX = Math.max(-margin, Math.min(window.innerWidth  + margin, cCX0 + t.clientX - cDragStartX));
-      cY = Math.max(-margin, Math.min(window.innerHeight + margin, cCY0 + t.clientY - cDragStartY));
+      cX = cCX0 + t.clientX - cDragStartX;
+      cY = cCY0 + t.clientY - cDragStartY;
+      clampCircleCenter();
       applyCircle();
     } else if (cTouchMode === 'viewer') {
       e.preventDefault();
@@ -6529,9 +6568,7 @@
   circleCanvas.addEventListener('touchend', e => {
     if (cTouchMode === 'pinch' || cTouchMode === 'drag' || cTouchMode === 'rim') {
       // ドラッグ後に強制クランプ：最低44px（指1本分）は必ず画面内に残す
-      const margin = Math.min(cR * 0.8, Math.max(0, cR - 44));
-      cX = Math.max(-margin, Math.min(window.innerWidth  + margin, cX));
-      cY = Math.max(-margin, Math.min(window.innerHeight + margin, cY));
+      clampCircleCenter();
       applyCircle();
       saveCircleSettings();
     } else if (cTouchMode === 'viewer') {
@@ -8227,6 +8264,19 @@
       // 計測が終わったら自動で戻せるよう、今の表示サイズ・位置を覚えておく
       preMeasureScale = scale; preMeasureOffsetX = offsetX; preMeasureOffsetY = offsetY;
       document.getElementById('measure-float-btn').style.display = 'none';
+      // 計測中に段ガイドのON/OFFを誤って切り替えられないようにする（切り替えても計測結果には反映されず、
+      // 紛らわしいだけなので、計測が終わるまで触れないようにする）
+      gpToggleGuide.disabled = true;
+      // 同じ理由でカウンターの＋／−も計測中は押せないようにする
+      cpPlus.disabled = true;
+      cpMinus.disabled = true;
+      // 1段の高さの微調整カードも、今測っている最中の値と前回の確定値が混ざって紛らわしいので開けなくする
+      stepAdjustLocked = true;
+      gpStepLabel.style.cursor = 'not-allowed';
+      // 外側の「計測」ボタンも押せないようにする（計測中にもう一度押すと、
+      // 「計測前のサイズ」を覚えていた記憶が今の拡大中の状態で上書きされてしまうバグになるため。
+      // 仕切り直したい時は、計測画面内の「やり直す」ボタンを使う）
+      gpMeasureBtn.disabled = true;
       pt1 = null; pt2 = null;
       adjustDragTarget = null;
       ctx.clearRect(0, 0, cvs.width, cvs.height);
@@ -8257,6 +8307,12 @@
     };
 
     function stopMeasure() {
+      gpToggleGuide.disabled = false;
+      cpPlus.disabled = false;
+      cpMinus.disabled = false;
+      gpStepLabel.style.cursor = '';
+      stepAdjustLocked = false;
+      gpMeasureBtn.disabled = false;
       // 計測前の表示サイズ・位置に自動で戻す（編みやすい大きさのまま計測を終えられるように）
       if (preMeasureScale != null) {
         scale = preMeasureScale; offsetX = preMeasureOffsetX; offsetY = preMeasureOffsetY;
@@ -8266,24 +8322,21 @@
         preMeasureScale = null; preMeasureOffsetX = null; preMeasureOffsetY = null;
         // 表示サイズを戻した分、「1段の高さ」も新しいscaleに合わせて再計算する
         // （計測した瞬間の拡大率のままの生のピクセル値を使い続けないように。Line/Frame/Circle/Box共通）
-        const gpStep = document.getElementById('gp-step-label');
         if (currentRulerTab === 'band' && rulerBaseStep > 0) {
           rulerStep = Math.max(1, Math.round(rulerBaseStep * scale));
           const stepEl = document.getElementById('ruler-step');
           const stepLabelEl = document.getElementById('ruler-step-label');
           if (stepEl) stepEl.value = rulerStep;
           if (stepLabelEl) stepLabelEl.textContent = rulerStep + ' px';
-          if (gpStep) gpStep.textContent = '1段：' + rulerStep + ' px';
         } else if (currentRulerTab === 'frame' && frameStepBase > 0 && frameStep > 0) {
           frameStep = Math.max(1, Math.round(frameStepBase * scale));
-          if (gpStep) gpStep.textContent = '1段：' + frameStep + ' px';
         } else if (currentRulerTab === 'circle' && circleStepBase > 0 && circleStep > 0) {
           circleStep = Math.max(1, Math.round(circleStepBase * scale));
-          if (gpStep) gpStep.textContent = '1段：' + circleStep + ' px';
         } else if (currentRulerTab === 'box' && boxStepBase > 0 && boxStep > 0) {
           boxStep = Math.max(1, Math.round(boxStepBase * scale));
-          if (gpStep) gpStep.textContent = '1段：' + boxStep + ' px';
         }
+        // チェック状態・表示/非表示（opacity）・数字表示、すべてここで正しく同期する
+        syncGuideRowUI(currentRulerTab);
       }
       overlay.style.display = 'none';
       overlay.style.pointerEvents = 'none';
@@ -8349,8 +8402,6 @@
       if (!pt1 || !pt2) return;
       const dist = Math.min(999, Math.max(6, calcDist()));
       document.getElementById('measure-float-btn').style.display = 'none';
-      const gpToggle = document.getElementById('gp-toggle-guide');
-      const gpStep = document.getElementById('gp-step-label');
       if (currentRulerTab === 'frame') {
         frameStep = dist;
         frameStepBase = scale > 0 ? dist / scale : dist;
@@ -8372,9 +8423,11 @@
         rulerGuideOn = true;
         saveSettings();
       }
-      // 段ガイドバーの表示を更新（ONにして高さを表示）
-      if (gpToggle) gpToggle.checked = true;
-      if (gpStep) gpStep.textContent = '1段：' + dist + ' px';
+      // 段ガイドバーの表示を更新（ONにして高さを表示。チェック状態だけでなく、
+      // 表示/非表示のopacityもここで正しく同期する。JSでcheckedを直接書き換えるだけだと
+      // 'change'イベントが発火せず、本物のタップ時にしか動かない表示切り替え処理が
+      // スキップされてしまうため、この共通関数を必ず通す）
+      syncGuideRowUI(currentRulerTab);
       stopMeasure();
     });
 
