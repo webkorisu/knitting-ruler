@@ -2830,6 +2830,7 @@
   let scale    = 1.0;
   const minScale = 0.2, maxScale = 12;
   let offsetX  = 0, offsetY = 0;
+  let preMeasureScale = null, preMeasureOffsetX = null, preMeasureOffsetY = null; // 計測を始める前の表示サイズ・位置（計測が終わったら自動で戻す用）
 
   let rulerTop    = 200;
   let rulerLeft   = 0;
@@ -8223,6 +8224,8 @@
     }
 
     window.startMeasure = function() {
+      // 計測が終わったら自動で戻せるよう、今の表示サイズ・位置を覚えておく
+      preMeasureScale = scale; preMeasureOffsetX = offsetX; preMeasureOffsetY = offsetY;
       document.getElementById('measure-float-btn').style.display = 'none';
       pt1 = null; pt2 = null;
       adjustDragTarget = null;
@@ -8254,6 +8257,14 @@
     };
 
     function stopMeasure() {
+      // 計測前の表示サイズ・位置に自動で戻す（編みやすい大きさのまま計測を終えられるように）
+      if (preMeasureScale != null) {
+        scale = preMeasureScale; offsetX = preMeasureOffsetX; offsetY = preMeasureOffsetY;
+        clampOffset();
+        drawImage();
+        updateZoomLabel();
+        preMeasureScale = null; preMeasureOffsetX = null; preMeasureOffsetY = null;
+      }
       overlay.style.display = 'none';
       overlay.style.pointerEvents = 'none';
       ctx.clearRect(0, 0, cvs.width, cvs.height);
