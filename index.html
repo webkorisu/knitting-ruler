@@ -341,6 +341,11 @@
       max-height: calc(100vh - 80px);
       overflow-y: auto;
       overscroll-behavior: contain;
+      transition: padding-bottom .15s;
+    }
+    /* TOPボタンが出ている間は、一番下の内容（最終更新日など）とボタンが重ならないよう余白を広げる */
+    #float-panel.tabs-scrolled #panel-body {
+      padding-bottom: 60px;
     }
     /* スマホ幅：パネルのtopを40pxに下げた分（+24px）に加え、
        パネルを開いた直後に一時表示されるサブテキスト分（最大+36px）も確保しておく */
@@ -1174,6 +1179,37 @@
     #counter-panel.dragging {
       box-shadow: 0 16px 40px rgba(0,0,0,0.22), 0 4px 12px rgba(0,0,0,0.12);
       opacity: 0.95;
+    }
+
+    /* TOPへ戻るボタン：設定パネル「の中の」右下に、スクロールしてタブが見えなくなった時だけ表示する。
+       パネル自体を基準にした配置なので、パネルをドラッグで動かしても常にパネルの右下についてくる */
+    #top-float-btn {
+      position: absolute;
+      z-index: 5;
+      right: 12px;
+      bottom: 12px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary);
+      border: none;
+      color: #3a5c55;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.08);
+      -webkit-tap-highlight-color: transparent;
+      transition: background .15s, transform .1s;
+    }
+    #top-float-btn.show { display: flex; }
+    #top-float-btn:active { transform: scale(.93); }
+    @media (hover: hover) {
+      #top-float-btn:hover { background: #a8d4cb; }
     }
     /* 上段：段ガイド行（Line定規のときのみ表示） */
     #cp-guide-row {
@@ -2807,6 +2843,9 @@
     </div>
 
   </div><!-- /#panel-body -->
+
+  <!-- TOPへ戻るボタン：パネルの中身をスクロールした時だけ、パネル右下に表示 -->
+  <button type="button" id="top-float-btn" aria-label="設定パネルの一番上に戻る" onclick="scrollPanelToTop()">TOP</button>
 </div><!-- /#float-panel -->
 
 <script>
@@ -2959,7 +2998,6 @@
     scale = Math.min(sx, sy, 1);
     offsetX = (vw - img.width  * scale) / 2;
     offsetY = (vh - img.height * scale) / 2;
-    updateZoomLabel();
   }
 
   function drawImage() {
@@ -4067,7 +4105,6 @@
         gpStep.textContent = '1段：' + scaledStep + ' px';
       }
     }
-    updateZoomLabel();
     clampOffset();
     drawImage();
   }
@@ -4128,9 +4165,6 @@
     const dx = ts[0].clientX - ts[1].clientX, dy = ts[0].clientY - ts[1].clientY;
     return Math.sqrt(dx*dx + dy*dy);
   }
-
-  /* ========== ズームボタン(削除済み。update関数は他箇所から呼ばれているため空実装のまま残す) ========== */
-  function updateZoomLabel() {}
 
   /* ========== リサイズ・向き変更対応 ========== */
   function onResize() {
@@ -4300,10 +4334,11 @@
         <div style="width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
           <div class="preset-swatch" style="${swatchSize}background:${p.color};opacity:${Math.min(1, p.alpha + 0.3)};border:1.5px solid ${p.color}"></div>
         </div>
-        <span class="preset-item-name">${p.name}</span>
+        <span class="preset-item-name"></span>
         <button class="preset-overwrite-item-btn" data-i="${i}" data-tip="上書き（長押しで名前変更）" style="margin-left:auto">✎</button>
         <button class="preset-del-btn" data-i="${i}" data-tip="削除">✕</button>
       `;
+      item.querySelector('.preset-item-name').textContent = p.name;
 
       item.addEventListener('click', e => {
         if (e.target.closest('.preset-del-btn')) return;
@@ -4609,6 +4644,7 @@
     document.getElementById('panel-toggle-btn').textContent = willCollapse ? '＋' : '−';
     document.getElementById('panel-toggle-btn').title = willCollapse ? '開く' : '折りたたむ';
     setTimeout(clampPanel, 10);
+    if (window.updateTabsScrolledBadge) window.updateTabsScrolledBadge();
     // パネルを開いたときサブテキストをフェードイン→フェードアウト
     if (!willCollapse) {
       const sub = document.getElementById('panel-title-sub');
@@ -4632,18 +4668,32 @@
 
   // パネルを開いている時も、スクロールしてタブ（Line/Frame/Box/Circle）が見えなくなったら、
   // 折りたたみ時と同じ「今の定規名バッジ」をヘッダーに表示する（どのタブを見ているか分かるように）
+  // 同時に、右下のTOPへ戻るボタンもこのタイミングだけ表示する（家マーク＝ポータルリンクとは別物と分かるように）
   (function() {
-    const panelBody  = document.getElementById('panel-body');
+    const panelBody   = document.getElementById('panel-body');
     const rulerTabsEl = document.querySelector('.ruler-tabs');
+    const topFloatBtn = document.getElementById('top-float-btn');
     if (!panelBody || !rulerTabsEl) return;
     function updateTabsScrolledBadge() {
-      if (floatPanel.classList.contains('collapsed')) return; // 折りたたみ中は既存の仕組みに任せる
+      if (floatPanel.classList.contains('collapsed')) {
+        if (topFloatBtn) topFloatBtn.classList.remove('show'); // 折りたたみ中は出さない
+        return; // 折りたたみ中は既存の仕組みに任せる
+      }
       const tabsBottom = rulerTabsEl.getBoundingClientRect().bottom;
       const bodyTop     = panelBody.getBoundingClientRect().top;
-      floatPanel.classList.toggle('tabs-scrolled', tabsBottom <= bodyTop);
+      const scrolled = tabsBottom <= bodyTop;
+      floatPanel.classList.toggle('tabs-scrolled', scrolled);
+      if (topFloatBtn) topFloatBtn.classList.toggle('show', scrolled);
     }
     panelBody.addEventListener('scroll', updateTabsScrolledBadge, { passive: true });
+    window.updateTabsScrolledBadge = updateTabsScrolledBadge; // togglePanelから再判定できるように
   })();
+
+  // TOPへ戻るボタン：設定パネルの中身を一番上までスムーズに戻す
+  function scrollPanelToTop() {
+    const panelBody = document.getElementById('panel-body');
+    if (panelBody) panelBody.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   // viewerタップでパネルを閉じる
   viewer.addEventListener('pointerdown', e => {
@@ -4793,7 +4843,6 @@
     }
     clampOffset();
     drawImage();
-    updateZoomLabel();
   }
 
   // ヘッダーのバッジ（今使っている定規、Boxなら正方形/長方形も）を更新する
@@ -5407,12 +5456,13 @@
             fill="white" opacity="0.9"/>
         </svg>
         <div style="flex:1;min-width:0;">
-          <div class="preset-item-name">${p.name}</div>
+          <div class="preset-item-name"></div>
 
         </div>
         <button class="preset-overwrite-item-btn" data-i="${i}" data-tip="上書き（長押しで名前変更）">✎</button>
         <button class="preset-del-btn" data-i="${i}" data-tip="削除" style="margin-left:4px">✕</button>
       `;
+      item.querySelector('.preset-item-name').textContent = p.name;
       item.addEventListener('click', e => {
         if (e.target.closest('.preset-del-btn') || e.target.closest('.preset-overwrite-item-btn')) return;
         if (e.target.classList.contains('preset-name-edit')) return;
@@ -6689,12 +6739,13 @@
       <div class="preset-item${i === activeCirclePresetIdx ? ' preset-active' : ''}" style="display:flex;align-items:center;gap:6px;">
         <div style="width:16px;height:16px;flex-shrink:0;border-radius:50%;background:${p.color};opacity:${Math.min(1,(p.alpha||0.7)+0.3)};border:1.5px solid ${p.color};"></div>
         <div style="flex:1;min-width:0;cursor:pointer;" onclick="applyCirclePreset(${i})">
-          <div class="preset-item-name">${p.name}</div>
+          <div class="preset-item-name"></div>
 
         </div>
         <button class="preset-overwrite-item-btn" data-tip="上書き（長押しで名前変更）" onpointerdown="pencilPressStart('circle', ${i})" onpointerup="pencilPressEnd()" onpointerleave="pencilPressEnd()" onpointercancel="pencilPressEnd()" onclick="overwriteCirclePresetItem(${i})">✎</button>
         <button class="preset-del-btn" data-tip="削除" onclick="deleteCirclePreset(${i})">✕</button>
       </div>`).join('');
+    list.querySelectorAll('.preset-item-name').forEach((el, i) => { el.textContent = circlePresets[i].name; });
   }
   function doApplyCirclePreset(p, idx) {
     cColor = p.color; cAlpha = p.alpha; cR = p.r;
@@ -7608,13 +7659,14 @@
           <div style="width:${w}px;height:${h}px;border-radius:2px;background:${p.color};opacity:${Math.min(1,(p.alpha||0.7)+0.3)};border:1.5px solid ${p.color};"></div>
         </div>
         <div style="flex:1;min-width:0;cursor:pointer;" onclick="applyBoxPreset(${i})">
-          <div class="preset-item-name">${p.name}</div>
+          <div class="preset-item-name"></div>
 
         </div>
         <button class="preset-overwrite-item-btn" data-tip="上書き（長押しで名前変更）" onpointerdown="pencilPressStart('box', ${i})" onpointerup="pencilPressEnd()" onpointerleave="pencilPressEnd()" onpointercancel="pencilPressEnd()" onclick="overwriteBoxPresetItem(${i})">✎</button>
         <button class="preset-del-btn" data-tip="削除" onclick="deleteBoxPreset(${i})">✕</button>
       </div>`;
     }).join('');
+    list.querySelectorAll('.preset-item-name').forEach((el, i) => { el.textContent = boxPresets[i].name; });
   }
   function doApplyBoxPreset(p, idx) {
     bxColor = p.color; bxAlpha = p.alpha;
@@ -8341,7 +8393,6 @@
         scale = preMeasureScale; offsetX = preMeasureOffsetX; offsetY = preMeasureOffsetY;
         clampOffset();
         drawImage();
-        updateZoomLabel();
         preMeasureScale = null; preMeasureOffsetX = null; preMeasureOffsetY = null;
         // 表示サイズを戻した分、「1段の高さ」も新しいscaleに合わせて再計算する
         // （計測した瞬間の拡大率のままの生のピクセル値を使い続けないように。Line/Frame/Circle/Box共通）
