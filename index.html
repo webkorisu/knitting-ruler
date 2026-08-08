@@ -2080,7 +2080,7 @@
 <div id="viewer">
   <div id="tap-hint">編み図エリアをタップでメニューを閉じられます</div>
   <div id="placeholder">
-    <div class="ph-text">ここが編み図エリアです</div>
+    <div class="ph-text">ここは編み図エリアです</div>
     <div class="ph-tap">Knitting Chart Ruler</div>
   </div>
   <div id="save-hint-center"><span>※ブラウザを開き直した場合は</span><br><span>再度画像を読み込んでください</span></div>
@@ -2243,7 +2243,7 @@
       <div id="panel-title-wrap">
         <span id="panel-title-text">編み図ルーラー</span>
         <span id="panel-title-en">Knitting Chart Ruler</span>
-        <span id="panel-title-sub">― 段ガイド機能付き ―<br><span style="font-family:'Cormorant Garamond',serif; letter-spacing:.3em; font-size:10px;">✿ YUCCHI ✿</span></span>
+        <span id="panel-title-sub">― 段ガイド機能付き ―<br><span style="font-family:'Cormorant Garamond',serif; letter-spacing:.3em; font-size:10px;"><span style="font-size:8px;">✿</span> YUCCHI <span style="font-size:8px;">✿</span></span></span>
       </div>
     </div>
     <div id="panel-header-btns">
@@ -2787,13 +2787,15 @@
       <div class="x-footer-row">
         <div class="x-footer-icons">
           <a href="https://x.com/yuttyan4444" target="_blank" rel="noopener noreferrer"
-             aria-label="XでYUCCHIをフォロー" data-tooltip="Xへ" class="x-icon-btn">
+             id="x-link-btn"
+             aria-label="XでYUCCHIをフォロー" data-tooltip="Xへ" class="x-icon-btn" onclick="return handleXClick(event)">
             <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.254 5.622L18.244 2.25Zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77Z"/>
             </svg>
           </a>
           <a href="https://webkorisu.github.io/yucchis-portal/" target="_blank" rel="noopener noreferrer"
-             aria-label="✿ YUCCHIのアプリ一覧を開く" data-tooltip="アプリ一覧へ" class="x-icon-btn">
+             id="portal-link-btn"
+             aria-label="✿ YUCCHIのアプリ一覧を開く" data-tooltip="アプリ一覧へ" class="x-icon-btn" onclick="return handlePortalClick(event)">
             <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M12.74 1.67 L22 10 L22 20.5 Q22 22 20.5 22 L14.5 22 L14.5 15 L9.5 15 L9.5 22 L3.5 22 Q2 22 2 20.5 L2 10 L11.26 1.67 Q12 1 12.74 1.67 Z"/>
             </svg>
@@ -2844,7 +2846,7 @@
   let rulerTop    = 200;
   let rulerLeft   = 0;
   let rulerHeight = 172;
-  const MIN_RULER_H = 30;
+  const MIN_RULER_H = 20;
   let rulerColor  = '#b2aaaa';
   let rulerAlpha  = 0.80;
   let rulerWidth  = 80;
@@ -3002,12 +3004,12 @@
     document.querySelectorAll('.ruler-edge.top, .ruler-edge.bottom').forEach(el => {
       el.style.left   = cornerSize + 'px';
       el.style.right  = cornerSize + 'px';
-      el.style.height = Math.min(baseThick, Math.max(4, heightPx - 6)) + 'px';
+      el.style.height = Math.min(baseThick, Math.max(4, heightPx / 2 - 6)) + 'px';
     });
     document.querySelectorAll('.ruler-edge.left, .ruler-edge.right').forEach(el => {
       el.style.top    = cornerSize + 'px';
       el.style.bottom = cornerSize + 'px';
-      el.style.width  = Math.min(baseThick, Math.max(4, widthPx - 6)) + 'px';
+      el.style.width  = Math.min(baseThick, Math.max(4, widthPx / 2 - 6)) + 'px';
     });
   }
 
@@ -3038,7 +3040,7 @@
     // 実際の表示サイズ（pxベース）。applyRulerPos()で設定済みのDOM実測値を使う
     const ow = rulerHandle.offsetWidth  || (rulerWidth / 100) * window.innerWidth;
     const oh = rulerHandle.offsetHeight || rulerHeight;
-    const rad = 10;
+    const rad = Math.min(10, ow/3, oh/3); // 箱が小さい時に真円になってしまわないよう、サイズに応じて丸みも小さくする
     const hl = Math.min(12, ow/3, oh/3); // ハイライトの太さ：上下左右すべて共通の値にする
     const M  = 16; // 外側の光がはみ出すための余白（SVGのキャンバス自体を4辺とも同じだけ広げる）
 
@@ -4194,6 +4196,27 @@
   }
   function closeModal() { modalOverlay.classList.remove('open'); }
 
+  // ポータル（アプリ一覧）へのリンク：小さいアイコンなので誤タップ防止に確認モーダルを挟む
+  window.handlePortalClick = function(e) {
+    e.preventDefault();
+    showModal(
+      'YUCCHIのアプリ一覧を開きますか？\n別タブで開くので\nこのページはそのまま残ります。',
+      '開く',
+      () => { window.open('https://webkorisu.github.io/yucchis-portal/', '_blank', 'noopener,noreferrer'); }
+    );
+    return false;
+  };
+  // Xへのリンクも同じ理由（小さいアイコン）で確認モーダルを挟む
+  window.handleXClick = function(e) {
+    e.preventDefault();
+    showModal(
+      'YUCCHIのXを開きますか？\n別タブで開くので\nこのページはそのまま残ります。',
+      '開く',
+      () => { window.open('https://x.com/yuttyan4444', '_blank', 'noopener,noreferrer'); }
+    );
+    return false;
+  };
+
   /* ========== プリセット ========== */
   const PRESET_KEY   = 'yucchi_ruler_presets';
   const MAX_PRESETS  = 5;
@@ -5016,7 +5039,7 @@
     if (wy + wh > oh) wh = oh - wy;
     ww = Math.max(0, ww);
     wh = Math.max(0, wh);
-    const rad = 10;
+    const rad = Math.min(10, ow/3, oh/3); // 箱が小さい時に真円になってしまわないよう、サイズに応じて丸みも小さくする
     const fa  = fAlpha;
     const bc  = Math.min(1, fa * 1.6); // 枠線の濃さ（旧border方式と同じ濃さになるよう1.6倍のまま）
     const hl  = Math.min(12, ow/3, oh/3); // ハイライトの太さ：外枠側。上下左右すべて共通の値にする（Line定規と同じ考え方）
@@ -6780,7 +6803,7 @@
     // 見た目専用レイヤー：正方形/長方形がちょうど収まるSVGをその位置に配置する（Frame/Line/Circle定規と同じ仕組み）
     const left = bxX - bxHalfW, top = bxY - bxHalfH;
     const ow = bxHalfW * 2, oh = bxHalfH * 2;
-    const rad = 10;
+    const rad = Math.min(10, ow/3, oh/3); // 箱が小さい時に真円になってしまわないよう、サイズに応じて丸みも小さくする
     const hl  = Math.min(12, ow/3, oh/3); // ハイライトの太さ：上下左右すべて共通の値にする（Line/Frame定規と同じ考え方）
     const M   = 16; // 外側の光がはみ出すための余白（Line/Frame定規と同じ仕組み）
 
@@ -7055,7 +7078,7 @@
     if (!floatPanel.classList.contains('collapsed')) togglePanel(true);
   }
   const BX_HANDLE_R = 26; // 角・辺の当たり判定の許容範囲(px)　※スマホでも掴みやすいよう16→26に拡大
-  const BX_MIN_HALF = 15; // リサイズ・カウンター共通の最小半径(px)　※ここを変えると両方に反映される
+  const BX_MIN_HALF = 10; // リサイズ・カウンター共通の最小半径(px)　※ここを変えると両方に反映される（幅・高さの実寸最小値はこの2倍＝20px）
 
   // 座標から「どの操作ゾーンか」を判定する。戻り値: null（外側） / 'inside'（移動） / 'corner-tl' などのリサイズモード
   function boxHitTest(px, py) {
