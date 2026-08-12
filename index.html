@@ -675,100 +675,6 @@
       cursor: not-allowed;
     }
 
-    /* 窓の動き方（複数段／今の段）：横並びのラジオボタン */
-    .frame-mode-radio {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .frame-mode-radio input {
-      position: absolute;
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-    .frame-mode-radio-dot {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      border: 1.5px solid var(--border);
-      background: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: border-color .15s;
-    }
-    .frame-mode-radio-dot::after {
-      content: '';
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: #D4B5C4;
-      transform: scale(0);
-      transition: transform .15s;
-    }
-    .frame-mode-radio-label {
-      font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 12px;
-      color: var(--text-sub);
-      transition: color .15s, font-weight .15s;
-    }
-    .frame-mode-radio input:checked + .frame-mode-radio-dot {
-      border-color: #D4B5C4;
-    }
-    .frame-mode-radio input:checked + .frame-mode-radio-dot::after {
-      transform: scale(1);
-    }
-    .frame-mode-radio input:checked ~ .frame-mode-radio-label {
-      font-weight: 700;
-      color: var(--text);
-    }
-    .frame-mode-radio input:disabled ~ * {
-      opacity: .45;
-    }
-    .frame-mode-radio:has(input:disabled) {
-      cursor: not-allowed;
-    }
-    /* 窓の動き方：説明文の中に埋め込むラジオボタン（説明が複数行に折り返す用） */
-    .frame-mode-radio-inline {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      cursor: pointer;
-      margin: 6px 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .frame-mode-radio-inline input {
-      position: absolute;
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-    .frame-mode-radio-inline .frame-mode-radio-dot {
-      margin-top: 2px;
-    }
-    .frame-mode-radio-inline .frame-mode-radio-text {
-      font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 10px;
-      color: var(--text-sub);
-      line-height: 1.9;
-      letter-spacing: .02em;
-    }
-    .frame-mode-radio-inline input:disabled ~ * {
-      opacity: .45;
-    }
-    .frame-mode-radio-inline:has(input:disabled) {
-      cursor: not-allowed;
-    }
-    .frame-mode-radio-inline input:checked + .frame-mode-radio-dot {
-      border-color: #D4B5C4;
-    }
-    .frame-mode-radio-inline input:checked + .frame-mode-radio-dot::after {
-      transform: scale(1);
-    }
 
     /* 文中の「1段の高さの計測」などをタップすると、すぐ下に説明が展開される仕組み */
     .inline-help-term {
@@ -1041,149 +947,6 @@
     .toggle-switch input:disabled + .toggle-knob { opacity: .45; }
     .toggle-switch:has(input:disabled) { cursor: not-allowed; }
 
-    /* ===== 窓定規オーバーレイ ===== */
-    #frame-overlay {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 100;
-      display: none;
-    }
-    /* 立体枠（外枠全体を囲む枠線のみ、中は透明） */
-    #frame-3d-border {
-      position: absolute;
-      pointer-events: none;
-      z-index: 99;
-      border-radius: 10px;
-      background: transparent;
-    }
-    /* 外枠の4枚パネル（上下左右）- 背景は透明、リサイズ操作のみ担当 */
-    .frame-panel {
-      position: absolute;
-      pointer-events: all;
-      touch-action: none;
-      cursor: grab;
-    }
-    #circle-canvas { cursor: grab; }
-    #circle-canvas:active { cursor: grabbing; }
-    #circle-canvas.dragging { opacity: 0.6; transition: opacity .15s; }
-    #circle-canvas.rim { cursor: nwse-resize !important; }
-    #circle-3d-layer.dragging { opacity: 0.6; transition: opacity .15s; }
-    #box-canvas { cursor: grab; }
-    #box-canvas:active { cursor: grabbing; }
-    #box-canvas.dragging { opacity: 0.6; transition: opacity .15s; }
-    #box-3d-layer.dragging { opacity: 0.6; transition: opacity .15s; }
-    .frame-panel.dragging { opacity: 0.6; transition: opacity .15s; }
-    #frame-3d-border.dragging { opacity: 0.6; transition: opacity .15s; }
-    /* ホバー時に薄くする（4定規で統一）。本物のマウスでホバーできる機種だけに限定する。
-       タッチ画面だと「:hover」がタップ後に貼り付いたままになり、他の場所をタップするまで
-       薄いままになってしまう（濃さ100%のはずなのに透けて見えるバグの原因だった）ため、
-       @media (hover: hover) でマウス操作可能な機種だけに絞っている。
-       #circle-3d-layer・#box-3d-layer・#frame-3d-borderはpointer-events:noneで直接ホバーできないため、
-       操作用パネル／キャンバス側がホバーされているかを:has()で検知して連動させる。
-       Circle・Boxの当たり判定キャンバスは画面いっぱいに広がっているため、素の:hoverだと
-       「定規の近く」ではなく「画面のどこにマウスがあっても」反応してしまう
-       （薄くなるのは合っていても、元に戻すには画面外までカーソルを離す必要があり、とても遅く感じるバグの原因だった）。
-       そのためCircle・BoxはJS側で実際の形との距離を判定した`.hover-near`クラスと連動させている。
-       Frameのパネルは最初から定規のすぐ近くだけのサイズなので、素の:hoverのままで問題ない */
-    @media (hover: hover) {
-      #circle-3d-layer:has(~ #circle-canvas.hover-near):not(.dragging) {
-        opacity: 0.85;
-        transition: opacity .15s;
-      }
-      #box-3d-layer:has(~ #box-canvas.hover-near):not(.dragging) {
-        opacity: 0.85;
-        transition: opacity .15s;
-      }
-      #frame-3d-border:has(~ .frame-panel:hover):not(.dragging) {
-        opacity: 0.85;
-        transition: opacity .15s;
-      }
-    }
-    #frame-top    { top: 0; left: 0; right: 0; cursor: grab; }
-    #frame-bottom { bottom: 0; left: 0; right: 0; cursor: grab; }
-    #frame-left   { cursor: grab; }
-    #frame-right  { cursor: grab; }
-    /* 窓のリサイズハンドル（透明） */
-    .frame-win-edge {
-      position: absolute;
-      background: transparent;
-      pointer-events: all;
-      touch-action: none;
-      z-index: 5;
-    }
-    .frame-win-edge.top    { top: -10px;    left: 20px; right: 20px; height: 20px; cursor: ns-resize; }
-    .frame-win-edge.bottom { bottom: -10px; left: 20px; right: 20px; height: 20px; cursor: ns-resize; }
-    .frame-win-edge.left   { left: -10px;   top: 20px; bottom: 20px; width: 20px;  cursor: ew-resize; }
-    .frame-win-edge.right  { right: -10px;  top: 20px; bottom: 20px; width: 20px;  cursor: ew-resize; }
-    .frame-win-corner {
-      position: absolute;
-      width: 24px; height: 24px;
-      background: transparent;
-      pointer-events: all;
-      touch-action: none;
-      z-index: 6;
-      transform: translate(-50%, -50%); /* 角の点に中心が来るようにする（外枠の角と同じ「またぐ」考え方） */
-    }
-    .frame-win-corner.tl { top: 0;    left: 0;    cursor: nwse-resize; }
-    .frame-win-corner.tr { top: 0;    left: 100%; cursor: nesw-resize; }
-    .frame-win-corner.bl { top: 100%; left: 0;    cursor: nesw-resize; }
-    .frame-win-corner.br { top: 100%; left: 100%; cursor: nwse-resize; }
-    /* 窓の中央ドラッグエリア */
-    #frame-win-drag {
-      position: absolute;
-      inset: 20px;
-      cursor: move;
-      pointer-events: all;
-      touch-action: none;
-      z-index: 4;
-    }
-
-    /* 外枠の4隅コーナー */
-    .frame-outer-corner {
-      position: fixed;
-      width: 16px; height: 16px;
-      z-index: 52;
-      pointer-events: none;
-      touch-action: none;
-      transform: translate(-50%, -50%); /* top/leftに入れた座標が常に中心になるようにする（Line定規の角と同じ「ズレない」考え方） */
-    }
-    .frame-outer-corner[data-oc="tl"],
-    .frame-outer-corner[data-oc="tr"],
-    .frame-outer-corner[data-oc="bl"],
-    .frame-outer-corner[data-oc="br"] { cursor: grab; }
-    .frame-outer-corner:active { cursor: grabbing; }
-    /* 外枠リサイズモード */
-    .frame-panel.resize-mode {
-      cursor: default;
-      opacity: 1 !important;
-    }
-    /* 外枠の外側リサイズハンドル（透明）。外枠全体の長さをカバーするため、
-       パネルではなく画面基準（position:fixed）でJS側から位置・長さを設定する。
-       太さ（width/height）だけはCSS側で管理する。 */
-    .frame-outer-edge {
-      position: fixed;
-      background: transparent;
-      pointer-events: none;
-      touch-action: none;
-      z-index: 7;
-    }
-    .frame-outer-edge[data-outer="top"],
-    .frame-outer-edge[data-outer="bottom"] {
-      height: 12px;
-      cursor: grab;
-    }
-    .frame-outer-edge[data-outer="top"]    { transform: translateY(-50%); }
-    .frame-outer-edge[data-outer="bottom"] { transform: translateY(50%); }
-    .frame-outer-edge[data-outer="left"],
-    .frame-outer-edge[data-outer="right"] {
-      width: 12px;
-      cursor: grab;
-    }
-    .frame-outer-edge[data-outer="left"]  { transform: translateX(-50%); }
-    .frame-outer-edge[data-outer="right"] { transform: translateX(50%); }
-    .frame-outer-edge:active { cursor: grabbing; }
-
     /* ===== タッチデバイス：リサイズエリアを広げる ===== */
     @media (pointer: coarse) {
       /* 帯定規：四隅 */
@@ -1193,21 +956,6 @@
       .ruler-edge.bottom { height: 18px; }
       .ruler-edge.left   { width: 18px; }
       .ruler-edge.right  { width: 18px; }
-      /* 窓定規：四辺 */
-      .frame-win-edge.top    { top: -14px;    height: 28px; }
-      .frame-win-edge.bottom { bottom: -14px; height: 28px; }
-      .frame-win-edge.left   { left: -14px;   width: 28px; }
-      .frame-win-edge.right  { right: -14px;  width: 28px; }
-      #frame-win-drag { inset: 28px; }
-      /* 窓定規：四隅 */
-      .frame-win-corner { width: 32px; height: 32px; }
-      /* フレーム外枠：四辺 */
-      .frame-outer-edge[data-outer="top"],
-      .frame-outer-edge[data-outer="bottom"] { height: 20px; }
-      .frame-outer-edge[data-outer="left"],
-      .frame-outer-edge[data-outer="right"] { width: 20px; }
-      /* フレーム外枠：四隅 */
-      .frame-outer-corner { width: 28px; height: 28px; }
     }
 
     /* ===== 帯定規オーバーレイ ===== */
@@ -1253,19 +1001,6 @@
       opacity: 0.6;
       transition: opacity .15s;
     }
-
-    .frame-color-dot {
-      width: 19px; height: 19px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      cursor: pointer;
-      transition: transform .15s, border-color .15s;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .frame-color-dot:hover  { transform: scale(1.15); }
-    .frame-color-dot.active { border-color: var(--text-sub); transform: scale(1.1); }
 
     /* ===== 四つ角リサイズハンドル ===== */
     .ruler-corner {
@@ -1995,26 +1730,6 @@
       box-shadow: 0 1px 1px rgba(0,0,0,0.10);
       transform: scale(.95);
     }
-    /* 外枠を画面いっぱいに広げるボタン（フレーム定規「リサイズ」の説明文のすぐ下に配置） */
-    .frame-maximize-btn {
-      display: block;
-      margin: 10px auto 0;
-      padding: 6px 14px;
-      font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      color: #FFFFFF;
-      background: #D4B5C4;
-      border: none;
-      border-radius: var(--radius-sm);
-      letter-spacing: .06em;
-      cursor: pointer;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-      transition: opacity .15s, transform .1s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .frame-maximize-btn:hover { opacity: 0.75; }
-    .frame-maximize-btn:active { transform: scale(.95); }
     /* カスタマイズの中身を2グループ（設定系／リセット）の箱で分ける */
     .ruler-settings-group {
       display: flex;
@@ -2290,42 +2005,10 @@
 </div>
 <input type="file" id="file-input" accept="image/*">
 
-<!-- ===== 窓定規オーバーレイ ===== -->
-<div id="frame-overlay" style="display:none;">
-  <!-- 立体枠（外枠全体を1要素で表現） -->
-  <div id="frame-3d-border"></div>
-  <div class="frame-panel" id="frame-top"></div>
-  <div class="frame-panel" id="frame-bottom"></div>
-  <div class="frame-panel" id="frame-left"></div>
-  <div class="frame-panel" id="frame-right"></div>
-  <!-- 外枠の辺リサイズハンドル（外枠全体の長さをカバーするよう、パネルから独立させて配置） -->
-  <div class="frame-outer-edge" data-outer="top"></div>
-  <div class="frame-outer-edge" data-outer="bottom"></div>
-  <div class="frame-outer-edge" data-outer="left"></div>
-  <div class="frame-outer-edge" data-outer="right"></div>
-  <!-- 外枠の4隅コーナーリサイズ -->
-  <div class="frame-outer-corner" id="foc-tl" data-oc="tl"></div>
-  <div class="frame-outer-corner" id="foc-tr" data-oc="tr"></div>
-  <div class="frame-outer-corner" id="foc-bl" data-oc="bl"></div>
-  <div class="frame-outer-corner" id="foc-br" data-oc="br"></div>
-  <!-- 窓のリサイズ・移動ハンドル -->
-  <div id="frame-win-wrap" style="position:absolute;pointer-events:none;">
-    <div id="frame-win-drag"></div>
-    <div class="frame-win-edge top"    data-we="top"></div>
-    <div class="frame-win-edge bottom" data-we="bottom"></div>
-    <div class="frame-win-edge left"   data-we="left"></div>
-    <div class="frame-win-edge right"  data-we="right"></div>
-    <div class="frame-win-corner tl"   data-wc="tl"></div>
-    <div class="frame-win-corner tr"   data-wc="tr"></div>
-    <div class="frame-win-corner bl"   data-wc="bl"></div>
-    <div class="frame-win-corner br"   data-wc="br"></div>
-  </div>
-</div>
-
 <!-- ===== 定規オーバーレイ ===== -->
 <div id="ruler-overlay">
   <div id="ruler-handle">
-    <!-- 立体枠（Frame定規のframe-3d-borderと同じ仕組みでSVGを描画） -->
+    <!-- 立体枠（Line/Circle/Box定規と同じ仕組みでSVGを描画） -->
     <div id="ruler-3d-border" style="position:absolute; inset:0; pointer-events:none; z-index:1;"></div>
     <div class="ruler-corner tl" data-corner="tl"></div>
     <div class="ruler-corner tr" data-corner="tr"></div>
@@ -2471,14 +2154,13 @@
     <div style="display:flex; flex-direction:column; gap:0;">
     <div class="ruler-tabs">
       <button class="ruler-tab active" id="tab-band"   onclick="switchRulerTab('band')"><span class="tab-main">Line<span class="tab-sub">定規</span></span></button>
-      <button class="ruler-tab"        id="tab-frame"  onclick="switchRulerTab('frame')"><span class="tab-main">Frame<span class="tab-sub">定規</span></span></button>
       <button class="ruler-tab"        id="tab-box" onclick="switchRulerTab('box')"><span class="tab-main">Box<span class="tab-sub">定規</span></span></button>
       <button class="ruler-tab"        id="tab-circle" onclick="switchRulerTab('circle')"><span class="tab-main">Circle<span class="tab-sub">定規</span></span></button>
     </div>
 
     <!-- 定規カスタマイズ -->
     <div class="ruler-card" id="ruler-card">
-      <div class="ruler-usage-hint">💡 <span>シンプル操作の定規</span></div>
+      <div class="ruler-usage-hint">💡 <span>往復編み・輪編みのための定規</span></div>
       <!-- アコーディオン①カスタマイズ -->
       <div class="card-accordion" id="band-acc-custom">
         <button class="card-accordion-btn" onclick="toggleCardAcc('band-acc-custom')">
@@ -2585,131 +2267,6 @@
       <span id="ruler-step-label" style="display:none;">40 px</span>
 
     </div><!-- /#ruler-card (帯定規) -->
-
-    <!-- 窓定規カード -->
-    <div class="ruler-card" id="frame-card" style="display:none;">
-      <div class="ruler-usage-hint">💡 <span>見たい段だけ表示する定規</span></div>
-      
-      <!-- アコーディオン①カスタマイズ -->
-      <div class="card-accordion" id="frame-acc-custom">
-        <button class="card-accordion-btn" onclick="toggleCardAcc('frame-acc-custom')">
-          <span>フレーム定規のカスタマイズ</span>
-          <span class="card-accordion-arrow">▼</span>
-        </button>
-        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:20px;">
-          <div class="ruler-settings-group">
-          <div class="ruler-control ruler-color-row">
-            <label>カラー</label>
-            <div class="color-presets" id="frame-color-presets">
-              <button class="frame-color-dot" data-color="#E8A8AC" style="background:#E8A8AC;" title="赤"></button>
-              <button class="frame-color-dot" data-color="#F0C29C" style="background:#F0C29C;" title="橙"></button>
-              <button class="frame-color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="黄"></button>
-              <button class="frame-color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="緑"></button>
-              <button class="frame-color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="青"></button>
-              <button class="frame-color-dot" data-color="#A8AEDC" style="background:#A8AEDC;" title="藍"></button>
-              <button class="frame-color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="紫"></button>
-              <input type="color" id="frame-color" value="#b2aaaa" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
-              <label for="frame-color" class="color-custom-label" title="カラーを選ぶ"></label>
-            </div>
-          </div>
-          <div class="ruler-control ruler-slider-row">
-            <label for="frame-opacity">濃さ</label>
-            <div style="display:flex; align-items:center; gap:10px; width:100%; max-width:203px;">
-              <input type="range" id="frame-opacity" min="10" max="100" value="80" step="5" style="width:116px; flex:none;">
-              <span id="frame-opacity-label">80%</span>
-            </div>
-          </div>
-          <div class="ruler-control" style="gap:12px;">
-            <label>リサイズ</label>
-            <div style="padding-right:14px; box-sizing:border-box;">
-              <div class="ruler-op-desc">外枠・窓枠の辺や角をドラッグ<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">またはピンチ</span><br>※別々にリサイズできます。</div>
-              <button type="button" class="frame-maximize-btn" id="frame-maximize-btn" onclick="maximizeFrameOuter()">外枠を最大化</button>
-            </div>
-          </div>
-          <div class="ruler-control" style="gap:10px;">
-            <label>戻る・進む</label>
-            <div style="padding-left:0;">
-              <div class="undo-redo-row">
-                <button type="button" class="undo-redo-btn" id="frame-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
-                <button type="button" class="undo-redo-btn" id="frame-redo-btn" title="進む" aria-label="1つ先の状態に進む" disabled>↻<span class="action-tooltip">進む</span></button>
-              </div>
-            </div>
-          </div>
-          </div>
-          <div class="ruler-reset-group">
-            <button class="reset-default-btn" id="frame-reset-btn" onclick="confirmResetFrame()">リセット</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- アコーディオン②お気に入り -->
-      <div class="card-accordion" id="frame-acc-preset">
-        <button class="card-accordion-btn" onclick="toggleCardAcc('frame-acc-preset')">
-          <span>お気に入り定規　<span id="frame-preset-count">0</span>/5</span>
-          <span class="card-accordion-arrow">▼</span>
-        </button>
-        <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
-          <div class="preset-save-row">
-            <input type="text" id="frame-preset-name" class="preset-name-input" placeholder="名前をつけて保存…" maxlength="10">
-            <button class="preset-save-btn" onclick="saveFramePreset()">保存</button>
-          </div>
-          <div id="frame-preset-list" class="preset-list"></div>
-        </div>
-      </div>
-
-      <!-- アコーディオン③段数カウンター -->
-      <div class="card-accordion" id="frame-acc-counter">
-        <button class="card-accordion-btn" onclick="toggleCardAcc('frame-acc-counter')">
-          <span>段数カウンター</span>
-          <span class="card-accordion-arrow">▼</span>
-        </button>
-        <div class="card-accordion-body" style="padding:14px 12px 14px; gap:6px;">
-          <div style="display:flex; align-items:center; gap:6px;">
-            <span class="toggle-label" style="width:7.5em;">段数カウンター</span>
-            <label class="toggle-switch">
-              <input type="checkbox" id="toggle-frame-counter" checked>
-              <span class="toggle-knob"></span>
-            </label>
-          </div>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段ガイド機能も使えるようになります。<br>
-          <strong style="font-weight:700; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
-        </div>
-      </div>
-
-      <!-- アコーディオン④段ガイド機能 -->
-      <div class="card-accordion" id="frame-acc-guide">
-        <button class="card-accordion-btn" onclick="toggleCardAcc('frame-acc-guide')">
-          <span>段ガイド機能</span>
-          <span class="card-accordion-arrow">▼</span>
-        </button>
-        <div class="card-accordion-body" style="padding:14px 12px 14px; gap:12px;">
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「段ガイド」スイッチで、ON/OFFを切り替えます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して、フレーム定規の窓が1段ずつ動きます。使用するには<span class="inline-help-term" onclick="toggleInlineHelp(event, 'frame-step-help')">1段の高さの計測</span>が必要です。下記のいずれかを選択してください。</p>
-          <div id="frame-step-help" class="inline-help-body">
-            <span class="inline-help-body-title">【1段の高さの計測方法】</span>
-            カウンターの「計測」ボタンを押し、編み図の1段の高さを計測してください。<br>
-            ※1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
-            ※計測後は、カウンターの「1段：◯◯ px」の数値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。
-          </div>
-          <label class="frame-mode-radio-inline">
-            <input type="radio" name="frame-guide-mode" id="frame-guide-mode-radio-now" onchange="setFrameGuideMode('ima')">
-            <span class="frame-mode-radio-dot"></span>
-            <span class="frame-mode-radio-text"><strong style="font-weight:700; color:var(--text);">今編んでいる1段のみ見て編む</strong><br>窓の高さを常に1段ぶんに固定し、その帯が今編んでいる段を追って上に動きます。</span>
-          </label>
-          <label class="frame-mode-radio-inline">
-            <input type="radio" name="frame-guide-mode" id="frame-guide-mode-radio-multi" onchange="setFrameGuideMode('nokori')">
-            <span class="frame-mode-radio-dot"></span>
-            <span class="frame-mode-radio-text"><strong style="font-weight:700; color:var(--text);">複数の段を囲って編む</strong><br>窓枠の下側が1段ずつ動き、編み終わった分だけ隠れていきます。</span>
-          </label>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※切り替えると、カウントはいったん0に戻ります。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">OFF</strong>：フレーム定規をドラッグすると、手動で動かせます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">※ONの間も定規の位置をドラッグで微調整でき、編み図の歪みなどでズレた時に便利です。</p>
-        </div>
-      </div>
-      <input type="hidden" id="frame-step" value="40">
-      <span id="frame-step-label" style="display:none;">40 px</span>
-
-    </div>
 
     <!-- 丸定規カード -->
     <div class="ruler-card" id="circle-card" style="display:none;">
@@ -2949,7 +2506,7 @@
         <div class="data-note-body">
           <p>① 「📂 編み図を開く」から画像を読み込みます（PDFは非対応）。対応ファイル形式は下記をご覧ください。すでに画像がある状態でもう一度読み込むと、確認のうえで入れ替わります。読み込んだ画像は、隣の「✕」ボタンでいつでも消せます（今のタブの画像だけが消え、他のタブには影響しません）。</p>
           <p>② 編み図はドラッグで移動、ピンチ（スマホ・トラックパッド）やマウスホイール（PC）で拡大・縮小できます。</p>
-          <p>③ タブで定規の種類を切り替えられます（Line／Frame／Box／Circle）。各タブごとに別々の編み図を読み込めます。</p>
+          <p>③ タブで定規の種類を切り替えられます（Line／Box／Circle）。各タブごとに別々の編み図を読み込めます。</p>
           <p>④ 各定規はカラー・濃さ・サイズをカスタマイズでき、ドラッグで動かせます。よく使う設定はお気に入り定規に保存できます。</p>
           <p>⑤ 段数カウンター、段ガイド機能は、各定規ごとに設定できます。詳しい設定・使用方法は各定規のメニューをご覧ください。</p>
           <p>⑥ メニューパネルと段数カウンターは、ドラッグで移動できます。</p>
@@ -3016,7 +2573,7 @@
             </svg>
           </a>
         </div>
-        <div class="last-updated">最終更新：2026.08.01</div>
+        <div class="last-updated">最終更新：2026.08.13</div>
       </div>
 
     </div>
@@ -3149,7 +2706,6 @@
           viewer.classList.add('has-image');
           updateUploadClearBtn();
           fitImage();
-          fitFrameToImage(); // フレーム定規の外枠を、今表示された編み図の範囲に自動で合わせる
           drawImage();
           switchRulerTab(currentRulerTab);
         };
@@ -3254,7 +2810,7 @@
     rulerHandle.style.left   = leftPx  + 'px';
     rulerHandle.style.width  = widthPx + 'px';
     updateRulerHandleGeometry(widthPx, rulerHeight);
-    // 位置・サイズが変わったら見た目（SVG）も必ず更新する（Frame定規と同じ構造）
+    // 位置・サイズが変わったら見た目（SVG）も必ず更新する
     applyRulerStyle();
   }
 
@@ -3431,8 +2987,7 @@
     const valEl = document.getElementById('step-adjust-card-value');
     if (!valEl) return;
     let step = 0;
-    if (currentRulerTab === 'frame') step = frameStep;
-    else if (currentRulerTab === 'circle') step = circleStep;
+    if (currentRulerTab === 'circle') step = circleStep;
     else if (currentRulerTab === 'box') step = boxStep;
     else step = rulerStep;
     valEl.textContent = step + ' px';
@@ -3447,16 +3002,7 @@
   // ±ボタン：1段の高さを1pxだけ微調整する
   function adjustStepValue(delta) {
     const MAX_STEP = 999;
-    if (currentRulerTab === 'frame') {
-      if (frameStep <= 0) return;
-      frameStep = Math.min(MAX_STEP, Math.max(1, frameStep + delta));
-      frameStepBase = scale > 0 ? frameStep / scale : frameStep;
-      // 「今の段」モードなら、1段の高さの微調整をその場で窓に反映する（下端は固定したまま高さだけ変える）
-      if (frameGuideMode === 'ima') {
-        initFrameBandAtZero();
-      }
-      saveFrameSettings();
-    } else if (currentRulerTab === 'circle') {
+    if (currentRulerTab === 'circle') {
       if (circleStep <= 0) return;
       circleStep = Math.min(MAX_STEP, Math.max(1, circleStep + delta));
       circleStepBase = scale > 0 ? circleStep / scale : circleStep;
@@ -3477,10 +3023,7 @@
   }
   // 計測した1段の高さを未計測に戻す（段ガイドのON/OFFはそのまま維持する）
   function resetStepValue() {
-    if (currentRulerTab === 'frame') {
-      frameStep = 0; frameStepBase = 0;
-      saveFrameSettings();
-    } else if (currentRulerTab === 'circle') {
+    if (currentRulerTab === 'circle') {
       circleStep = 0; circleStepBase = 0;
       saveCircleSettings();
     } else if (currentRulerTab === 'box') {
@@ -3511,74 +3054,9 @@
   });
 
   // タブ切替時や設定読込時に、段ガイド行（トグル・ラベル・計測ボタン）の表示をそのタブの状態に同期する
-  // Frame専用：段ガイドがONの時だけ「窓の動き方」を選べるようにする
-  function syncFrameGuideModeAvailability() {
-    const multiInput = document.getElementById('frame-guide-mode-radio-multi');
-    const nowInput   = document.getElementById('frame-guide-mode-radio-now');
-    if (multiInput) multiInput.disabled = !frameGuideOn;
-    if (nowInput)   nowInput.disabled   = !frameGuideOn;
-  }
-  // Frame専用：「窓の動き方」ラジオボタンの選択状態を、今のframeGuideModeに合わせる
-  function syncFrameGuideModeButtons() {
-    const multiInput = document.getElementById('frame-guide-mode-radio-multi');
-    const nowInput   = document.getElementById('frame-guide-mode-radio-now');
-    if (multiInput) multiInput.checked = (frameGuideMode === 'nokori');
-    if (nowInput)   nowInput.checked   = (frameGuideMode === 'ima');
-  }
-  // 今の窓を基準に、frameCount=0（いちばん下の段）の位置へ即座に配置する
-  function initFrameBandAtZero() {
-    const outerAbsTop    = fWin.y - fOuter.top;
-    const outerAbsBottom = fWin.y + fWin.h + fOuter.bottom;
-    const bottom = fWin.y + fWin.h; // 今の窓の下端を「いちばん下の段」の下端とする
-    fWin.y = bottom - frameStep;
-    fWin.h = frameStep;
-    fOuter.top    = fWin.y - outerAbsTop;
-    fOuter.bottom = outerAbsBottom - (fWin.y + fWin.h);
-    frameBandBottom0   = bottom;
-    frameOuterTop0     = outerAbsTop;
-    frameOuterBottom0  = outerAbsBottom;
-    frameBandNeedsRecapture = false;
-    applyFrameOuterPos(); applyFrameStyle();
-  }
-  // 「続ける」で戻る先（いちばん下の位置）の記録だけを、今の窓を基準に取り直す（再描画はしない）。
-  // ドラッグ・ピンチで窓を動かした直後に呼ぶ。これを呼ばずにいると、「続ける」で戻る位置が
-  // 古いままになり、実際の位置と大きくズレて見える
-  function resyncFrameBandBase() {
-    frameBandBottom0   = fWin.y + fWin.h;
-    frameOuterTop0     = fWin.y - fOuter.top;
-    frameOuterBottom0  = fWin.y + fWin.h + fOuter.bottom;
-    frameBandNeedsRecapture = false;
-  }
-
-  // Frame専用：「窓の動き方」ラジオボタンを選んだ時の処理
-  // 混乱を避けるため、切り替えたらカウント・区間の基準はいったん0にリセットする
-  // （窓の大きさ・位置はそのまま。次に「＋」を押した時点の窓を新しい基準として使う）
-  function setFrameGuideMode(mode) {
-    if (frameGuideMode === mode) return; // 同じ方を選んだ時は何もしない
-    frameGuideMode = mode;
-    syncFrameGuideModeButtons();
-    frameCount = 0;
-    cpNum.textContent = frameCount;
-    frameSegStartH = null; frameSegNeedsRecapture = false; frameLimitAcknowledged = false;
-    frameBandBottom0 = null; frameOuterTop0 = null; frameOuterBottom0 = null;
-    frameBandCountBase = 0; frameBandNeedsRecapture = false;
-    // 「今の段」に切り替えた瞬間、段ガイドが既にONで計測済みなら、
-    // 「＋」を押すのを待たず、今の窓を基準にすぐ0段目（いちばん下）の帯を表示する
-    if (mode === 'ima' && frameGuideOn && frameStep > 0) {
-      initFrameBandAtZero();
-    }
-    saveFrameSettings();
-  }
-
   function syncGuideRowUI(tab) {
     let isOn, baseStep, effStep, scaledBase;
-    if (tab === 'frame') {
-      isOn = frameGuideOn;
-      baseStep = frameStepBase;
-      effStep = frameStep;
-      scaledBase = baseStep > 0 ? Math.max(1, Math.round(baseStep * scale)) : 0;
-      syncFrameGuideModeAvailability();
-    } else if (tab === 'circle') {
+    if (tab === 'circle') {
       isOn = circleGuideOn;
       baseStep = circleStepBase;
       effStep = circleStep;
@@ -3611,27 +3089,7 @@
     gpStepLabel.style.opacity = isOn ? '1' : '0';
     gpMeasureBtn.style.opacity = isOn ? '1' : '0';
     gpMeasureBtn.style.pointerEvents = isOn ? 'auto' : 'none';
-    if (currentRulerTab === 'frame') {
-      frameGuideOn = isOn;
-      syncFrameGuideModeAvailability();
-      if (isOn) {
-        if (frameStepBase > 0) {
-          frameStep = Math.max(1, Math.round(frameStepBase * scale));
-          gpStepLabel.textContent = '1段：' + frameStep + ' px';
-          // 段ガイドをONにした瞬間、既に「今の段」モードが選ばれていれば、
-          // 「＋」を押すのを待たず、今の窓を基準にすぐ0段目（いちばん下）の帯を表示する
-          if (frameGuideMode === 'ima') {
-            initFrameBandAtZero();
-          }
-        } else {
-          frameStep = 0;
-          gpStepLabel.textContent = '未計測';
-        }
-      } else {
-        frameStep = 0;
-      }
-      saveFrameSettings();
-    } else if (currentRulerTab === 'circle') {
+    if (currentRulerTab === 'circle') {
       circleGuideOn = isOn;
       if (isOn) {
         if (circleStepBase > 0) {
@@ -3709,120 +3167,6 @@
     return 0;
   }
 
-  // Frame定規：窓が閉じきった時に出す確認モーダル（「＋」で閉じきった瞬間／閉じきった状態でさらに押した時の両方から呼ぶ）
-  // どちらを選んでも窓は「高さ」だけ元に戻す（次の模様をまた測れる状態にする）。違うのはカウントの数字だけ：
-  // 「続ける」は今の数字のまま、「0に戻す」は0から。
-  // 開き直す時、上・左・右の余白（編み図の歪み補正など、手動で微調整した分）には一切触らない。
-  // 触るのは「窓の高さ」と、それとセットで動く「外枠の下側の余白」だけ（閉じた分をそのまま足し戻す）。
-  function reopenFrameWindow() {
-    if (frameSegStartH == null) return;
-    const closedAmount = frameSegStartH - fWin.h; // 今回閉じた分の高さ
-    fWin.h = frameSegStartH;
-    fOuter.bottom -= closedAmount; // 下側の余白だけ、閉じた分をそのまま戻す（上・左・右はノータッチ）
-    applyFrameOuterPos(); applyFrameStyle();
-    // 基準値そのものは空にせず保持しておく（万一の理由で更新が起きなくても、必ずこの高さまでは開けるように）。
-    // 「次に窓の高さを触ったら、その値を新しい基準にする」というフラグだけ立てる
-    frameSegNeedsRecapture = true;
-  }
-  function showFrameLimitModal() {
-    showModal(
-      '窓を元のサイズに開き直します。\nカウントを続けますか？',
-      '続ける',
-      () => {
-        frameLimitAcknowledged = true;
-        reopenFrameWindow();
-        saveFrameSettings();
-      },
-      true,
-      '0に戻す',
-      () => {
-        frameCount = 0;
-        frameLimitAcknowledged = false;
-        reopenFrameWindow();
-        cpNum.textContent = frameCount;
-        saveFrameSettings();
-      }
-    );
-  }
-
-  // ===== 段ガイド「いま」モード（窓＝1段ぶんの帯が上に動く）=====
-
-  // 「＋」を押した時：今まさに表示されている位置を基準に、その場でそのまま1段ぶん上へ動かす
-  // （どこかにキャッシュした基準座標を使って計算式で求めるのではなく、常に「今の実際の位置」から
-  //   相対的に動かすので、ドラッグ・ピンチ・計測など他の操作で位置がズレていても影響を受けない）
-  function stepFrameBandUp() {
-    fWin.y -= frameStep;
-    fWin.h = frameStep; // 高さのズレがあれば、ついでに矯正しておく
-    fOuter.top    -= frameStep;
-    fOuter.bottom += frameStep;
-    applyFrameOuterPos(); applyFrameStyle();
-  }
-  // 「－」を押した時：今の位置から、その場でそのまま1段ぶん下へ動かす
-  function stepFrameBandDown() {
-    fWin.y += frameStep;
-    fWin.h = frameStep;
-    fOuter.top    += frameStep;
-    fOuter.bottom -= frameStep;
-    applyFrameOuterPos(); applyFrameStyle();
-  }
-  // 帯が外枠の上端まで届いた時のモーダル（「のこり」のshowFrameLimitModalと対になる存在）。
-  // ・次の段へ進む：
-  //   まず、外枠の上側の余白（fOuter.top）を画面の上端近く（16pxだけ残す）まで広げてみる。
-  //   ①それだけで次の1段ぶんの余地ができた場合：編み図は動かさず、いつも通り
-  //     stepFrameBandUp()で窓を1段上げるだけでよい（＝画面上にまだ空いているスペースが
-  //     あったのに外枠が小さく設定されていただけ、というケースはほとんどこちら）。
-  //   ②広げても足りない場合（窓が画面の本当の上端に近く、これ以上広げる余地が無い場合）：
-  //     編み図の画像の方だけを1段ぶん下へパンし（＝隠れていた上側が見えてくる）、
-  //     窓・外枠は画面上の今の場所から動かさない。
-  //   （最初は①②を分けずに常にパンする形にしていたが、それだと「広げれば十分なケース」まで
-  //     律儀にパンしてしまい、画像が動く意味が無いという指摘があったため、①を先に試す形に
-  //     直した。2026年8月〜）
-  // ・最初に戻る：帯を外枠のいちばん下（frameBandBottom0）まで戻し、カウントも0に戻す
-  // frameBandBottom0・frameOuterTop0・frameOuterBottom0は、ドラッグ等で窓を動かすたびに
-  // resyncFrameBandBase()で更新されている前提の値を使う
-  function showFrameBandLimitModal() {
-    showModal(
-      '窓枠が上端まで届きました。',
-      '次の段へ進む',
-      () => {
-        // まず外枠の上側の余白を、画面の上端から少し(16px)残した位置まで広げてみる
-        // （すでにそれ以上広い場合は縮めない）
-        const topMargin = 16;
-        fOuter.top = Math.max(fOuter.top, F_OUTER_MIN, fWin.y - topMargin);
-        resyncFrameBandBase();
-
-        frameCount++;
-
-        if (fOuter.top - frameStep >= F_OUTER_MIN) {
-          // ①広げただけで次の1段ぶんの余地ができた → 編み図は動かさず、いつも通り窓を1段上げる
-          stepFrameBandUp();
-        } else {
-          // ②画面の上端そのものが近く、広げるだけでは足りない → 編み図の方を1段ぶんパンする
-          // （frameStepは今の拡大率に合わせた画面px単位なので、そのままoffsetYに足してよい）
-          offsetY += frameStep;
-          clampOffset();
-          drawImage();
-          applyFrameOuterPos(); applyFrameStyle();
-        }
-
-        cpNum.textContent = frameCount;
-        saveFrameSettings();
-      },
-      true,
-      '最初に戻る',
-      () => {
-        frameCount = 0;
-        fWin.y = frameBandBottom0 - frameStep;
-        fWin.h = frameStep;
-        fOuter.top    = fWin.y - frameOuterTop0;
-        fOuter.bottom = frameOuterBottom0 - (fWin.y + fWin.h);
-        applyFrameOuterPos(); applyFrameStyle();
-        cpNum.textContent = frameCount;
-        saveFrameSettings();
-      }
-    );
-  }
-
   cpPlus.addEventListener('click', e => {
     e.stopPropagation();
     if (currentRulerTab === 'circle') {
@@ -3855,72 +3199,6 @@
         }
         cpNum.textContent = boxCount;
         saveBoxSettings();
-      }
-    } else if (currentRulerTab === 'frame') {
-      if (frameCount < 999) {
-        const guideActive = frameStep > 0;
-
-        if (frameGuideMode === 'ima') {
-          // ===== いまモード：今の位置から、その場でそのまま1段分だけ上へ動かす =====
-          if (guideActive) {
-            // frameBandBottom0（「続ける」を選んだ時に戻る、いちばん下の位置の記録）が
-            // まだ無ければ、今の位置をその基準として記録しておく
-            if (frameBandBottom0 === null) resyncFrameBandBase();
-            // 次の位置を仮計算して、外枠の上端(F_OUTER_MIN)を超えないか先にチェックする
-            const nextOuterTop = (fOuter.top - frameStep);
-            if (nextOuterTop < F_OUTER_MIN) {
-              showFrameBandLimitModal();
-              return; // カウントはモーダルの選択後に進める
-            }
-            stepFrameBandUp();
-          }
-          frameCount++;
-          cpNum.textContent = frameCount;
-          saveFrameSettings();
-          return;
-        }
-
-        // ===== のこりモード（これまで通り） =====
-        // まだこの区間の「元サイズ」を記録していなければ、または前回窓を開き直した後で
-        // 更新が必要な状態なら、今の窓サイズを新しい基準として記録し直す
-        // （前回の開き直しから今回のカウント再開までの間に、手動で窓の高さを微調整していれば、
-        //   その調整後の高さがそのまま新しい基準になる）
-        if (guideActive && (frameSegStartH === null || frameSegNeedsRecapture)) {
-          frameSegStartH = fWin.h;
-          frameSegNeedsRecapture = false;
-        }
-        // 窓が開いている（＝手動でドラッグして開き直された等）のを確認できたら、
-        // 「続ける」を選んだ記憶をリセットしておく。次にまた閉じた時にちゃんと聞き直すため
-        if (guideActive && fWin.h > 5 && frameLimitAcknowledged) {
-          frameLimitAcknowledged = false;
-        }
-        // すでに窓が閉じきっている状態でさらに「＋」が押された場合（モーダルを閉じただけで
-        // 未回答のまま、など）は、カウントを進める前に確認モーダルを出す
-        if (guideActive && fWin.h <= 5 && !frameLimitAcknowledged) {
-          showFrameLimitModal();
-          return;
-        }
-        frameCount++;
-        // 残りから1段分を引いてもまだ5px以上残る間は、毎回きっちり1段分縮む。
-        // 引いた結果が5px未満になる（＝高さが段の倍数でちょうど0になる場合を含む）なら、
-        // その回で一気に5px（線として見える最小の高さ）まで閉じきる
-        let justClosed = false;
-        if (guideActive && fWin.h > 5) {
-          const newH = (fWin.h - frameStep >= 5) ? fWin.h - frameStep : 5;
-          fOuter.bottom += fWin.h - newH; // 外枠はそのまま（底辺を固定）
-          fWin.h = newH; // 窓を縮める
-          applyFrameOuterPos(); applyFrameStyle();
-          justClosed = (newH <= 5);
-        }
-        cpNum.textContent = frameCount;
-        saveFrameSettings();
-        // 今回の「＋」でちょうど窓が閉じきったら、閉じきった状態を一瞬見せてから確認モーダルを出す
-        // （次にもう一度「＋」を押すまで待たせない。連打で二重に出ないよう、実行時に状態を再確認する）
-        if (guideActive && justClosed && !frameLimitAcknowledged) {
-          setTimeout(() => {
-            if (fWin.h <= 5 && !frameLimitAcknowledged) showFrameLimitModal();
-          }, 500);
-        }
       }
     } else {
       if (rowCount < 999) {
@@ -3962,35 +3240,6 @@
         }
         cpNum.textContent = boxCount;
         saveBoxSettings();
-      }
-    } else if (currentRulerTab === 'frame') {
-      if (frameCount > 0) {
-        if (frameGuideMode === 'ima') {
-          // ===== いまモード：今の位置から、その場でそのまま1段分だけ下へ戻す =====
-          frameCount--;
-          if (frameStep > 0) stepFrameBandDown();
-          if (frameCount === 0) {
-            // 0まで戻したら基準はいったんクリア。次に「＋」を押した時、その時点の窓を新しい基準として取り直す
-            frameBandBottom0 = null; frameOuterTop0 = null; frameOuterBottom0 = null;
-          }
-          cpNum.textContent = frameCount;
-          saveFrameSettings();
-          return;
-        }
-        // ===== のこりモード（これまで通り） =====
-        frameCount--;
-        if (frameStep > 0 && fOuter.bottom - frameStep >= 0) {
-          fWin.h     += frameStep; // 窓を広げる
-          fOuter.bottom -= frameStep; // 外枠はそのまま
-          applyFrameOuterPos(); applyFrameStyle();
-        }
-        if (frameCount === 0) {
-          // 手動で0まで戻した時も、次にまた閉じきった時にちゃんとモーダルが出るようにしておく
-          frameLimitAcknowledged = false;
-          frameSegStartH = null;
-        }
-        cpNum.textContent = frameCount;
-        saveFrameSettings();
       }
     } else {
       if (rowCount > 0) {
@@ -4450,7 +3699,7 @@
     offsetX = cx - ratio * (cx - offsetX);
     offsetY = cy - ratio * (cy - offsetY);
     scale = ns;
-    // ステップをscaleに合わせて補正（Line/Frame/Circle定規共通。編み図の拡大縮小に1段の高さを追従させる）
+    // ステップをscaleに合わせて補正（Line/Circle定規共通。編み図の拡大縮小に1段の高さを追従させる）
     if (currentRulerTab === 'band' && rulerBaseStep > 0) {
       const scaledStep = Math.min(999, Math.max(1, Math.round(rulerBaseStep * scale)));
       const stepEl = document.getElementById('ruler-step');
@@ -4463,15 +3712,6 @@
         if (gpStep) gpStep.textContent = '1段：' + rulerStep + ' px';
       } else if (gpStep) {
         // OFF中もカウンター表示は現在のズームに合わせた値を見せる（実際のステップ移動には使わない）
-        gpStep.textContent = '1段：' + scaledStep + ' px';
-      }
-    } else if (currentRulerTab === 'frame' && frameStepBase > 0) {
-      const scaledStep = Math.min(999, Math.max(1, Math.round(frameStepBase * scale)));
-      const gpStep = document.getElementById('gp-step-label');
-      if (frameStep > 0) {
-        frameStep = scaledStep;
-        if (gpStep) gpStep.textContent = '1段：' + frameStep + ' px';
-      } else if (gpStep) {
         gpStep.textContent = '1段：' + scaledStep + ' px';
       }
     } else if (currentRulerTab === 'circle' && circleStepBase > 0) {
@@ -4500,7 +3740,7 @@
   /* ========== タッチ：パン＋ピンチ（感度調整） ========== */
   let touches = [], lastPinchDist = 0, lastTouchX = 0, lastTouchY = 0;
 
-  // 編み図のパン・ピンチ処理本体。Circle定規の円の外側タッチや、Frame定規の窓の内側タッチからも呼ばれる（共通化）。
+  // 編み図のパン・ピンチ処理本体。Circle定規の円の外側タッチからも呼ばれる（共通化）。
   function viewerTouchStart(e) {
     if (!img) return;
     if (e.target.closest('#float-panel') || e.target.closest('#ruler-handle')) return;
@@ -4574,9 +3814,6 @@
       rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - hVisiblePct, rulerLeft));
     }
     applyRulerPos();
-    // Frame定規：再配置（画面サイズが変わるとクランプ判定も変わるので、見た目も一緒に再描画する）
-    if (typeof applyFrameOuterPos === 'function') applyFrameOuterPos();
-    if (typeof applyFrameStyle === 'function') applyFrameStyle();
     // Circle定規：位置だけ画面内に収まるようクランプ（サイズは変えない。直径の10%だけ画面内に見えていればOK）
     if (typeof applyCircle === 'function') {
       clampCircleCenter();
@@ -4820,13 +4057,11 @@
   /* ========== お気に入り(プリセット)：✎長押しで名前変更（4定規共通） ========== */
   function presetListElId(kind) {
     if (kind === 'line')   return 'preset-list';
-    if (kind === 'frame')  return 'frame-preset-list';
     if (kind === 'circle') return 'circle-preset-list';
     return 'box-preset-list';
   }
   function getPresetArrByKind(kind) {
     if (kind === 'line')   return loadPresets();
-    if (kind === 'frame')  return framePresets;
     if (kind === 'circle') return circlePresets;
     return boxPresets;
   }
@@ -4837,11 +4072,6 @@
       ps[i].name = newName;
       savePresets(ps);
       renderPresets();
-    } else if (kind === 'frame') {
-      if (!framePresets[i]) return;
-      framePresets[i].name = newName;
-      saveFramePresets();
-      renderFramePresets();
     } else if (kind === 'circle') {
       if (!circlePresets[i]) return;
       circlePresets[i].name = newName;
@@ -4856,7 +4086,6 @@
   }
   function cancelPresetRename(kind) {
     if (kind === 'line') renderPresets();
-    else if (kind === 'frame') renderFramePresets();
     else if (kind === 'circle') renderCirclePresets();
     else renderBoxPresets();
   }
@@ -5061,7 +4290,7 @@
     }
   });
 
-  // パネルを開いている時も、スクロールしてタブ（Line/Frame/Box/Circle）が見えなくなったら、
+  // パネルを開いている時も、スクロールしてタブ（Line/Box/Circle）が見えなくなったら、
   // 折りたたみ時と同じ「今の定規名バッジ」をヘッダーに表示する（どのタブを見ているか分かるように）
   // 同時に、右下のTOPへ戻るボタンもこのタイミングだけ表示する（家マーク＝ポータルリンクとは別物と分かるように）
   (function() {
@@ -5095,7 +4324,6 @@
     if (e.target.closest('#float-panel')) return;
     if (e.target.closest('#counter-panel')) return;
     if (e.target.closest('#ruler-handle')) return;
-    if (e.target.closest('#frame-win-wrap')) return;
     if (!floatPanel.classList.contains('collapsed')) {
       togglePanel(true);
     }
@@ -5155,7 +4383,7 @@
   })();
 
   /* ========== 定規タブ切り替え ========== */
-  let currentRulerTab = 'band'; // 'band' | 'frame'
+  let currentRulerTab = 'band'; // 'band' | 'circle' | 'box'
 
   // タブごとに独立した編み図（画像・拡大縮小・位置・ファイル名）を保持する
   function makeEmptyChartState() {
@@ -5163,7 +4391,6 @@
   }
   const chartTabStates = {
     band:   makeEmptyChartState(),
-    frame:  makeEmptyChartState(),
     circle: makeEmptyChartState(),
     box:    makeEmptyChartState(),
   };
@@ -5222,15 +4449,13 @@
     updateUploadClearBtn();
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    // Line/Frame/Circle定規：このタブ自身のscaleに合わせて段ガイドのステップを再計算する
+    // Line/Circle定規：このタブ自身のscaleに合わせて段ガイドのステップを再計算する
     if (tab === 'band' && rulerBaseStep > 0) {
       rulerStep = Math.max(1, Math.round(rulerBaseStep * scale));
       const stepEl = document.getElementById('ruler-step');
       const stepLabelEl = document.getElementById('ruler-step-label');
       if (stepEl) stepEl.value = rulerStep;
       if (stepLabelEl) stepLabelEl.textContent = rulerStep + ' px';
-    } else if (tab === 'frame' && frameStepBase > 0 && frameStep > 0) {
-      frameStep = Math.max(1, Math.round(frameStepBase * scale));
     } else if (tab === 'circle' && circleStepBase > 0 && circleStep > 0) {
       circleStep = Math.max(1, Math.round(circleStepBase * scale));
     } else if (tab === 'box' && boxStepBase > 0 && boxStep > 0) {
@@ -5242,7 +4467,7 @@
 
   // ヘッダーのバッジ（今使っている定規、Boxなら正方形/長方形も）を更新する
   function updateCurrentRulerBadge() {
-    const labels = { band: 'Line定規', frame: 'Frame定規', circle: 'Circle定規', box: 'Box定規' };
+    const labels = { band: 'Line定規', circle: 'Circle定規', box: 'Box定規' };
     const mainEl = document.getElementById('panel-current-ruler-badge-main');
     const subEl  = document.getElementById('panel-current-ruler-badge-sub');
     if (mainEl) mainEl.textContent = labels[currentRulerTab] || 'Line定規';
@@ -5267,11 +4492,9 @@
     currentRulerTab = tab;
     updateCurrentRulerBadge();
     document.getElementById('tab-band').classList.toggle('active',   tab === 'band');
-    document.getElementById('tab-frame').classList.toggle('active',  tab === 'frame');
     document.getElementById('tab-circle').classList.toggle('active', tab === 'circle');
     document.getElementById('tab-box').classList.toggle('active', tab === 'box');
     document.getElementById('ruler-card').style.display    = tab === 'band'   ? '' : 'none';
-    document.getElementById('frame-card').style.display    = tab === 'frame'  ? '' : 'none';
     document.getElementById('circle-card').style.display   = tab === 'circle' ? '' : 'none';
     document.getElementById('box-card').style.display   = tab === 'box' ? '' : 'none';
     // カウンターエリアをタブに合わせて切り替え
@@ -5284,10 +4507,6 @@
       counterWrap.style.display = showCircleCounter ? 'flex' : 'none';
       cpGuideRow.style.display = showCircleCounter ? 'flex' : 'none';
       cpNum.textContent = circleCount;
-    } else if (tab === 'frame') {
-      counterWrap.style.display = showFrameCounter ? 'flex' : 'none';
-      cpGuideRow.style.display = showFrameCounter ? 'flex' : 'none';
-      cpNum.textContent = frameCount;
     } else if (tab === 'box') {
       counterWrap.style.display = showBoxCounter ? 'flex' : 'none';
       cpGuideRow.style.display = showBoxCounter ? 'flex' : 'none';
@@ -5299,1657 +4518,22 @@
     syncGuideRowUI(tab);
     if (tab === 'band') {
       rulerOverlay.style.display  = 'block';
-      frameOverlay.style.display  = 'none';
       circleOverlay.style.display = 'none';
       boxOverlay.style.display = 'none';
       if (!rulerTop) rulerTop = Math.round(window.innerHeight * 0.75);
       applyRulerPos();
-    } else if (tab === 'frame') {
-      rulerOverlay.style.display  = 'none';
-      frameOverlay.style.display  = 'block';
-      circleOverlay.style.display = 'none';
-      boxOverlay.style.display = 'none';
-      applyFrameOuterPos();
-      applyFrameStyle();
     } else if (tab === 'circle') {
       rulerOverlay.style.display  = 'none';
-      frameOverlay.style.display  = 'none';
       circleOverlay.style.display = 'block';
       boxOverlay.style.display = 'none';
       applyCircle();
     } else {
       rulerOverlay.style.display  = 'none';
-      frameOverlay.style.display  = 'none';
       circleOverlay.style.display = 'none';
       boxOverlay.style.display = 'block';
       applyBox();
     }
   };
-
-  /* ========== 窓定規 ========== */
-  const frameOverlay  = document.getElementById('frame-overlay');
-  const frameWinWrap  = document.getElementById('frame-win-wrap');
-  const frameWinDrag  = document.getElementById('frame-win-drag');
-  const frameColorInput = document.getElementById('frame-color');
-
-  // 状態：外枠 (px)
-  let fOuter = { top: 60, left: 40, right: 40, bottom: 60 }; // 外枠の各辺の幅(px)
-  // 状態：窓 (px, 画面座標)
-  let fWin = { x: 0, y: 0, w: 0, h: 0 };
-  let frameStep  = 0;      // 段ガイドON時に有効な1段の幅（OFF時は0）
-  let frameStepBase = 0;   // 計測した実寸（段ガイドOFFでも保持、未計測なら0）
-  let frameGuideOn = false; // Frame定規の段ガイドON/OFF状態（タブ切替時もこの値が真実の源）
-  let frameCount = 0;
-  let frameSegStartH = null;      // カウント0から数え始めた時点の窓の高さ（窓を開き直す時、この高さまで戻す）
-  let frameSegNeedsRecapture = false; // trueの間、次に「＋」を押した瞬間の高さを新しい基準として記録し直す
-  let frameLimitAcknowledged = false; // 窓が閉じきった状態で「続ける」を選んだかどうか（選ぶまではモーダルを出す）
-  let showFrameCounter = true;
-
-  // ===== 段ガイドの窓の動き方（のこり／いま） =====
-  // のこり：これまで通り。窓の下辺が段を追って上がっていき、編み終わった分がだんだん隠れる（全体の残り具合を見る）
-  // いま　：窓の高さを常に1段ぶんに固定し、その帯が編んでいる段を追って上に動く（今どの段かだけに集中する）
-  let frameGuideMode = 'ima'; // 'nokori' | 'ima'（初期選択は「いま」モード。2026年8月〜）
-  let frameBandBottom0  = null;  // いまモード基準：区間を数え始めた時点の窓の下端(y+h)。固定して使い回す
-  let frameOuterTop0    = null;  // いまモード基準：区間を数え始めた時点の外枠の絶対上端。固定して使い回す
-  let frameOuterBottom0 = null;  // いまモード基準：区間を数え始めた時点の外枠の絶対下端。固定して使い回す
-  let frameBandCountBase = 0;    // いまモード基準：↑を記録した時点のframeCount（この差分ぶんだけ帯を動かす）
-  let frameBandNeedsRecapture = false; // trueの間、次に「＋」を押した瞬間の窓を新しい基準として記録し直す
-  let fColor = '#b2aaaa';
-  let fAlpha = 0.80;
-  const F_MIN = 20; // 窓・外枠の最小サイズ（四隅のつまみが境界線をまたぐ形になったことで、
-                     // 20まで下げても中央の「動かす」エリアは変わらず確保できる。これより下げると
-                     // 今度は四隅のつまみ自体が小さくなりすぎて掴みにくくなるため、ここが実質の下限
-
-  // フレーム定規の初期・リセット時の「1段の高さ」の目安値。窓の高さ(frameDefaultLayoutのwinH)と
-  // 必ず同じ値にすること
-  const FRAME_DEFAULT_STEP = 30;
-
-  // フレーム定規の初期・リセット時のレイアウトを計算する（initFramePos・resetFrameDefaultで共用）。
-  // ・窓：横幅は外枠いっぱい、高さは薄い帯(FRAME_DEFAULT_STEP px)。カウンターパネル（右下）と
-  //   被らないよう、窓の下端をカウンターパネルの上端より上に収める
-  // ・外枠：画面いっぱいには広げず、周りに余白を見せる。ただしスマホ（幅680px未満）は
-  //   画面が狭いぶん、余白をごく小さくしてほぼ画面いっぱいに近づける
-  function frameDefaultLayout() {
-    const sw = window.innerWidth, sh = window.innerHeight;
-    const isMobile = sw < 680;
-
-    const screenMargin = isMobile ? 14 : 60; // 外枠と画面端の余白
-    const sideGap       = isMobile ? 14 : 30; // 窓の左右と外枠の間の余白
-    const winH = FRAME_DEFAULT_STEP;
-    // カウンターパネル（右下、初期位置bottom:24px）のすぐ上まで下げる。
-    // 表示中なら実際の高さ(offsetHeight)を測って正確に、非表示でまだ測れない時だけ
-    // 目安の高さにフォールバックする
-    const counterH = counterPanel.offsetHeight || 210;
-    const counterClearance = counterH + 24 + 4;
-
-    const winW = Math.max(100, sw - screenMargin * 2 - sideGap * 2);
-    const winX = screenMargin + sideGap;
-    const winYAlongOuter = sh - screenMargin - winH;   // 外枠の下端に沿わせた場合の位置
-    const winYSafe       = sh - counterClearance - winH; // カウンターを避けた場合の位置
-    const winY = Math.max(screenMargin, Math.min(winYAlongOuter, winYSafe));
-
-    return {
-      winX, winY, winW, winH,
-      outerTop:    winY - screenMargin,
-      outerLeft:   sideGap,
-      outerRight:  sideGap,
-      outerBottom: (sh - screenMargin) - (winY + winH),
-    };
-  }
-
-  function initFramePos() {
-    const L = frameDefaultLayout();
-    fWin.x = L.winX; fWin.y = L.winY; fWin.w = L.winW; fWin.h = L.winH;
-    fOuter = { top: L.outerTop, left: L.outerLeft, right: L.outerRight, bottom: L.outerBottom };
-    // 段ガイドはON、計測値（1段の高さ）も窓の高さと合わせておく
-    frameGuideOn = true;
-    frameStepBase = scale > 0 ? FRAME_DEFAULT_STEP / scale : FRAME_DEFAULT_STEP;
-    frameStep = FRAME_DEFAULT_STEP;
-    syncFrameGuideModeButtons(); // 初期選択の「いま」モードをラジオボタンの見た目にも反映
-  }
-
-  // 編み図を読み込んだ直後（fitImage()で画面にフィットさせた直後）に一度だけ呼ぶ。
-  // 外枠を「今、画面に表示されている編み図の範囲＋少し余白」に自動で合わせる。
-  // 窓は外枠の内側いっぱいの横幅・薄い帯(FRAME_DEFAULT_STEP)にし、カウンターパネルと
-  // 被らない位置に置く（考え方はframeDefaultLayoutと同じ。対象を「画面全体」ではなく
-  // 「今表示されている編み図の範囲」に変えただけ）。
-  // ズーム・パン変更には追従させない（都度追従させると、窓が編み図の帯を覆ってしまい
-  // 画像の拡大縮小操作ができなくなるため、あえて読み込み時の一度だけにしている）
-  function fitFrameToImage() {
-    if (!img) return;
-    const sw = window.innerWidth, sh = window.innerHeight;
-
-    // 今、画面上に表示されている編み図の範囲（画面外にはみ出している分は画面内だけに切り詰める）
-    const imgLeft   = Math.max(0, offsetX);
-    const imgTop    = Math.max(0, offsetY);
-    const imgRight  = Math.min(sw, offsetX + img.width  * scale);
-    const imgBottom = Math.min(sh, offsetY + img.height * scale);
-    if (imgRight - imgLeft < 40 || imgBottom - imgTop < 40) return; // 表示範囲が小さすぎる時は何もしない
-
-    // 編み図の端から外枠までの余白。窓が編み図の端（一番上・一番下の段）まで届けるよう、
-    // 窓・外枠間の最小幅(F_OUTER_MIN=20px)より広めに取る
-    const margin = 24;
-    const outerLeft   = Math.max(0,  imgLeft   - margin);
-    const outerTop    = Math.max(0,  imgTop    - margin);
-    const outerRight  = Math.min(sw, imgRight  + margin);
-    const outerBottom = Math.min(sh, imgBottom + margin);
-
-    const sideGap = margin;
-    const winH = FRAME_DEFAULT_STEP;
-    const winW = Math.max(100, (outerRight - outerLeft) - sideGap * 2);
-    const winX = outerLeft + sideGap;
-
-    const counterH = counterPanel.offsetHeight || 210;
-    const counterClearance = counterH + 24 + 4;
-    const winYAlongOuter = outerBottom - winH;            // 外枠の下端に沿わせた場合の位置
-    const winYSafe       = sh - counterClearance - winH;  // カウンターを避けた場合の位置
-    const winY = Math.max(outerTop, Math.min(winYAlongOuter, winYSafe));
-
-    fWin.x = winX; fWin.y = winY; fWin.w = winW; fWin.h = winH;
-    fOuter.top    = winY - outerTop;
-    fOuter.left   = sideGap;
-    fOuter.right  = outerRight - (winX + winW);
-    fOuter.bottom = outerBottom - (winY + winH);
-
-    frameGuideOn = true;
-    frameStepBase = scale > 0 ? FRAME_DEFAULT_STEP / scale : FRAME_DEFAULT_STEP;
-    frameStep = FRAME_DEFAULT_STEP;
-
-    // 「いま」モードのカウント基準もクリアして、この新しい配置から数え直せるようにする
-    frameCount = 0;
-    frameBandBottom0 = null; frameOuterTop0 = null; frameOuterBottom0 = null;
-    frameBandCountBase = 0; frameBandNeedsRecapture = false;
-
-    applyFrameOuterPos(); applyFrameStyle();
-    syncGuideRowUI('frame');
-    syncFrameGuideModeButtons();
-    cpNum.textContent = frameCount;
-    saveFrameSettings();
-  }
-
-  function applyFramePos() {
-    const sw = window.innerWidth, sh = window.innerHeight;
-    const m = 16; // 画面端ぴったりだと窮屈に見えるため、四辺に少しだけ残す余白（px）
-    // 通常モード：外枠は画面端いっぱい（ただし四辺にmぶんの余白を残す）
-    fOuter.top    = fWin.y - m;
-    fOuter.left   = fWin.x - m;
-    fOuter.bottom = sh - (fWin.y + fWin.h) - m;
-    fOuter.right  = sw - (fWin.x + fWin.w) - m;
-    applyFrameOuterPos();
-  }
-
-  const F_OUTER_MIN = 20; // 外枠の最小幅（px）
-
-  function applyFrameOuterPos() {
-    const sw = window.innerWidth, sh = window.innerHeight;
-
-    // 安全装置：どの操作が原因でも、外枠の太さが30pxを下回らないことをここで必ず保証する
-    fOuter.top    = Math.max(F_OUTER_MIN, fOuter.top);
-    fOuter.left   = Math.max(F_OUTER_MIN, fOuter.left);
-    fOuter.right  = Math.max(F_OUTER_MIN, fOuter.right);
-    fOuter.bottom = Math.max(F_OUTER_MIN, fOuter.bottom);
-
-    // 外枠の外側座標（fOuter は窓からの余白）
-    const outerTop    = Math.max(0,  fWin.y - fOuter.top);
-    const outerLeft   = Math.max(0,  fWin.x - fOuter.left);
-    const outerRight  = Math.min(sw, fWin.x + fWin.w + fOuter.right);
-    const outerBottom = Math.min(sh, fWin.y + fWin.h + fOuter.bottom);
-
-    // 窓の座標
-    const winT = fWin.y, winL = fWin.x;
-    const winR = fWin.x + fWin.w, winB = fWin.y + fWin.h;
-
-    const set = (id, t, l, w, h) => {
-      const e = document.getElementById(id);
-      e.style.top    = t + 'px';
-      e.style.left   = l + 'px';
-      e.style.width  = Math.max(0, w) + 'px';
-      e.style.height = Math.max(0, h) + 'px';
-    };
-
-    // 上パネル：外枠の上端〜窓の上端、横幅は外枠全体
-    set('frame-top',    outerTop,  outerLeft, outerRight - outerLeft, winT - outerTop);
-    // 下パネル：窓の下端〜外枠の下端、横幅は外枠全体
-    set('frame-bottom', winB,      outerLeft, outerRight - outerLeft, outerBottom - winB);
-    // 左パネル：窓の上端〜窓の下端、左端〜窓の左端
-    set('frame-left',   winT,      outerLeft, winL - outerLeft,       winB - winT);
-    // 右パネル：窓の上端〜窓の下端、窓の右端〜外枠の右端
-    set('frame-right',  winT,      winR,      outerRight - winR,      winB - winT);
-
-    // 窓ラップ
-    frameWinWrap.style.left   = fWin.x + 'px';
-    frameWinWrap.style.top    = fWin.y + 'px';
-    frameWinWrap.style.width  = fWin.w + 'px';
-    frameWinWrap.style.height = fWin.h + 'px';
-    frameWinWrap.style.pointerEvents = 'all';
-
-    // 窓が小さい（特に、細長く片方だけ薄い）時、四隅・辺のリサイズつまみが窓を覆ってしまい、
-    // 中央（窓を動かす方の操作）をつかめなくなるのを防ぐ。
-    // 外枠の帯が薄い辺は、窓側のつまみの食い込み量も抑える（帯を「動かす」すき間を残すため）。
-    // ここは辺ごと・角ごとに個別に計算する。1辺だけ合計min()で縮めると、
-    // その1辺のせいで他の3辺のつまみまで一律に小さくなってしまう不具合になるため（2026年8月〜）
-    {
-      const winHandleBase = (window.innerWidth < 680) ? 32 : 24; // 通常時のつまみサイズ（CSSの値と合わせる）
-      const winSizeMin = Math.min(fWin.w, fWin.h);
-      const baseInward = Math.max(12, Math.min(winHandleBase, winSizeMin - 8)) / 2;
-
-      const reachFor = (m) => Math.max(6, Math.min(baseInward, m * 0.3));
-      const reachTop    = reachFor(fOuter.top);
-      const reachBottom = reachFor(fOuter.bottom);
-      const reachLeft   = reachFor(fOuter.left);
-      const reachRight  = reachFor(fOuter.right);
-
-      // 四隅は、接する2辺のうち小さい方の食い込み量に合わせる
-      const cTL = Math.min(reachTop,    reachLeft);
-      const cTR = Math.min(reachTop,    reachRight);
-      const cBL = Math.min(reachBottom, reachLeft);
-      const cBR = Math.min(reachBottom, reachRight);
-      const setCornerHandle = (cls, reach) => {
-        const el = document.querySelector('.frame-win-corner.' + cls);
-        if (!el) return;
-        el.style.width  = (reach * 2) + 'px';
-        el.style.height = (reach * 2) + 'px';
-      };
-      setCornerHandle('tl', cTL);
-      setCornerHandle('tr', cTR);
-      setCornerHandle('bl', cBL);
-      setCornerHandle('br', cBR);
-
-      // 窓の中央ドラッグエリアは、四隅・辺のつまみと重ならないよう、それぞれの食い込み量ぶん避ける
-      frameWinDrag.style.top    = reachTop    + 'px';
-      frameWinDrag.style.bottom = reachBottom + 'px';
-      frameWinDrag.style.left   = reachLeft   + 'px';
-      frameWinDrag.style.right  = reachRight  + 'px';
-
-      // 辺：太さ・境界線からのオフセットを辺ごとに設定。左右（上下端の場合）／上下（左右端の場合）の
-      // 余白は、その辺が接する2つの角のサイズに合わせて、角とぶつからないようにする
-      const setWinEdge = (cls, horizontal, reach, startInset, endInset) => {
-        const el = document.querySelector('.frame-win-edge.' + cls);
-        if (!el) return;
-        const thickness = reach * 2;
-        if (horizontal) { // top / bottom
-          el.style.height = thickness + 'px';
-          el.style[cls] = (-reach) + 'px';
-          el.style.left  = startInset + 'px';
-          el.style.right = endInset + 'px';
-        } else { // left / right
-          el.style.width = thickness + 'px';
-          el.style[cls] = (-reach) + 'px';
-          el.style.top    = startInset + 'px';
-          el.style.bottom = endInset + 'px';
-        }
-      };
-      setWinEdge('top',    true,  reachTop,    cTL, cTR);
-      setWinEdge('bottom', true,  reachBottom, cBL, cBR);
-      setWinEdge('left',   false, reachLeft,   cTL, cBL);
-      setWinEdge('right',  false, reachRight,  cTR, cBR);
-    }
-
-    // 外枠コーナーの位置更新（中心座標をそのまま渡す。CSSのtransform:translate(-50%,-50%)で中心が合う）
-    const setCorner = (id, t, l) => {
-      const el = document.getElementById(id);
-      el.style.top  = t + 'px';
-      el.style.left = l + 'px';
-    };
-    setCorner('foc-tl', outerTop,    outerLeft);
-    setCorner('foc-tr', outerTop,    outerRight);
-    setCorner('foc-bl', outerBottom, outerLeft);
-    setCorner('foc-br', outerBottom, outerRight);
-
-    // 外枠の辺ハンドルの位置更新（外枠全体の長さをカバーするよう、画面基準で直接指定する。
-    // 太さ（width/height）はCSS側で管理しているのでここでは触らない）
-    const setOuterEdge = (side, style) => {
-      const el = document.querySelector('.frame-outer-edge[data-outer="' + side + '"]');
-      if (!el) return;
-      Object.keys(style).forEach(k => { el.style[k] = style[k] + 'px'; });
-    };
-    setOuterEdge('top',    { top: outerTop,                      left: outerLeft, width: Math.max(0, outerRight - outerLeft) });
-    setOuterEdge('bottom', { bottom: Math.max(0, sh - outerBottom), left: outerLeft, width: Math.max(0, outerRight - outerLeft) });
-    setOuterEdge('left',   { left: outerLeft,                    top: outerTop,   height: Math.max(0, outerBottom - outerTop) });
-    setOuterEdge('right',  { right: Math.max(0, sw - outerRight), top: outerTop,   height: Math.max(0, outerBottom - outerTop) });
-
-    // 外枠の余白が薄い時、四隅・辺のリサイズつまみが余白の帯をほぼ埋めてしまい、
-    // 「枠自体をつかんで動かす」操作の余地がほとんど残らなくなるのを防ぐ。
-    // つまみの内側への食い込みは、その余白の40%までに抑えて「動かす」側を優先する
-    {
-      const isCoarse = window.innerWidth < 680; // 窓側のつまみサイズ判定と同じ基準に統一
-      const edgeBaseReach   = isCoarse ? 8 : 4;  // 通常時の辺の食い込み量（CSSの太さの半分）
-      const cornerBaseReach = isCoarse ? 10 : 6;  // 通常時の四隅の食い込み量（CSSの大きさの半分）
-      // 「余白の何%まで」ではなく、余白が広くても狭くても常に一定の細さ（線のすぐそば）だけを
-      // リサイズ用にする。それ以外（余白のほとんど）はどんな太さでも「動かす」に回す
-      const reachFor = (margin, base) => Math.max(3, Math.min(base, margin / 2 - 2));
-
-      const setOuterEdgeThickness = (side, reach) => {
-        const el = document.querySelector('.frame-outer-edge[data-outer="' + side + '"]');
-        if (!el) return;
-        if (side === 'top' || side === 'bottom') el.style.height = (reach * 2) + 'px';
-        else el.style.width = (reach * 2) + 'px';
-      };
-      setOuterEdgeThickness('top',    reachFor(fOuter.top,    edgeBaseReach));
-      setOuterEdgeThickness('bottom', reachFor(fOuter.bottom, edgeBaseReach));
-      setOuterEdgeThickness('left',   reachFor(fOuter.left,   edgeBaseReach));
-      setOuterEdgeThickness('right',  reachFor(fOuter.right,  edgeBaseReach));
-
-      const setOuterCornerSize = (id, m1, m2) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const reach = reachFor(Math.min(m1, m2), cornerBaseReach);
-        el.style.width  = (reach * 2) + 'px';
-        el.style.height = (reach * 2) + 'px';
-      };
-      setOuterCornerSize('foc-tl', fOuter.top,    fOuter.left);
-      setOuterCornerSize('foc-tr', fOuter.top,    fOuter.right);
-      setOuterCornerSize('foc-bl', fOuter.bottom, fOuter.left);
-      setOuterCornerSize('foc-br', fOuter.bottom, fOuter.right);
-    }
-
-    // 位置が変わったら立体枠のclip-pathも更新
-    applyFrameStyle();
-  }
-
-  function applyFrameStyle() {
-    const hex = fColor;
-    const r = parseInt(hex.slice(1,3),16);
-    const g = parseInt(hex.slice(3,5),16);
-    const b = parseInt(hex.slice(5,7),16);
-
-    // 4辺パネルは完全に透明（操作用のみ）
-    ['frame-top','frame-bottom','frame-left','frame-right'].forEach(id => {
-      const el = document.getElementById(id);
-      el.style.background = 'transparent';
-      el.style.border     = 'none';
-      el.style.boxShadow  = 'none';
-    });
-
-    // frame-3d-borderをSVGで額縁として描画
-    const sw = window.innerWidth, sh = window.innerHeight;
-    // 安全装置：どの操作が原因でも、外枠の太さが30pxを下回らないことをここで必ず保証する
-    fOuter.top    = Math.max(F_OUTER_MIN, fOuter.top);
-    fOuter.left   = Math.max(F_OUTER_MIN, fOuter.left);
-    fOuter.right  = Math.max(F_OUTER_MIN, fOuter.right);
-    fOuter.bottom = Math.max(F_OUTER_MIN, fOuter.bottom);
-    const outerLeft   = Math.max(0,  fWin.x - fOuter.left);
-    const outerTop    = Math.max(0,  fWin.y - fOuter.top);
-    const outerRight  = Math.min(sw, fWin.x + fWin.w + fOuter.right);
-    const outerBottom = Math.min(sh, fWin.y + fWin.h + fOuter.bottom);
-    const ow = outerRight - outerLeft;
-    const oh = outerBottom - outerTop;
-    // 窓の座標（frame-3d-border基準）。
-    // 外枠が画面端でクランプされている時、窓の位置がキャンバス（0〜ow, 0〜oh）の外に出てしまうことがあるため、
-    // はみ出した分は内側で切り詰めて、穴の形が崩れないようにする
-    let wx  = fWin.x - outerLeft;
-    let wy  = fWin.y - outerTop;
-    let ww  = fWin.w;
-    let wh  = fWin.h;
-    if (wx < 0) { ww += wx; wx = 0; }
-    if (wy < 0) { wh += wy; wy = 0; }
-    if (wx + ww > ow) ww = ow - wx;
-    if (wy + wh > oh) wh = oh - wy;
-    ww = Math.max(0, ww);
-    wh = Math.max(0, wh);
-    const rad = Math.min(10, ow/3, oh/3); // 箱が小さい時に真円になってしまわないよう、サイズに応じて丸みも小さくする
-    const fa  = fAlpha;
-    const bc  = Math.min(1, fa * 1.6); // 枠線の濃さ（旧border方式と同じ濃さになるよう1.6倍のまま）
-    const hl  = Math.min(12, ow/3, oh/3); // ハイライトの太さ：外枠側。上下左右すべて共通の値にする（Line定規と同じ考え方）
-    const hlWin = Math.min(8, hl, ww/3, wh/3); // ハイライトの太さ：窓側だけ細めにする（丸みの錯覚を和らげるため）
-    const M   = 16; // 外側の光がはみ出すための余白（Line定規のapplyRulerStyle()と同じ仕組み）
-
-    // 外枠が画面端でクランプされている辺には丸みを付けない（切れているだけの辺が丸く見えてしまうため）。
-    // 両隣の辺がどちらも画面端でクランプされていない角だけ、本来通り丸くする
-    const clampedLeft   = (fWin.x - fOuter.left) < 0;
-    const clampedTop    = (fWin.y - fOuter.top) < 0;
-    const clampedRight  = (fWin.x + fWin.w + fOuter.right)  > sw;
-    const clampedBottom = (fWin.y + fWin.h + fOuter.bottom) > sh;
-    const radTL = (!clampedLeft  && !clampedTop)    ? rad : 0;
-    const radTR = (!clampedRight && !clampedTop)    ? rad : 0;
-    const radBR = (!clampedRight && !clampedBottom) ? rad : 0;
-    const radBL = (!clampedLeft  && !clampedBottom) ? rad : 0;
-    // 窓自体の角丸：Box定規（applyBox）と同じ考え方に統一。
-    // 「サイズの1/3」を上限にした控えめな丸みで、細長い帯でもカプセル形にはせず、なるべく四角に見えるようにする
-    const winRad = Math.max(0, Math.min(10, ww/3, wh/3));
-    const winClampedLeft   = fWin.x < 0;
-    const winClampedTop    = fWin.y < 0;
-    const winClampedRight  = (fWin.x + fWin.w) > sw;
-    const winClampedBottom = (fWin.y + fWin.h) > sh;
-    const winRadTL = (!winClampedLeft  && !winClampedTop)    ? winRad : 0;
-    const winRadTR = (!winClampedRight && !winClampedTop)    ? winRad : 0;
-    const winRadBR = (!winClampedRight && !winClampedBottom) ? winRad : 0;
-    const winRadBL = (!winClampedLeft  && !winClampedBottom) ? winRad : 0;
-    const cStartFor = r => (r / (r + hlWin || 1)) * 100; // 窓の角グラデーション：明るい部分の開始位置(%)
-    // 角丸四角形のpathを、角ごとに丸め有無を切り替えて組み立てるヘルパー
-    const framePath = (w, h, rTL, rTR, rBR, rBL) =>
-      `M${rTL},0 H${w-rTR}${rTR>0?` Q${w},0 ${w},${rTR}`:''}` +
-      ` V${h-rBR}${rBR>0?` Q${w},${h} ${w-rBR},${h}`:''}` +
-      ` H${rBL}${rBL>0?` Q0,${h} 0,${h-rBL}`:''}` +
-      ` V${rTL}${rTL>0?` Q0,0 ${rTL},0`:''} Z`;
-    // 窓（角丸四角形）のpathを組み立てるヘルパー。x,yのオフセット付き、4隅それぞれ個別の丸みに対応
-    const windowPath = (x, y, w, h, rTL, rTR, rBR, rBL) =>
-      `M${x+rTL},${y} H${x+w-rTR}${rTR>0?` Q${x+w},${y} ${x+w},${y+rTR}`:''}` +
-      ` V${y+h-rBR}${rBR>0?` Q${x+w},${y+h} ${x+w-rBR},${y+h}`:''}` +
-      ` H${x+rBL}${rBL>0?` Q${x},${y+h} ${x},${y+h-rBL}`:''}` +
-      ` V${y+rTL}${rTL>0?` Q${x},${y} ${x+rTL},${y}`:''} Z`;
-
-    const framePathD = `${framePath(ow, oh, radTL, radTR, radBR, radBL)}
-             ${windowPath(wx, wy, ww, wh, winRadTL, winRadTR, winRadBR, winRadBL)}`;
-
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow + M*2}" height="${oh + M*2}">
-      <defs>
-        <linearGradient id="lg_t" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </linearGradient>
-        <linearGradient id="lg_b" x1="0" y1="1" x2="0" y2="0">
-                    <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </linearGradient>
-        <linearGradient id="lg_l" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </linearGradient>
-        <linearGradient id="lg_r" x1="1" y1="0" x2="0" y2="0">
-                    <stop offset="0%" stop-color="rgba(255,255,255,0.22)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </linearGradient>
-        <!-- 窓側専用（外枠より少し控えめな濃さ0.15） -->
-        <linearGradient id="lg_t_win" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </linearGradient>
-        <linearGradient id="lg_b_win" x1="0" y1="1" x2="0" y2="0">
-                    <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </linearGradient>
-        <linearGradient id="lg_l_win" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </linearGradient>
-        <linearGradient id="lg_r_win" x1="1" y1="0" x2="0" y2="0">
-                    <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </linearGradient>
-        <radialGradient id="lg_corner_tl" gradientUnits="userSpaceOnUse" cx="${wx+winRadTL}" cy="${wy+winRadTL}" r="${winRadTL+hlWin||1}">
-          <stop offset="${cStartFor(winRadTL)}%" stop-color="rgba(255,255,255,0.2)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </radialGradient>
-        <radialGradient id="lg_corner_tr" gradientUnits="userSpaceOnUse" cx="${wx+ww-winRadTR}" cy="${wy+winRadTR}" r="${winRadTR+hlWin||1}">
-          <stop offset="${cStartFor(winRadTR)}%" stop-color="rgba(255,255,255,0.2)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </radialGradient>
-        <radialGradient id="lg_corner_br" gradientUnits="userSpaceOnUse" cx="${wx+ww-winRadBR}" cy="${wy+wh-winRadBR}" r="${winRadBR+hlWin||1}">
-          <stop offset="${cStartFor(winRadBR)}%" stop-color="rgba(255,255,255,0.2)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </radialGradient>
-        <radialGradient id="lg_corner_bl" gradientUnits="userSpaceOnUse" cx="${wx+winRadBL}" cy="${wy+wh-winRadBL}" r="${winRadBL+hlWin||1}">
-          <stop offset="${cStartFor(winRadBL)}%" stop-color="rgba(255,255,255,0.2)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </radialGradient>
-        <filter id="fglow" x="-100%" y="-100%" width="300%" height="300%" color-interpolation-filters="sRGB">
-          <feGaussianBlur stdDeviation="4"/>
-        </filter>
-        <clipPath id="fclip">
-          <path d="${framePath(ow, oh, radTL, radTR, radBR, radBL)}"/>
-        </clipPath>
-        <clipPath id="fclipRing">
-          <path clip-rule="evenodd" d="${framePathD}"/>
-        </clipPath>
-      </defs>
-      <g transform="translate(${M},${M})">
-        <!-- 外側の光（本体と同じ「窓を切り抜いた」形にして、窓の中まで色がにじまないようにする） -->
-        <path fill="rgba(${r},${g},${b},0.28)" filter="url(#fglow)" fill-rule="evenodd"
-          d="${framePathD}"/>
-        <!-- 額縁本体（窓を切り抜いた形＋枠線を同じpathで描く） -->
-        <path fill="rgba(${r},${g},${b},${fa})" stroke="rgba(${r},${g},${b},${bc})" stroke-width="1.5"
-          fill-rule="evenodd"
-          d="${framePathD}"/>
-        <!-- ハイライト（外枠側。本体と同じ丸みでクリップし、角に直線の継ぎ目が出ないようにする。Line定規と同じ仕組み） -->
-        <g clip-path="url(#fclip)">
-          <path fill="url(#lg_t)"
-            d="M${radTL},0 H${ow-radTR}${radTR>0?` Q${ow},0 ${ow},${radTR}`:''} V${hl} H0 V${radTL}${radTL>0?` Q0,0 ${radTL},0`:''} Z"/>
-          <path fill="url(#lg_b)"
-            d="M0,${oh-hl} H${ow} V${oh-radBR}${radBR>0?` Q${ow},${oh} ${ow-radBR},${oh}`:''} H${radBL}${radBL>0?` Q0,${oh} 0,${oh-radBL}`:''} Z"/>
-          <path fill="url(#lg_l)"
-            d="M0,${radTL}${radTL>0?` Q0,0 ${radTL},0`:''} H${hl} V${oh} H${radBL}${radBL>0?` Q0,${oh} 0,${oh-radBL}`:''} Z"/>
-          <path fill="url(#lg_r)"
-            d="M${ow-hl},0 H${ow-radTR}${radTR>0?` Q${ow},0 ${ow},${radTR}`:''} V${oh-radBR}${radBR>0?` Q${ow},${oh} ${ow-radBR},${oh}`:''} H${ow-hl} Z"/>
-        </g>
-        <!-- ハイライト（窓側。窓に近い側が明るく、フレーム本体に向かって消えていく）。
-             辺は直線部分だけの単純な長方形、角は重ならない扇形（ドーナツを4等分した形）で、
-             隙間も二重の重なりもないように分担する -->
-        <g clip-path="url(#fclipRing)">
-          <rect fill="url(#lg_b_win)" x="${wx+winRadTL}" y="${wy-hlWin}" width="${ww-winRadTL-winRadTR}" height="${hlWin}"/>
-          <rect fill="url(#lg_t_win)" x="${wx+winRadBL}" y="${wy+wh}" width="${ww-winRadBL-winRadBR}" height="${hlWin}"/>
-          <rect fill="url(#lg_r_win)" x="${wx-hlWin}" y="${wy+winRadTL}" width="${hlWin}" height="${wh-winRadTL-winRadBL}"/>
-          <rect fill="url(#lg_l_win)" x="${wx+ww}" y="${wy+winRadTR}" width="${hlWin}" height="${wh-winRadTR-winRadBR}"/>
-          <!-- 4隅：窓の角丸（内側半径winRad）と、そこからhlWin分外側（外側半径winRad+hlWin）の間だけを扇形で塗る。
-               画面端でクランプされて丸みがない角（半径0）は、辺同士がそのまま直角にぶつかるので扇形は描かない -->
-          ${winRadTL > 0 ? `<path fill="url(#lg_corner_tl)"
-            d="M${wx+winRadTL},${wy-hlWin} A${winRadTL+hlWin},${winRadTL+hlWin} 0 0,0 ${wx-hlWin},${wy+winRadTL} L${wx},${wy+winRadTL} A${winRadTL},${winRadTL} 0 0,1 ${wx+winRadTL},${wy} Z"/>` : ''}
-          ${winRadTR > 0 ? `<path fill="url(#lg_corner_tr)"
-            d="M${wx+ww-winRadTR},${wy-hlWin} A${winRadTR+hlWin},${winRadTR+hlWin} 0 0,1 ${wx+ww+hlWin},${wy+winRadTR} L${wx+ww},${wy+winRadTR} A${winRadTR},${winRadTR} 0 0,0 ${wx+ww-winRadTR},${wy} Z"/>` : ''}
-          ${winRadBR > 0 ? `<path fill="url(#lg_corner_br)"
-            d="M${wx+ww+hlWin},${wy+wh-winRadBR} A${winRadBR+hlWin},${winRadBR+hlWin} 0 0,1 ${wx+ww-winRadBR},${wy+wh+hlWin} L${wx+ww-winRadBR},${wy+wh} A${winRadBR},${winRadBR} 0 0,0 ${wx+ww},${wy+wh-winRadBR} Z"/>` : ''}
-          ${winRadBL > 0 ? `<path fill="url(#lg_corner_bl)"
-            d="M${wx+winRadBL},${wy+wh+hlWin} A${winRadBL+hlWin},${winRadBL+hlWin} 0 0,1 ${wx-hlWin},${wy+wh-winRadBL} L${wx},${wy+wh-winRadBL} A${winRadBL},${winRadBL} 0 0,0 ${wx+winRadBL},${wy+wh} Z"/>` : ''}
-        </g>
-      </g>
-    </svg>`;
-
-    const border = document.getElementById('frame-3d-border');
-    border.style.left         = (outerLeft - M) + 'px';
-    border.style.top          = (outerTop  - M) + 'px';
-    border.style.width        = (ow + M*2) + 'px';
-    border.style.height       = (oh + M*2) + 'px';
-    border.style.background   = 'none';
-    border.style.boxShadow    = 'none';
-    border.style.borderRadius = '';
-    border.style.border       = 'none';
-    border.style.overflow     = 'visible';
-    border.innerHTML = svg;
-  }
-
-  // ===== 基本の定規に戻す =====
-  function resetBandDefault() {
-    const DEFAULT_WIDTH   = 80;
-    const DEFAULT_HEIGHT  = 172;
-    const DEFAULT_COLOR   = '#b2aaaa';
-    const DEFAULT_ALPHA   = 0.80;
-
-    rulerWidth  = DEFAULT_WIDTH;
-    rulerHeight = DEFAULT_HEIGHT;
-    rulerColor  = DEFAULT_COLOR;
-    rulerAlpha  = DEFAULT_ALPHA;
-    rulerLeft   = (100 - DEFAULT_WIDTH) / 2; // 中央配置
-
-    rulerOpacityInput.value = DEFAULT_ALPHA * 100;
-    rulerOpacityLabel.textContent = (DEFAULT_ALPHA * 100) + '%';
-    rulerColorInput.value  = DEFAULT_COLOR;
-    document.querySelectorAll('.color-dot').forEach(d =>
-      d.classList.toggle('active', d.dataset.color === DEFAULT_COLOR));
-
-    // テキスト2行＋注意文3行の下端 + 35px の位置に定規を配置
-    const sh = window.innerHeight;
-    const textCenterY = sh / 2; // プレースホルダーはflex中央
-    // ph-text(line-height:2 font-size:14px)＋gap(16px)＋ph-tap(font-size:18px) の高さ概算
-    const textBlockH = 14 * 2 + 16 + 18;
-    // save-hint-center: top:50%+46px の位置から、行間1.7・font-size11px×2行分の高さを加算
-    const hintBlockH = 46 + (11 * 1.7 * 2) + 10;
-    const textBottom = textCenterY + Math.max(textBlockH / 2, hintBlockH);
-    rulerTop = Math.round(textBottom + 35);
-
-    applyRulerPos();
-    saveSettings();
-    bandUndo.resetHistory();
-    refreshBandUndoBtns();
-  }
-  function confirmResetBand() {
-    showModal('定規を初期設定に戻しますか？', 'リセットする', () => resetBandDefault());
-  }
-
-  function resetFrameDefault() {
-    showFrameCounter = true;
-    document.getElementById('toggle-frame-counter').checked = true;
-    // 段ガイドはON、計測値（1段の高さ）も窓の高さと合わせて揃えておく
-    frameGuideOn = true;
-    frameStepBase = scale > 0 ? FRAME_DEFAULT_STEP / scale : FRAME_DEFAULT_STEP;
-    frameStep = FRAME_DEFAULT_STEP;
-    syncGuideRowUI('frame');
-    // 窓の動き方（複数段／今の段）もデフォルトの「今の段」に戻し、カウント・区間の基準もクリアする
-    frameGuideMode = 'ima';
-    syncFrameGuideModeButtons();
-    frameCount = 0;
-    cpNum.textContent = frameCount;
-    frameSegStartH = null; frameSegNeedsRecapture = false; frameLimitAcknowledged = false;
-    frameBandBottom0 = null; frameOuterTop0 = null; frameOuterBottom0 = null;
-    frameBandCountBase = 0; frameBandNeedsRecapture = false;
-    const DEFAULT_COLOR = '#b2aaaa';
-    const DEFAULT_ALPHA = 0.80;
-
-    fColor = DEFAULT_COLOR;
-    fAlpha = DEFAULT_ALPHA;
-    const L = frameDefaultLayout();
-    fWin.x = L.winX; fWin.y = L.winY; fWin.w = L.winW; fWin.h = L.winH;
-    fOuter = { top: L.outerTop, left: L.outerLeft, right: L.outerRight, bottom: L.outerBottom };
-
-    document.getElementById('frame-opacity').value = DEFAULT_ALPHA * 100;
-    document.getElementById('frame-opacity-label').textContent = (DEFAULT_ALPHA * 100) + '%';
-    frameColorInput.value = DEFAULT_COLOR;
-    document.querySelectorAll('.frame-color-dot').forEach(d =>
-      d.classList.toggle('active', d.dataset.color === DEFAULT_COLOR));
-
-    applyFrameOuterPos();
-    applyFrameStyle();
-    saveFrameSettings();
-    frameUndo.resetHistory();
-    refreshFrameUndoBtns();
-  }
-  function confirmResetFrame() {
-    showModal('定規を初期設定に戻しますか？', 'リセットする', () => resetFrameDefault());
-  }
-  // 外枠を画面いっぱいに広げる（窓の位置・大きさはそのまま）。
-  // applyFramePos()が「窓から画面端までの距離」をfOuterへそのまま計算してくれるので、それを使う。
-  // 「いま」モードでカウント中だった場合、外枠が変わった分だけ帯の基準もついていかせる必要があるので
-  // resyncFrameBandBase()を呼ぶ（ドラッグ等で外枠を変えた時と同じ扱い）
-  window.maximizeFrameOuter = function() {
-    applyFramePos();
-    if (frameGuideMode === 'ima') resyncFrameBandBase();
-    saveFrameSettings();
-  };
-
-  function saveFrameSettings() {
-    try {
-      localStorage.setItem('yucchi_ruler_frame', JSON.stringify({
-        fWin, fOuter, fColor, fAlpha, frameStep, frameStepBase, frameCount, showFrameCounter, guideOn: frameGuideOn, guideMode: frameGuideMode
-      }));
-    } catch(e) {}
-  }
-  function loadFrameSettings() {
-    try {
-      const s = JSON.parse(localStorage.getItem('yucchi_ruler_frame'));
-      if (!s) return false;
-      if (s.fWin)   fWin   = s.fWin;
-      if (s.fOuter) fOuter = s.fOuter;
-      if (s.fColor) { fColor = s.fColor; frameColorInput.value = fColor; }
-      if (s.fAlpha != null) fAlpha = s.fAlpha;
-      if (s.frameStep  != null) frameStep  = s.frameStep;
-      // frameStepBaseが未保存の旧データの場合、旧frameStepの値を引き継ぐ
-      if (s.frameStepBase != null) frameStepBase = s.frameStepBase;
-      else if (s.frameStep != null) frameStepBase = s.frameStep;
-      frameGuideOn = !!s.guideOn;
-      if (!frameGuideOn) frameStep = 0;
-      if (s.frameCount != null) frameCount = s.frameCount;
-      // 窓の動き方（のこり／いま）。旧データ（この機能追加前）には無いので、その場合は「のこり」のまま
-      frameGuideMode = (s.guideMode === 'ima') ? 'ima' : 'nokori';
-      if (s.showFrameCounter != null) showFrameCounter = s.showFrameCounter;
-      document.getElementById('frame-opacity').value = Math.round(fAlpha * 100);
-      document.getElementById('frame-opacity-label').textContent = Math.round(fAlpha * 100) + '%';
-      document.getElementById('toggle-frame-counter').checked = showFrameCounter;
-      syncFrameGuideModeButtons();
-      syncFrameGuideModeAvailability();
-      // 「今の段」モード・段ガイドON・まだ一度もカウントしていない状態で復元された場合、
-      // 保存されていた窓はまだ帯の形になっていないことがあるので、今の窓を基準にすぐ0段目にする
-      // （すでにカウント中だった場合は、保存された窓の位置・形をそのまま尊重して触らない）
-      if (frameGuideMode === 'ima' && frameGuideOn && frameStep > 0 && frameCount === 0) {
-        initFrameBandAtZero();
-      }
-      document.querySelectorAll('.frame-color-dot').forEach(d =>
-        d.classList.toggle('active', d.dataset.color === fColor));
-      return true;
-    } catch(e) { return false; }
-  }
-
-  /* ========== Frame定規プリセット ========== */
-  const FRAME_PRESET_KEY  = 'yucchi_frame_presets';
-  const MAX_FRAME_PRESETS = 5;
-  let framePresets = [];
-  let activeFramePresetIdx = -1;
-  let activeFramePresetSnapshot = null; // 選択時の設定スナップショット（変更検知用）
-
-  function loadFramePresets() {
-    try { framePresets = JSON.parse(localStorage.getItem(FRAME_PRESET_KEY)) || []; } catch(e) { framePresets = []; }
-    renderFramePresets();
-  }
-  function saveFramePresets() {
-    try { localStorage.setItem(FRAME_PRESET_KEY, JSON.stringify(framePresets)); } catch(e) {}
-  }
-  function currentFrameSnapshot() {
-    return {
-      fColor, fAlpha,
-      fWin: { ...fWin },
-      fOuter: { ...fOuter },
-      outerW: Math.round(fWin.w + fOuter.left + fOuter.right),
-      outerH: Math.round(fWin.h + fOuter.top  + fOuter.bottom),
-      winW:   Math.round(fWin.w),
-      winH:   Math.round(fWin.h)
-    };
-  }
-  // 現在の設定がアクティブプリセットから変更されているか
-  function isFramePresetDirty() {
-    if (activeFramePresetIdx === -1 || !activeFramePresetSnapshot) return false;
-    const s = activeFramePresetSnapshot;
-    return (
-      fColor !== s.fColor ||
-      fAlpha !== s.fAlpha ||
-      fWin.w !== s.fWin.w || fWin.h !== s.fWin.h ||
-      fOuter.left !== s.fOuter.left || fOuter.right !== s.fOuter.right ||
-      fOuter.top  !== s.fOuter.top  || fOuter.bottom !== s.fOuter.bottom
-    );
-  }
-  window.saveFramePreset = function() {
-    const nameInput = document.getElementById('frame-preset-name');
-    const name = nameInput.value.trim();
-    if (!name) {
-      showModal('名前を入力してください。', 'OK', () => nameInput.focus(), false);
-      return;
-    }
-    const dupIdx = framePresets.findIndex(p => p.name === name);
-    if (dupIdx !== -1) {
-      showModal(`「${name}」はすでに保存されています。\n上書きしますか？`, '上書き保存', () => {
-        framePresets[dupIdx] = { name, ...currentFrameSnapshot() };
-        saveFramePresets();
-        nameInput.value = '';
-        renderFramePresets();
-      });
-    } else {
-      if (framePresets.length >= MAX_FRAME_PRESETS) {
-        showModal(`保存できるのは${MAX_FRAME_PRESETS}個までです。\n先に削除してから保存してください。`, 'OK', () => {}, false);
-        return;
-      }
-      framePresets.push({ name, ...currentFrameSnapshot() });
-      saveFramePresets();
-      nameInput.value = '';
-      renderFramePresets();
-    }
-  };
-  function applyFramePreset(p, idx) {
-    fColor = p.fColor; fAlpha = p.fAlpha;
-    if (p.fWin)   fWin   = { ...p.fWin };
-    if (p.fOuter) fOuter = { ...p.fOuter };
-    document.getElementById('frame-opacity').value = Math.round(fAlpha * 100);
-    document.getElementById('frame-opacity-label').textContent = Math.round(fAlpha * 100) + '%';
-    frameColorInput.value = fColor;
-    document.querySelectorAll('.frame-color-dot').forEach(d =>
-      d.classList.toggle('active', d.dataset.color === fColor));
-    applyFrameOuterPos(); applyFrameStyle(); saveFrameSettings();
-    frameUndo.resetHistory();
-    refreshFrameUndoBtns();
-    activeFramePresetIdx = idx;
-    activeFramePresetSnapshot = { ...currentFrameSnapshot() };
-    renderFramePresets();
-  }
-  function renderFramePresets() {
-    const list = document.getElementById('frame-preset-list');
-    if (!list) return;
-    const countEl = document.getElementById('frame-preset-count');
-    if (countEl) countEl.textContent = framePresets.length;
-    if (!framePresets.length) {
-      list.innerHTML = '<div class="preset-empty">保存した定規はありません</div>';
-      return;
-    }
-    list.innerHTML = '';
-    framePresets.forEach((p, i) => {
-      const item = document.createElement('div');
-      item.className = 'preset-item' + (i === activeFramePresetIdx ? ' preset-active' : '');
-      const outerW = p.outerW || Math.round((p.fWin?.w||0) + (p.fOuter?.left||0) + (p.fOuter?.right||0));
-      const outerH = p.outerH || Math.round((p.fWin?.h||0) + (p.fOuter?.top||0)  + (p.fOuter?.bottom||0));
-      const winW   = p.winW   || Math.round(p.fWin?.w || 0);
-      const winH   = p.winH   || Math.round(p.fWin?.h || 0);
-      item.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 20 20" style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg">
-          <rect x="0.75" y="0.75" width="18.5" height="18.5" rx="2.5" ry="2.5"
-            fill="rgba(${parseInt(p.fColor.slice(1,3),16)},${parseInt(p.fColor.slice(3,5),16)},${parseInt(p.fColor.slice(5,7),16)},${Math.min(1,p.fAlpha+0.3)})"
-            stroke="rgba(${parseInt(p.fColor.slice(1,3),16)},${parseInt(p.fColor.slice(3,5),16)},${parseInt(p.fColor.slice(5,7),16)},${Math.min(1,p.fAlpha+0.6)})"
-            stroke-width="1.5"/>
-          <rect x="6" y="6" width="8" height="8" rx="1" ry="1"
-            fill="white" opacity="0.9"/>
-        </svg>
-        <div style="flex:1;min-width:0;">
-          <div class="preset-item-name"></div>
-
-        </div>
-        <button class="preset-overwrite-item-btn" data-i="${i}" data-tip="上書き（長押しで名前変更）">✎</button>
-        <button class="preset-del-btn" data-i="${i}" data-tip="削除" style="margin-left:4px">✕</button>
-      `;
-      item.querySelector('.preset-item-name').textContent = p.name;
-      item.addEventListener('click', e => {
-        if (e.target.closest('.preset-del-btn') || e.target.closest('.preset-overwrite-item-btn')) return;
-        if (e.target.classList.contains('preset-name-edit')) return;
-        const doSwitch = () => applyFramePreset(p, i);
-        if (isFramePresetDirty()) {
-          const ps = framePresets;
-          showModal(
-            `「${ps[activeFramePresetIdx].name}」を上書き保存しますか？`,
-            '上書き保存',
-            () => {
-              ps[activeFramePresetIdx] = { name: ps[activeFramePresetIdx].name, ...currentFrameSnapshot() };
-              saveFramePresets();
-              doSwitch();
-            }
-          );
-          modalCancel.onclick = () => { closeModal(); doSwitch(); };
-        } else {
-          doSwitch();
-        }
-      });
-      const overwriteBtnFrame = item.querySelector('.preset-overwrite-item-btn');
-      overwriteBtnFrame.addEventListener('pointerdown', () => pencilPressStart('frame', i));
-      overwriteBtnFrame.addEventListener('pointerup', pencilPressEnd);
-      overwriteBtnFrame.addEventListener('pointerleave', pencilPressEnd);
-      overwriteBtnFrame.addEventListener('pointercancel', pencilPressEnd);
-      overwriteBtnFrame.addEventListener('click', e => {
-        e.stopPropagation();
-        if (pencilLongPressed) { pencilLongPressed = false; return; }
-        if (activeFramePresetIdx !== i) {
-          // 選んでいない項目 → まずその項目に切り替えるだけ
-          applyFramePreset(p, i);
-          return;
-        }
-        showModal(`「${p.name}」を今の設定で\n上書き保存しますか？`, '上書き保存', () => {
-          framePresets[i] = { name: p.name, ...currentFrameSnapshot() };
-          saveFramePresets();
-          activeFramePresetSnapshot = { ...currentFrameSnapshot() };
-          renderFramePresets();
-        });
-      });
-      item.querySelector('.preset-del-btn').addEventListener('click', e => {
-        e.stopPropagation();
-        showModal(`「${p.name}」を削除しますか？`, '削除する', () => {
-          framePresets.splice(i, 1);
-          if (activeFramePresetIdx === i) activeFramePresetIdx = -1;
-          else if (activeFramePresetIdx > i) activeFramePresetIdx--;
-          saveFramePresets();
-          renderFramePresets();
-        });
-      });
-      list.appendChild(item);
-    });
-  }
-
-  // 窓の移動（中央ドラッグ）
-  let fWinDragging = false, fWinDragStartX = 0, fWinDragStartY = 0;
-  let fWinStartX = 0, fWinStartY = 0;
-  let fWinOuterFixed = {};
-  frameWinDrag.addEventListener('touchstart', e => { e.preventDefault(); }, { passive: false });
-  frameWinDrag.addEventListener('touchmove',  e => { e.preventDefault(); }, { passive: false });
-  frameWinDrag.addEventListener('pointerdown', e => {
-    fWinDragging = true;
-    fWinDragStartX = e.clientX; fWinDragStartY = e.clientY;
-    fWinStartX = fWin.x; fWinStartY = fWin.y;
-    // 外枠の外側座標をスナップショット
-    fWinOuterFixed = {
-      top:    fWin.y - fOuter.top,
-      left:   fWin.x - fOuter.left,
-      right:  fWin.x + fWin.w + fOuter.right,
-      bottom: fWin.y + fWin.h + fOuter.bottom,
-    };
-    frameWinDrag.setPointerCapture(e.pointerId);
-    e.preventDefault();
-  });
-  frameWinDrag.addEventListener('pointermove', e => {
-    if (!fWinDragging) return;
-    const sw = window.innerWidth, sh = window.innerHeight;
-    const dx = e.clientX - fWinDragStartX;
-    const dy = e.clientY - fWinDragStartY;
-    // 外枠の外側座標を固定したまま窓だけ動く
-    // 窓が動ける範囲 = 外側座標 + F_OUTER_MIN <= fWin <= 外側座標 - F_OUTER_MIN
-    const minX = fWinOuterFixed.left   + F_OUTER_MIN;
-    const minY = fWinOuterFixed.top    + F_OUTER_MIN;
-    const maxX = fWinOuterFixed.right  - fWin.w - F_OUTER_MIN;
-    const maxY = fWinOuterFixed.bottom - fWin.h - F_OUTER_MIN;
-    fWin.x = Math.max(minX, Math.min(maxX, fWinStartX + dx));
-    fWin.y = Math.max(minY, Math.min(maxY, fWinStartY + dy));
-    // fOuter を外側座標から逆算（外枠の外側は動かない）
-    fOuter.top    = fWin.y - fWinOuterFixed.top;
-    fOuter.left   = fWin.x - fWinOuterFixed.left;
-    fOuter.right  = fWinOuterFixed.right  - (fWin.x + fWin.w);
-    fOuter.bottom = fWinOuterFixed.bottom - (fWin.y + fWin.h);
-    applyFrameOuterPos();
-    e.preventDefault();
-  });
-  frameWinDrag.addEventListener('pointerup',     () => { fWinDragging = false; applyFrameStyle(); saveFrameSettings(); });
-  frameWinDrag.addEventListener('pointercancel', () => { fWinDragging = false; });
-
-  // 窓の辺リサイズ（外枠の外側座標は固定）
-  document.querySelectorAll('.frame-win-edge').forEach(el => {
-    let dragging = false, startX = 0, startY = 0;
-    let sx = 0, sy = 0, sw2 = 0, sh2 = 0;
-    let outerFixed = {};
-    const side = el.dataset.we;
-    el.addEventListener('pointerdown', e => {
-      e.stopPropagation();
-      dragging = true;
-      startX = e.clientX; startY = e.clientY;
-      sx = fWin.x; sy = fWin.y; sw2 = fWin.w; sh2 = fWin.h;
-      // 外枠の外側座標をスナップショット（リサイズ中は固定）
-      outerFixed = {
-        top:    fWin.y - fOuter.top,
-        left:   fWin.x - fOuter.left,
-        right:  fWin.x + fWin.w + fOuter.right,
-        bottom: fWin.y + fWin.h + fOuter.bottom,
-      };
-      el.setPointerCapture(e.pointerId);
-      e.preventDefault();
-    });
-    el.addEventListener('pointermove', e => {
-      if (!dragging) return;
-      const dx = e.clientX - startX, dy = e.clientY - startY;
-      if (side === 'top') {
-        const newY = Math.max(outerFixed.top + F_OUTER_MIN, Math.min(sy + sh2 - F_MIN, sy + dy));
-        fWin.h = sh2 - (newY - sy); fWin.y = newY;
-      } else if (side === 'bottom') {
-        const maxH = outerFixed.bottom - F_OUTER_MIN - fWin.y;
-        fWin.h = Math.max(F_MIN, Math.min(maxH, sh2 + dy));
-      } else if (side === 'left') {
-        const newX = Math.max(outerFixed.left + F_OUTER_MIN, Math.min(sx + sw2 - F_MIN, sx + dx));
-        fWin.w = sw2 - (newX - sx); fWin.x = newX;
-      } else if (side === 'right') {
-        const maxW = outerFixed.right - F_OUTER_MIN - fWin.x;
-        fWin.w = Math.max(F_MIN, Math.min(maxW, sw2 + dx));
-      }
-      // fOuter を外側座標から逆算して維持
-      fOuter.top    = fWin.y - outerFixed.top;
-      fOuter.left   = fWin.x - outerFixed.left;
-      fOuter.right  = outerFixed.right  - (fWin.x + fWin.w);
-      fOuter.bottom = outerFixed.bottom - (fWin.y + fWin.h);
-      // 「今の段」モードで高さが変わった時は、その高さを新しい1段の計測値としてそのまま連動させ、
-      // 帯の基準座標も今の位置に合わせて更新する（これをしないと次の「＋」で大きくズレる）
-      if (frameGuideMode === 'ima' && (side === 'top' || side === 'bottom') && fWin.h !== frameStep) {
-        frameStep = Math.round(fWin.h);
-        frameStepBase = scale > 0 ? frameStep / scale : frameStep;
-        gpStepLabel.textContent = '1段：' + frameStep + ' px';
-        resyncFrameBandBase();
-      }
-      applyFrameOuterPos();
-      e.preventDefault();
-    });
-    el.addEventListener('pointerup',     () => { dragging = false; applyFrameStyle(); saveFrameSettings(); });
-    el.addEventListener('pointercancel', () => { dragging = false; });
-  });
-
-  // 窓の四つ角リサイズ（外枠の外側座標は固定）
-  document.querySelectorAll('.frame-win-corner').forEach(el => {
-    let dragging = false, startX = 0, startY = 0;
-    let sx = 0, sy = 0, sw2 = 0, sh2 = 0;
-    let outerFixed = {};
-    const corner = el.dataset.wc;
-    el.addEventListener('pointerdown', e => {
-      e.stopPropagation();
-      dragging = true;
-      startX = e.clientX; startY = e.clientY;
-      sx = fWin.x; sy = fWin.y; sw2 = fWin.w; sh2 = fWin.h;
-      outerFixed = {
-        top:    fWin.y - fOuter.top,
-        left:   fWin.x - fOuter.left,
-        right:  fWin.x + fWin.w + fOuter.right,
-        bottom: fWin.y + fWin.h + fOuter.bottom,
-      };
-      el.setPointerCapture(e.pointerId);
-      e.preventDefault();
-    });
-    el.addEventListener('pointermove', e => {
-      if (!dragging) return;
-      const dx = e.clientX - startX, dy = e.clientY - startY;
-      // 横
-      if (corner === 'tr' || corner === 'br') {
-        const maxW = outerFixed.right - F_OUTER_MIN - fWin.x;
-        fWin.w = Math.max(F_MIN, Math.min(maxW, sw2 + dx));
-      } else {
-        const newX = Math.max(outerFixed.left + F_OUTER_MIN, Math.min(sx + sw2 - F_MIN, sx + dx));
-        fWin.w = sw2 - (newX - sx); fWin.x = newX;
-      }
-      // 縦
-      if (corner === 'bl' || corner === 'br') {
-        const maxH = outerFixed.bottom - F_OUTER_MIN - fWin.y;
-        fWin.h = Math.max(F_MIN, Math.min(maxH, sh2 + dy));
-      } else {
-        const newY = Math.max(outerFixed.top + F_OUTER_MIN, Math.min(sy + sh2 - F_MIN, sy + dy));
-        fWin.h = sh2 - (newY - sy); fWin.y = newY;
-      }
-      // 「今の段」モードで高さが変わった時は、その高さを新しい1段の計測値としてそのまま連動させる
-      if (frameGuideMode === 'ima' && fWin.h !== frameStep) {
-        frameStep = Math.round(fWin.h);
-        frameStepBase = scale > 0 ? frameStep / scale : frameStep;
-        gpStepLabel.textContent = '1段：' + frameStep + ' px';
-      }
-      // fOuter を外側座標から逆算して維持
-      fOuter.top    = fWin.y - outerFixed.top;
-      fOuter.left   = fWin.x - outerFixed.left;
-      fOuter.right  = outerFixed.right  - (fWin.x + fWin.w);
-      fOuter.bottom = outerFixed.bottom - (fWin.y + fWin.h);
-      // 帯の基準座標も今の位置に合わせて更新する（fOuterの再計算が終わった後に行う）
-      if (frameGuideMode === 'ima') resyncFrameBandBase();
-      applyFrameOuterPos();
-      e.preventDefault();
-    });
-    el.addEventListener('pointerup',     () => { dragging = false; applyFrameStyle(); saveFrameSettings(); });
-    el.addEventListener('pointercancel', () => { dragging = false; });
-  });
-
-  // 外枠コーナー：ドラッグで対角リサイズ
-  document.querySelectorAll('.frame-outer-corner').forEach(el => {
-    let dragging = false, startX = 0, startY = 0;
-    let sTop = 0, sLeft = 0, sBottom = 0, sRight = 0;
-    const oc = el.dataset.oc;
-    el.addEventListener('pointerdown', e => {
-      e.stopPropagation();
-      dragging = true;
-      startX = e.clientX; startY = e.clientY;
-      sTop = fOuter.top; sLeft = fOuter.left;
-      sBottom = fOuter.bottom; sRight = fOuter.right;
-      el.setPointerCapture(e.pointerId);
-      e.preventDefault();
-    });
-    el.addEventListener('pointermove', e => {
-      if (!dragging) return;
-      const dx = e.clientX - startX, dy = e.clientY - startY;
-      const min = F_OUTER_MIN;
-      if (oc === 'tl') {
-        fOuter.top  = Math.max(min, sTop  - dy);
-        fOuter.left = Math.max(min, sLeft - dx);
-      } else if (oc === 'tr') {
-        fOuter.top   = Math.max(min, sTop   - dy);
-        fOuter.right = Math.max(min, sRight + dx);
-      } else if (oc === 'bl') {
-        fOuter.bottom = Math.max(min, sBottom + dy);
-        fOuter.left   = Math.max(min, sLeft   - dx);
-      } else if (oc === 'br') {
-        fOuter.bottom = Math.max(min, sBottom + dy);
-        fOuter.right  = Math.max(min, sRight  + dx);
-      }
-      applyFrameOuterPos(); applyFrameStyle();
-      // 「今の段」モードでは、外枠を広げ縮めした分だけ、窓（帯）が動ける範囲の基準もついていかせる
-      // （これをしないと、外枠を広げても「前に測った時点の外枠」を基準にしたままになり、
-      //   実際は余裕があるのに上端でつっかえてしまう）
-      if (frameGuideMode === 'ima') resyncFrameBandBase();
-      e.preventDefault();
-    });
-    el.addEventListener('pointerup',     () => { dragging = false; applyFrameStyle(); saveFrameSettings(); });
-    el.addEventListener('pointercancel', () => { dragging = false; });
-  });
-
-  // 外枠パネル：掴んだら薄くなる＋外枠自体を動かす（fOuter を変える）
-  const LONG_PRESS_MS = 500;
-  let frameResizeMode = false;
-  let longPressTimer  = null;
-  const framePanelIds = ['frame-top','frame-bottom','frame-left','frame-right'];
-  const FRAME_SCREEN_MARGIN = 10; // (未使用) 旧:画面端に必ず残す余白（px）。現在は外枠サイズの10%はみ出し許容方式に変更
-  // ピンチ／トラックパッドのリサイズでも、ドラッグ時と同じく薄くするためのヘルパー
-  function setFrameDragging(on) {
-    framePanelIds.forEach(pid => document.getElementById(pid).classList.toggle('dragging', on));
-    document.getElementById('frame-3d-border').classList.toggle('dragging', on);
-  }
-
-  function enterFrameResizeMode() {
-    frameResizeMode = true;
-    framePanelIds.forEach(id =>
-      document.getElementById(id).classList.add('resize-mode'));
-    if (navigator.vibrate) navigator.vibrate(30);
-  }
-  function exitFrameResizeMode() {
-    frameResizeMode = false;
-    framePanelIds.forEach(id =>
-      document.getElementById(id).classList.remove('resize-mode'));
-  }
-
-  // 外枠の各辺の最大値（画面端から10pxだけ余白を残し、それ以外は画面いっぱいまで広げられる）
-  function maxOuter(side) {
-    const sw = window.innerWidth, sh = window.innerHeight;
-    if (side === 'top')    { const d = fWin.y; return Math.max(F_OUTER_MIN, d - 10); }
-    if (side === 'bottom') { const d = sh - (fWin.y + fWin.h); return Math.max(F_OUTER_MIN, d - 10); }
-    if (side === 'left')   { const d = fWin.x; return Math.max(F_OUTER_MIN, d - 10); }
-    if (side === 'right')  { const d = sw - (fWin.x + fWin.w); return Math.max(F_OUTER_MIN, d - 10); }
-    return 9999;
-  }
-
-  // 外枠の「どこに近いか」を距離で判定する（Box・Circle定規と同じ考え方。
-  // 個別のつまみ要素のz-index・重なりに頼らず、パネル側でこれ1つだけで判断する）
-  function frameOuterHitTest(px, py) {
-    const sw = window.innerWidth, sh = window.innerHeight;
-    const outerTop    = Math.max(0,  fWin.y - fOuter.top);
-    const outerLeft   = Math.max(0,  fWin.x - fOuter.left);
-    const outerRight  = Math.min(sw, fWin.x + fWin.w + fOuter.right);
-    const outerBottom = Math.min(sh, fWin.y + fWin.h + fOuter.bottom);
-    // 外枠リサイズの食い込み量は、帯の25%までに抑える（「動かす」側の余地を残すため）。
-    // 辺ごとに個別計算する。1辺だけまとめてmin()を取ると、その1辺が薄いだけで
-    // 他の3辺のつまみまで一律に小さくなってしまう不具合になるため（2026年8月〜）
-    const capW = (outerRight - outerLeft) / 2 - 4;
-    const capH = (outerBottom - outerTop) / 2 - 4;
-    const reachOf = (m) => Math.max(5, Math.min(20, m * 0.25));
-    const rTop = Math.min(reachOf(fOuter.top),    capH);
-    const rBottom = Math.min(reachOf(fOuter.bottom), capH);
-    const rLeft = Math.min(reachOf(fOuter.left),   capW);
-    const rRight = Math.min(reachOf(fOuter.right),  capW);
-    // 四隅は、接する2辺のうち小さい方に合わせる
-    const cTL = Math.min(rTop, rLeft);
-    const cTR = Math.min(rTop, rRight);
-    const cBL = Math.min(rBottom, rLeft);
-    const cBR = Math.min(rBottom, rRight);
-    const corners = [
-      { mode: 'corner-tl', x: outerLeft,  y: outerTop,    r: cTL },
-      { mode: 'corner-tr', x: outerRight, y: outerTop,    r: cTR },
-      { mode: 'corner-bl', x: outerLeft,  y: outerBottom, r: cBL },
-      { mode: 'corner-br', x: outerRight, y: outerBottom, r: cBR },
-    ];
-    for (const c of corners) {
-      if (Math.hypot(px - c.x, py - c.y) <= c.r) return c.mode;
-    }
-    // 辺：境界線からの距離が近い時だけ（四隅の当たり判定とはぶつからないよう範囲を避ける）
-    if (Math.abs(py - outerTop)    <= rTop    && px > outerLeft + cTL && px < outerRight  - cTR) return 'edge-top';
-    if (Math.abs(py - outerBottom) <= rBottom && px > outerLeft + cBL && px < outerRight  - cBR) return 'edge-bottom';
-    if (Math.abs(px - outerLeft)   <= rLeft   && py > outerTop  + cTL && py < outerBottom - cBL) return 'edge-left';
-    if (Math.abs(px - outerRight)  <= rRight  && py > outerTop  + cTR && py < outerBottom - cBR) return 'edge-right';
-    return 'inside';
-  }
-
-  framePanelIds.forEach(id => {
-    const el = document.getElementById(id);
-    // タッチ中のページスクロールを防ぐ
-    el.addEventListener('touchstart', e => { e.preventDefault(); }, { passive: false });
-    el.addEventListener('touchmove',  e => { e.preventDefault(); }, { passive: false });
-    let mode = null; // 'move' | 'corner-tl' などのいずれか
-    let moved = false;
-    let startX = 0, startY = 0;
-    let startWinX = 0, startWinY = 0;
-    let startOuter = { top: 0, left: 0, bottom: 0, right: 0 };
-
-    el.addEventListener('pointerdown', e => {
-      moved = false;
-      startX = e.clientX; startY = e.clientY;
-      startOuter = { ...fOuter };
-      startWinX = fWin.x; startWinY = fWin.y;
-      el.setPointerCapture(e.pointerId);
-      mode = frameOuterHitTest(e.clientX, e.clientY);
-      if (mode === 'inside') mode = 'move';
-
-      // 掴んだら薄くする
-      framePanelIds.forEach(pid =>
-        document.getElementById(pid).classList.add('dragging'));
-      document.getElementById('frame-3d-border').classList.add('dragging');
-
-      if (mode === 'move' && !frameResizeMode) {
-        longPressTimer = setTimeout(() => {
-          if (!moved) enterFrameResizeMode();
-        }, LONG_PRESS_MS);
-      }
-      e.preventDefault();
-    });
-
-    el.addEventListener('pointermove', e => {
-      if (!mode) {
-        // まだ掴んでいない（ホバー中）：マウス操作の時だけ、位置に応じてカーソルを変える
-        // （窓側のつまみ（frame-win-edge等）はCSSだけで自動的にカーソルが変わるが、
-        //   外枠側はつまみ要素が実際には無効なので、ここでJSから明示的に切り替える）
-        if (e.pointerType === 'mouse') {
-          const hoverMode = frameOuterHitTest(e.clientX, e.clientY);
-          let cur = 'grab';
-          if (hoverMode === 'edge-top' || hoverMode === 'edge-bottom') cur = 'ns-resize';
-          else if (hoverMode === 'edge-left' || hoverMode === 'edge-right') cur = 'ew-resize';
-          else if (hoverMode === 'corner-tl' || hoverMode === 'corner-br') cur = 'nwse-resize';
-          else if (hoverMode === 'corner-tr' || hoverMode === 'corner-bl') cur = 'nesw-resize';
-          el.style.cursor = cur;
-        }
-        return;
-      }
-      const dx = e.clientX - startX, dy = e.clientY - startY;
-      if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
-        moved = true;
-        clearTimeout(longPressTimer);
-      }
-
-      if (mode === 'move') {
-        // 90%まで隠れてOKだが、最低44px（指1本分）は必ず見えるよう保証
-        const scw = window.innerWidth, sch = window.innerHeight;
-        const outerW = fWin.w + startOuter.left + startOuter.right;
-        const outerH = fWin.h + startOuter.top  + startOuter.bottom;
-        const visX = Math.max(44, outerW * 0.1);
-        const visY = Math.max(44, outerH * 0.1);
-        const minX = visX - fWin.w - startOuter.right;
-        const minY = visY - fWin.h - startOuter.bottom;
-        const maxX = scw - visX + startOuter.left;
-        const maxY = sch - visY + startOuter.top;
-        fWin.x = Math.max(minX, Math.min(maxX, startWinX + dx));
-        fWin.y = Math.max(minY, Math.min(maxY, startWinY + dy));
-        applyFrameOuterPos();
-        // 「今の段」モードでは、枠ごと動かした分だけ、窓（帯）の絶対位置の基準もついていかせる
-        if (frameGuideMode === 'ima') resyncFrameBandBase();
-      } else if (mode.startsWith('corner-')) {
-        const oc = mode.slice(7); // tl / tr / bl / br
-        const min = F_OUTER_MIN;
-        if (oc === 'tl') {
-          fOuter.top  = Math.max(min, startOuter.top  - dy);
-          fOuter.left = Math.max(min, startOuter.left - dx);
-        } else if (oc === 'tr') {
-          fOuter.top   = Math.max(min, startOuter.top   - dy);
-          fOuter.right = Math.max(min, startOuter.right + dx);
-        } else if (oc === 'bl') {
-          fOuter.bottom = Math.max(min, startOuter.bottom + dy);
-          fOuter.left   = Math.max(min, startOuter.left   - dx);
-        } else if (oc === 'br') {
-          fOuter.bottom = Math.max(min, startOuter.bottom + dy);
-          fOuter.right  = Math.max(min, startOuter.right  + dx);
-        }
-        applyFrameOuterPos(); applyFrameStyle();
-        if (frameGuideMode === 'ima') resyncFrameBandBase();
-      } else if (mode.startsWith('edge-')) {
-        const side = mode.slice(5); // top / bottom / left / right
-        const max = maxOuter(side);
-        if (side === 'top')    fOuter.top    = Math.max(F_OUTER_MIN, Math.min(max, startOuter.top    - dy));
-        if (side === 'bottom') fOuter.bottom = Math.max(F_OUTER_MIN, Math.min(max, startOuter.bottom + dy));
-        if (side === 'left')   fOuter.left   = Math.max(F_OUTER_MIN, Math.min(max, startOuter.left   - dx));
-        if (side === 'right')  fOuter.right  = Math.max(F_OUTER_MIN, Math.min(max, startOuter.right  + dx));
-        applyFrameOuterPos();
-        if (frameGuideMode === 'ima') resyncFrameBandBase();
-      }
-      e.preventDefault();
-    });
-
-    el.addEventListener('pointerup', () => {
-      clearTimeout(longPressTimer);
-      const wasMove = (mode === 'move');
-      mode = null;
-      framePanelIds.forEach(pid =>
-        document.getElementById(pid).classList.remove('dragging'));
-      document.getElementById('frame-3d-border').classList.remove('dragging');
-      if (frameResizeMode) exitFrameResizeMode();
-      if (wasMove) {
-        // ドラッグ後に強制クランプ：最低44px（指1本分）は必ず画面内に残す
-        const outerW = fWin.w + fOuter.left + fOuter.right;
-        const outerH = fWin.h + fOuter.top  + fOuter.bottom;
-        const visX = Math.max(44, outerW * 0.1);
-        const visY = Math.max(44, outerH * 0.1);
-        const minX = visX - fWin.w - fOuter.right;
-        const minY = visY - fWin.h - fOuter.bottom;
-        const maxX = window.innerWidth  - visX + fOuter.left;
-        const maxY = window.innerHeight - visY + fOuter.top;
-        fWin.x = Math.max(minX, Math.min(maxX, fWin.x));
-        fWin.y = Math.max(minY, Math.min(maxY, fWin.y));
-        applyFrameOuterPos();
-      }
-      applyFrameStyle(); // 角丸のクランプ判定（画面端かどうか）が動いた時のためにも、見た目を必ず再描画する
-      saveFrameSettings();
-    });
-    el.addEventListener('pointercancel', () => {
-      clearTimeout(longPressTimer);
-      mode = null;
-      framePanelIds.forEach(pid =>
-        document.getElementById(pid).classList.remove('dragging'));
-      document.getElementById('frame-3d-border').classList.remove('dragging');
-      exitFrameResizeMode();
-    });
-  });
-
-  // 外枠の外側辺リサイズ（各辺を個別に伸縮）
-  document.querySelectorAll('.frame-outer-edge').forEach(el => {
-    const side = el.dataset.outer;
-    let dragging = false, startX = 0, startY = 0;
-    let startOuter = 0;
-
-    el.addEventListener('pointerdown', e => {
-      e.stopPropagation();
-      dragging = true;
-      startX = e.clientX; startY = e.clientY;
-      startOuter = fOuter[side];
-      el.setPointerCapture(e.pointerId);
-      e.preventDefault();
-    });
-    el.addEventListener('pointermove', e => {
-      if (!dragging) return;
-      const dx = e.clientX - startX, dy = e.clientY - startY;
-      const max = maxOuter(side);
-      if (side === 'top')    fOuter.top    = Math.max(F_OUTER_MIN, Math.min(max, startOuter - dy));
-      if (side === 'bottom') fOuter.bottom = Math.max(F_OUTER_MIN, Math.min(max, startOuter + dy));
-      if (side === 'left')   fOuter.left   = Math.max(F_OUTER_MIN, Math.min(max, startOuter - dx));
-      if (side === 'right')  fOuter.right  = Math.max(F_OUTER_MIN, Math.min(max, startOuter + dx));
-      applyFrameOuterPos();
-      if (frameGuideMode === 'ima') resyncFrameBandBase();
-      e.preventDefault();
-    });
-    el.addEventListener('pointerup',     () => { dragging = false; applyFrameStyle(); saveFrameSettings(); });
-    el.addEventListener('pointercancel', () => { dragging = false; });
-  });
-
-  // 窓定規カラー・濃度
-  document.getElementById('frame-opacity').addEventListener('input', e => {
-    fAlpha = parseInt(e.target.value) / 100;
-    document.getElementById('frame-opacity-label').textContent = e.target.value + '%';
-    applyFrameStyle(); saveFrameSettings();
-  });
-  document.getElementById('toggle-frame-counter').addEventListener('change', e => {
-    showFrameCounter = e.target.checked;
-    if (currentRulerTab === 'frame') {
-      counterPanel.style.display = showFrameCounter ? 'flex' : 'none';
-      cpGuideRow.style.display = showFrameCounter ? 'flex' : 'none';
-    }
-    saveFrameSettings();
-  });
-
-  document.getElementById('frame-color-presets').addEventListener('click', e => {
-    const dot = e.target.closest('.frame-color-dot');
-    if (!dot) return;
-    fColor = dot.dataset.color;
-    frameColorInput.value = fColor;
-    document.querySelectorAll('.frame-color-dot').forEach(d => d.classList.remove('active'));
-    dot.classList.add('active');
-    applyFrameStyle(); saveFrameSettings();
-  });
-  frameColorInput.addEventListener('input', e => {
-    fColor = e.target.value;
-    document.querySelectorAll('.frame-color-dot').forEach(d => d.classList.remove('active'));
-    applyFrameStyle(); saveFrameSettings();
-  });
-
-  // ===== 窓定規ピンチズーム =====
-  // つまんだ位置が「窓の内側」か「外枠の帯（窓の外〜外枠の間）」かで、
-  // リサイズする対象を分ける（窓だけ／外枠だけを別々に拡大縮小できるように）
-  let framePinchActive = false;
-  let framePinchDist0 = 0;
-  let framePinchW0 = 0, framePinchH0 = 0;
-  let framePinchCX0 = 0, framePinchCY0 = 0;
-  let framePinchOuterFixed = null;
-  let frameOuterPinchActive = false;
-  let frameOuterPinchDist0 = 0;
-  let frameOuterPinchO0 = null;
-
-  function isPointInFrameWindow(x, y) {
-    return x >= fWin.x && x <= fWin.x + fWin.w && y >= fWin.y && y <= fWin.y + fWin.h;
-  }
-  function isPointOnFrameOuterBand(x, y) {
-    const outerLeft   = fWin.x - fOuter.left;
-    const outerTop    = fWin.y - fOuter.top;
-    const outerRight  = fWin.x + fWin.w + fOuter.right;
-    const outerBottom = fWin.y + fWin.h + fOuter.bottom;
-    const inOuterRect = x >= outerLeft && x <= outerRight && y >= outerTop && y <= outerBottom;
-    return inOuterRect && !isPointInFrameWindow(x, y);
-  }
-  // 窓の1辺（幅 or 高さ）を、中心を保ったまま対称に伸ばしつつ、
-  // 片方の辺が外枠の余白の下限（F_OUTER_MIN）に達したら、もう片方の辺だけで伸び続けられるようにする。
-  // startMin/startMax：伸ばす前の両端の座標。desiredSize：対称に伸ばした場合の理想サイズ。
-  // availMin/availMax：それぞれの辺が外枠にぶつからず、あとどれだけ動けるか
-  function growAxis(startMin, startMax, desiredSize, availMin, availMax) {
-    availMin = Math.max(0, availMin);
-    availMax = Math.max(0, availMax);
-    const startSize = startMax - startMin;
-    if (desiredSize <= startSize) {
-      // 縮む時は中心を保ったまま縮める
-      const half = (startSize - desiredSize) / 2;
-      return { min: startMin + half, max: startMax - half };
-    }
-    const desiredGrow = desiredSize - startSize;
-    const actualGrow  = Math.min(desiredGrow, availMin + availMax);
-    const half = actualGrow / 2;
-    let moveMin, moveMax;
-    if (half <= availMin && half <= availMax) {
-      moveMin = half; moveMax = half;
-    } else if (availMin < half) {
-      moveMin = availMin;
-      moveMax = Math.min(actualGrow - availMin, availMax);
-    } else {
-      moveMax = availMax;
-      moveMin = Math.min(actualGrow - availMax, availMin);
-    }
-    return { min: startMin - moveMin, max: startMax + moveMax };
-  }
-
-  frameOverlay.addEventListener('touchstart', e => {
-    e.preventDefault();
-    if (e.touches.length === 2) {
-      const t0 = e.touches[0], t1 = e.touches[1];
-      const bothOnBand = isPointOnFrameOuterBand(t0.clientX, t0.clientY) && isPointOnFrameOuterBand(t1.clientX, t1.clientY);
-      if (bothOnBand) {
-        // 2点とも外枠の帯の上 → 外枠だけをリサイズ
-        frameOuterPinchActive = true;
-        frameOuterPinchDist0 = pinchDist(e.touches);
-        frameOuterPinchO0 = { ...fOuter };
-        setFrameDragging(true);
-      } else {
-        // それ以外（窓の中、またはまたがっている）→ 窓をリサイズ。
-        // 中心座標・外枠の外側座標をスナップショット（.frame-win-edgeのドラッグと同じく、リサイズ中は固定する）。
-        // 毎フレーム現在地から再計算すると、四捨五入の端数が積み重なって中心がじわじわズレるため、
-        // 開始時の1回だけ記録して使い回す。
-        // 外側座標は、見た目の描画（applyFrameOuterPos）と同じく画面端でクランプしておく
-        // （そうしないと、外枠が画面端をはみ出す位置にある時、計算上の外側座標と実際の見た目がズレてしまう）
-        framePinchActive = true;
-        framePinchDist0 = pinchDist(e.touches);
-        framePinchW0 = fWin.w;
-        framePinchH0 = fWin.h;
-        framePinchCX0 = fWin.x + fWin.w / 2;
-        framePinchCY0 = fWin.y + fWin.h / 2;
-        framePinchOuterFixed = {
-          top:    Math.max(0, fWin.y - fOuter.top),
-          left:   Math.max(0, fWin.x - fOuter.left),
-          right:  Math.min(window.innerWidth,  fWin.x + fWin.w + fOuter.right),
-          bottom: Math.min(window.innerHeight, fWin.y + fWin.h + fOuter.bottom),
-        };
-        setFrameDragging(true);
-      }
-    }
-  }, { passive: false });
-
-  frameOverlay.addEventListener('touchmove', e => {
-    e.preventDefault();
-    if (frameOuterPinchActive && e.touches.length === 2) {
-      const d = pinchDist(e.touches);
-      const ratio = d / frameOuterPinchDist0;
-      fOuter.top    = Math.max(F_OUTER_MIN, Math.min(maxOuter('top'),    Math.round(frameOuterPinchO0.top    * ratio)));
-      fOuter.bottom = Math.max(F_OUTER_MIN, Math.min(maxOuter('bottom'), Math.round(frameOuterPinchO0.bottom * ratio)));
-      fOuter.left   = Math.max(F_OUTER_MIN, Math.min(maxOuter('left'),   Math.round(frameOuterPinchO0.left   * ratio)));
-      fOuter.right  = Math.max(F_OUTER_MIN, Math.min(maxOuter('right'),  Math.round(frameOuterPinchO0.right  * ratio)));
-      applyFrameOuterPos();
-      return;
-    }
-    if (!framePinchActive || e.touches.length !== 2) return;
-    const d = pinchDist(e.touches);
-    const ratio = d / framePinchDist0;
-    // 窓の位置はピンチ開始時に固定した座標から計算する（毎回再計算すると端数が積み重なってズレるため）
-    const startLeft = framePinchCX0 - framePinchW0 / 2, startRight  = framePinchCX0 + framePinchW0 / 2;
-    const startTop  = framePinchCY0 - framePinchH0 / 2, startBottom = framePinchCY0 + framePinchH0 / 2;
-    const leftAvail   = startLeft   - (framePinchOuterFixed.left   + F_OUTER_MIN);
-    const rightAvail  = (framePinchOuterFixed.right  - F_OUTER_MIN) - startRight;
-    const topAvail    = startTop    - (framePinchOuterFixed.top    + F_OUTER_MIN);
-    const bottomAvail = (framePinchOuterFixed.bottom - F_OUTER_MIN) - startBottom;
-    const desiredW = Math.max(80, framePinchW0 * ratio);
-    const desiredH = Math.max(80, framePinchH0 * ratio);
-    // 横幅・縦幅それぞれ、片方の辺が外枠にぶつかっても、もう片方の辺だけで上限まで伸び続けられるようにする
-    const wRange = growAxis(startLeft, startRight,  desiredW, leftAvail, rightAvail);
-    const hRange = growAxis(startTop,  startBottom, desiredH, topAvail,  bottomAvail);
-    fWin.x = Math.round(wRange.min);
-    fWin.w = Math.round(wRange.max - wRange.min);
-    fWin.y = Math.round(hRange.min);
-    fWin.h = Math.round(hRange.max - hRange.min);
-    // 安全装置：計算結果が万一外枠の内側からはみ出しても、強制的に収める
-    fWin.x = Math.max(framePinchOuterFixed.left + F_OUTER_MIN, Math.min(fWin.x, framePinchOuterFixed.right  - F_OUTER_MIN - fWin.w));
-    fWin.y = Math.max(framePinchOuterFixed.top  + F_OUTER_MIN, Math.min(fWin.y, framePinchOuterFixed.bottom - F_OUTER_MIN - fWin.h));
-    // 外枠の外側座標から逆算して、外枠の太さを維持（外枠自体は拡大縮小しない）
-    fOuter.top    = fWin.y - framePinchOuterFixed.top;
-    fOuter.left   = fWin.x - framePinchOuterFixed.left;
-    fOuter.right  = framePinchOuterFixed.right  - (fWin.x + fWin.w);
-    fOuter.bottom = framePinchOuterFixed.bottom - (fWin.y + fWin.h);
-    // 安全装置：外枠の太さが万一30pxを下回っても、描画する直前に強制的に30pxへ戻す
-    fOuter.top    = Math.max(F_OUTER_MIN, fOuter.top);
-    fOuter.left   = Math.max(F_OUTER_MIN, fOuter.left);
-    fOuter.right  = Math.max(F_OUTER_MIN, fOuter.right);
-    fOuter.bottom = Math.max(F_OUTER_MIN, fOuter.bottom);
-    // 「今の段」モードで高さが変わった時は、その高さを新しい1段の計測値としてそのまま連動させ、
-    // 帯の基準座標も今の位置に合わせて更新する（これをしないと次の「＋」で大きくズレる）
-    if (frameGuideMode === 'ima' && fWin.h !== frameStep) {
-      frameStep = Math.round(fWin.h);
-      frameStepBase = scale > 0 ? frameStep / scale : frameStep;
-      gpStepLabel.textContent = '1段：' + frameStep + ' px';
-      resyncFrameBandBase();
-    }
-    applyFrameOuterPos();
-  }, { passive: false });
-
-  frameOverlay.addEventListener('touchend', e => {
-    if (e.touches.length < 2 && frameOuterPinchActive) {
-      frameOuterPinchActive = false;
-      setFrameDragging(false);
-      applyFrameStyle();
-      saveFrameSettings();
-    }
-    if (e.touches.length < 2 && framePinchActive) {
-      framePinchActive = false;
-      setFrameDragging(false);
-      applyFrameStyle();
-      saveFrameSettings();
-    }
-  });
-
-  // ===== 窓の内側（frameWinWrap）専用のタッチ・マウス処理 =====
-  // frameWinWrapは窓の内側だけを覆う透明な板。指1本／マウスドラッグでは「窓（フレーム全体）を動かす」
-  // （.frame-panelの帯をドラッグする時と同じ移動ロジック）。指2本になったら移動をやめて、
-  // frame-overlay側の既存のピンチ判定（bothOnBand等）にバブリングでそのまま任せる
-  // （＝窓の中でつまんでも確実にframe-overlayに届く）。
-  let frameWinDragStartX = 0, frameWinDragStartY = 0;
-  let frameWinDragStartWinX = 0, frameWinDragStartWinY = 0;
-  let frameWinDragStartOuter = { top: 0, left: 0, bottom: 0, right: 0 };
-  function frameWinMoveStart(clientX, clientY) {
-    frameWinDragStartX = clientX; frameWinDragStartY = clientY;
-    frameWinDragStartWinX = fWin.x; frameWinDragStartWinY = fWin.y;
-    frameWinDragStartOuter = { ...fOuter };
-    setFrameDragging(true);
-  }
-  function frameWinMoveTo(clientX, clientY) {
-    const dx = clientX - frameWinDragStartX, dy = clientY - frameWinDragStartY;
-    const scw = window.innerWidth, sch = window.innerHeight;
-    // 90%まで隠れてOKだが、最低44px（指1本分）は必ず見えるよう保証（.frame-panelの帯ドラッグと同じ計算式）
-    const outerW = fWin.w + frameWinDragStartOuter.left + frameWinDragStartOuter.right;
-    const outerH = fWin.h + frameWinDragStartOuter.top  + frameWinDragStartOuter.bottom;
-    const visX = Math.max(44, outerW * 0.1);
-    const visY = Math.max(44, outerH * 0.1);
-    const minX = visX - fWin.w - frameWinDragStartOuter.right;
-    const minY = visY - fWin.h - frameWinDragStartOuter.bottom;
-    const maxX = scw - visX + frameWinDragStartOuter.left;
-    const maxY = sch - visY + frameWinDragStartOuter.top;
-    fWin.x = Math.max(minX, Math.min(maxX, frameWinDragStartWinX + dx));
-    fWin.y = Math.max(minY, Math.min(maxY, frameWinDragStartWinY + dy));
-    applyFrameOuterPos();
-  }
-  function frameWinMoveEnd() {
-    setFrameDragging(false);
-    // ドラッグ後に強制クランプ：最低44px（指1本分）は必ず画面内に残す
-    const outerW = fWin.w + fOuter.left + fOuter.right;
-    const outerH = fWin.h + fOuter.top  + fOuter.bottom;
-    const visX = Math.max(44, outerW * 0.1);
-    const visY = Math.max(44, outerH * 0.1);
-    const minX = visX - fWin.w - fOuter.right;
-    const minY = visY - fWin.h - fOuter.bottom;
-    const maxX = window.innerWidth  - visX + fOuter.left;
-    const maxY = window.innerHeight - visY + fOuter.top;
-    fWin.x = Math.max(minX, Math.min(maxX, fWin.x));
-    fWin.y = Math.max(minY, Math.min(maxY, fWin.y));
-    applyFrameOuterPos();
-    applyFrameStyle(); // 角丸のクランプ判定（画面端かどうか）が動いた時のためにも、見た目を必ず再描画する
-    saveFrameSettings();
-  }
-
-  // frame-win-drag（中央ドラッグ）／frame-win-edge／frame-win-corner は、それぞれ自分自身の
-  // pointerdown/pointermove（窓の移動・リサイズ）ですでに処理しているので、その上ではここでは何もしない。
-  // ここが処理するのは、それら専用ハンドルに当たらない「隙間」だけ（縁のごく細い帯など）。
-  function isOnFrameWinControl(target) {
-    return !!(target.closest('#frame-win-drag') || target.closest('.frame-win-edge') || target.closest('.frame-win-corner'));
-  }
-
-  let frameWinTouchMode = null;
-  frameWinWrap.addEventListener('touchstart', e => {
-    if (isOnFrameWinControl(e.target)) return; // 専用ハンドル側のpointerdownに任せる
-    if (e.touches.length === 1) {
-      e.preventDefault();
-      e.stopPropagation();
-      frameWinTouchMode = 'move';
-      const t = e.touches[0];
-      frameWinMoveStart(t.clientX, t.clientY);
-    } else if (e.touches.length >= 2) {
-      // 2本目以降が触れたら移動モードを解除し、frame-overlay側のピンチ判定に譲る
-      if (frameWinTouchMode === 'move') setFrameDragging(false);
-      frameWinTouchMode = null;
-    }
-  }, { passive: false });
-  frameWinWrap.addEventListener('touchmove', e => {
-    if (frameWinTouchMode === 'move' && e.touches.length === 1) {
-      e.preventDefault();
-      e.stopPropagation();
-      const t = e.touches[0];
-      frameWinMoveTo(t.clientX, t.clientY);
-    }
-  }, { passive: false });
-  frameWinWrap.addEventListener('touchend', e => {
-    if (frameWinTouchMode === 'move') {
-      frameWinMoveEnd();
-      e.stopPropagation();
-    }
-    frameWinTouchMode = null;
-  }, { passive: false });
-  frameWinWrap.addEventListener('touchcancel', () => {
-    if (frameWinTouchMode === 'move') setFrameDragging(false);
-    frameWinTouchMode = null;
-  });
-  // マウスでのドラッグも同様に「窓を動かす」動作にする（隙間のみ。専用ハンドル上は自分のpointerdownに任せる）
-  let frameWinMouseDragging = false;
-  frameWinWrap.addEventListener('mousedown', e => {
-    if (isOnFrameWinControl(e.target)) return;
-    frameWinMouseDragging = true;
-    frameWinMoveStart(e.clientX, e.clientY);
-    e.preventDefault();
-  });
-  window.addEventListener('mousemove', e => {
-    if (!frameWinMouseDragging) return;
-    frameWinMoveTo(e.clientX, e.clientY);
-  });
-  window.addEventListener('mouseup', () => {
-    if (!frameWinMouseDragging) return;
-    frameWinMouseDragging = false;
-    frameWinMoveEnd();
-  });
-
-  // ===== 窓定規：トラックパッドのピンチ（ctrlKey付きwheel）=====
-  // Ctrlなしの通常ホイールは編み図側のズームに渡す
-  let frameWheelPinchTimer = null;
-  frameOverlay.addEventListener('wheel', e => {
-    if (!e.ctrlKey) { viewerWheel(e); return; }
-    e.preventDefault();
-    e.stopPropagation();
-    const factor = Math.exp(-e.deltaY * 0.01);
-    // カーソルが外枠の帯（窓の外〜外枠の間）の上なら、外枠の太さだけをリサイズする（窓は動かさない）
-    if (isPointOnFrameOuterBand(e.clientX, e.clientY)) {
-      fOuter.top    = Math.max(F_OUTER_MIN, Math.min(maxOuter('top'),    Math.round(fOuter.top    * factor)));
-      fOuter.bottom = Math.max(F_OUTER_MIN, Math.min(maxOuter('bottom'), Math.round(fOuter.bottom * factor)));
-      fOuter.left   = Math.max(F_OUTER_MIN, Math.min(maxOuter('left'),   Math.round(fOuter.left   * factor)));
-      fOuter.right  = Math.max(F_OUTER_MIN, Math.min(maxOuter('right'),  Math.round(fOuter.right  * factor)));
-      applyFrameOuterPos();
-      setFrameDragging(true);
-      clearTimeout(frameWheelPinchTimer);
-      frameWheelPinchTimer = setTimeout(() => { setFrameDragging(false); applyFrameStyle(); saveFrameSettings(); }, 200);
-      return;
-    }
-    const startLeft = fWin.x, startRight = fWin.x + fWin.w;
-    const startTop  = fWin.y, startBottom = fWin.y + fWin.h;
-    // 外枠の外側座標をスナップショット（.frame-win-edgeのドラッグと同じく、リサイズ中は固定する）。
-    // 見た目の描画（applyFrameOuterPos）と同じく画面端でクランプしておく
-    const outerFixed = {
-      top:    Math.max(0, fWin.y - fOuter.top),
-      left:   Math.max(0, fWin.x - fOuter.left),
-      right:  Math.min(window.innerWidth,  fWin.x + fWin.w + fOuter.right),
-      bottom: Math.min(window.innerHeight, fWin.y + fWin.h + fOuter.bottom),
-    };
-    const leftAvail   = startLeft   - (outerFixed.left   + F_OUTER_MIN);
-    const rightAvail  = (outerFixed.right  - F_OUTER_MIN) - startRight;
-    const topAvail    = startTop    - (outerFixed.top    + F_OUTER_MIN);
-    const bottomAvail = (outerFixed.bottom - F_OUTER_MIN) - startBottom;
-    const desiredW = Math.max(80, fWin.w * factor);
-    const desiredH = Math.max(80, fWin.h * factor);
-    // 横幅・縦幅それぞれ、片方の辺が外枠にぶつかっても、もう片方の辺だけで上限まで伸び続けられるようにする
-    const wRange = growAxis(startLeft, startRight,  desiredW, leftAvail, rightAvail);
-    const hRange = growAxis(startTop,  startBottom, desiredH, topAvail,  bottomAvail);
-    fWin.x = Math.round(wRange.min);
-    fWin.w = Math.round(wRange.max - wRange.min);
-    fWin.y = Math.round(hRange.min);
-    fWin.h = Math.round(hRange.max - hRange.min);
-    // 安全装置：計算結果が万一外枠の内側からはみ出しても、強制的に収める
-    fWin.x = Math.max(outerFixed.left + F_OUTER_MIN, Math.min(fWin.x, outerFixed.right  - F_OUTER_MIN - fWin.w));
-    fWin.y = Math.max(outerFixed.top  + F_OUTER_MIN, Math.min(fWin.y, outerFixed.bottom - F_OUTER_MIN - fWin.h));
-    // 外枠の外側座標から逆算して、外枠の太さを維持（外枠自体は拡大縮小しない）
-    fOuter.top    = fWin.y - outerFixed.top;
-    fOuter.left   = fWin.x - outerFixed.left;
-    fOuter.right  = outerFixed.right  - (fWin.x + fWin.w);
-    fOuter.bottom = outerFixed.bottom - (fWin.y + fWin.h);
-    // 安全装置：外枠の太さが万一30pxを下回っても、描画する直前に強制的に30pxへ戻す
-    fOuter.top    = Math.max(F_OUTER_MIN, fOuter.top);
-    fOuter.left   = Math.max(F_OUTER_MIN, fOuter.left);
-    fOuter.right  = Math.max(F_OUTER_MIN, fOuter.right);
-    fOuter.bottom = Math.max(F_OUTER_MIN, fOuter.bottom);
-    // 「今の段」モードで高さが変わった時は、その高さを新しい1段の計測値としてそのまま連動させ、
-    // 帯の基準座標も今の位置に合わせて更新する（これをしないと次の「＋」で大きくズレる）
-    if (frameGuideMode === 'ima' && fWin.h !== frameStep) {
-      frameStep = Math.round(fWin.h);
-      frameStepBase = scale > 0 ? frameStep / scale : frameStep;
-      gpStepLabel.textContent = '1段：' + frameStep + ' px';
-      resyncFrameBandBase();
-    }
-    applyFrameOuterPos();
-    setFrameDragging(true);
-    clearTimeout(frameWheelPinchTimer);
-    frameWheelPinchTimer = setTimeout(() => { setFrameDragging(false); applyFrameStyle(); saveFrameSettings(); }, 200);
-  }, { passive: false });
 
   /* ========== 丸定規 ========== */
   const circleOverlay  = document.getElementById('circle-overlay');
@@ -7035,11 +4619,11 @@
     const b = parseInt(hex.slice(5,7),16);
     const la = Math.min(1, cAlpha * 1.6);
 
-    // 見た目専用レイヤー：円がちょうど収まる正方形のSVGをその位置に配置する（Line/Frame/Box定規と同じ仕組み）
+    // 見た目専用レイヤー：円がちょうど収まる正方形のSVGをその位置に配置する（Line/Box定規と同じ仕組み）
     const left = cX - cR, top = cY - cR;
     const size = cR * 2;
     const hiW  = Math.min(cR * 0.22, 12); // ハイライトの太さ（上限は他の3定規と統一して12px）
-    const M    = 16; // 外側の光がはみ出すための余白（Line/Frame/Box定規と同じ仕組み）
+    const M    = 16; // 外側の光がはみ出すための余白（Line/Box定規と同じ仕組み）
     const cHiStart = Math.max(0, (1 - hiW / cR) * 100); // ハイライトが効き始める位置(%)
 
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size + M*2}" height="${size + M*2}">
@@ -7053,7 +4637,7 @@
         </filter>
       </defs>
       <g transform="translate(${M},${M})">
-        <!-- 外側の光（Line/Frame/Box定規と同じfeGaussianBlurで描く） -->
+        <!-- 外側の光（Line/Box定規と同じfeGaussianBlurで描く） -->
         <circle cx="${cR}" cy="${cR}" r="${cR}" fill="rgba(${r},${g},${b},0.28)" filter="url(#cglow)"/>
         <!-- 本体＋枠線を同じ円で描く -->
         <circle cx="${cR}" cy="${cR}" r="${cR}" fill="rgba(${r},${g},${b},${cAlpha})" stroke="rgba(${r},${g},${b},${la})" stroke-width="1.5"/>
@@ -7240,7 +4824,7 @@
     }
     viewerWheel(e);
   }, { passive: false });
-  // タッチで円の外側を押した瞬間にパネルを閉じる（Line/Frameのviewer pointerdownと同じ即時クローズ方式）
+  // タッチで円の外側を押した瞬間にパネルを閉じる（Lineのviewer pointerdownと同じ即時クローズ方式）
   circleCanvas.addEventListener('pointerdown', e => {
     if (e.pointerType !== 'touch') return;
     const dx = e.clientX - cX, dy = e.clientY - cY;
@@ -7622,12 +5206,12 @@
     const b = parseInt(hex.slice(5,7),16);
     const la = Math.min(1, bxAlpha * 1.6);
 
-    // 見た目専用レイヤー：正方形/長方形がちょうど収まるSVGをその位置に配置する（Frame/Line/Circle定規と同じ仕組み）
+    // 見た目専用レイヤー：正方形/長方形がちょうど収まるSVGをその位置に配置する（Line/Circle定規と同じ仕組み）
     const left = bxX - bxHalfW, top = bxY - bxHalfH;
     const ow = bxHalfW * 2, oh = bxHalfH * 2;
     const rad = Math.min(10, ow/3, oh/3); // 箱が小さい時に真円になってしまわないよう、サイズに応じて丸みも小さくする
-    const hl  = Math.min(12, ow/3, oh/3); // ハイライトの太さ：上下左右すべて共通の値にする（Line/Frame定規と同じ考え方）
-    const M   = 16; // 外側の光がはみ出すための余白（Line/Frame定規と同じ仕組み）
+    const hl  = Math.min(12, ow/3, oh/3); // ハイライトの太さ：上下左右すべて共通の値にする（Line定規と同じ考え方）
+    const M   = 16; // 外側の光がはみ出すための余白（Line定規と同じ仕組み）
 
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow + M*2}" height="${oh + M*2}">
       <defs>
@@ -7655,13 +5239,13 @@
         </clipPath>
       </defs>
       <g transform="translate(${M},${M})">
-        <!-- 外側の光（Line/Frame定規と同じfeGaussianBlurで描く） -->
+        <!-- 外側の光（Line定規と同じfeGaussianBlurで描く） -->
         <rect x="0" y="0" width="${ow}" height="${oh}" rx="${rad}" ry="${rad}"
           fill="rgba(${r},${g},${b},0.28)" filter="url(#sqglow)"/>
         <!-- 本体＋枠線を同じ四角形で描く -->
         <rect x="0" y="0" width="${ow}" height="${oh}" rx="${rad}" ry="${rad}"
           fill="rgba(${r},${g},${b},${bxAlpha})" stroke="rgba(${r},${g},${b},${la})" stroke-width="1.5"/>
-        <!-- ハイライト（本体と同じ丸みでクリップし、角に直線の継ぎ目が出ないようにする。Line/Frame定規と同じ仕組み） -->
+        <!-- ハイライト（本体と同じ丸みでクリップし、角に直線の継ぎ目が出ないようにする。Line定規と同じ仕組み） -->
         <g clip-path="url(#sqclip)">
           <path fill="url(#sqlg_t)"
             d="M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${hl} H0 V${rad} Q0,0 ${rad},0 Z"/>
@@ -8488,9 +6072,6 @@
   canvas.width  = window.innerWidth;
   canvas.height = window.innerHeight;
   loadSettings();
-  const hadFrameData = loadFrameSettings();
-  if (!hadFrameData) initFramePos();
-  loadFramePresets();
   resizeCircleCanvas();
   loadCircleSettings();
   syncCircleUI();
@@ -8600,30 +6181,6 @@
     saveSettings = function() { _origSaveSettings(); bandUndo.requestCommit(); };
   })();
 
-  /* --- Frame --- */
-  function frameGetState() {
-    return { fColor, fAlpha, fWin: { x: fWin.x, y: fWin.y, w: fWin.w, h: fWin.h }, fOuter: { top: fOuter.top, left: fOuter.left, bottom: fOuter.bottom, right: fOuter.right } };
-  }
-  function frameApplyState(s) {
-    fColor = s.fColor; fAlpha = s.fAlpha;
-    fWin = { x: s.fWin.x, y: s.fWin.y, w: s.fWin.w, h: s.fWin.h };
-    fOuter = { top: s.fOuter.top, left: s.fOuter.left, bottom: s.fOuter.bottom, right: s.fOuter.right };
-    document.getElementById('frame-opacity').value = Math.round(fAlpha * 100);
-    document.getElementById('frame-opacity-label').textContent = Math.round(fAlpha * 100) + '%';
-    frameColorInput.value = fColor;
-    document.querySelectorAll('.frame-color-dot').forEach(d => d.classList.toggle('active', d.dataset.color === fColor));
-    applyFrameOuterPos();
-    applyFrameStyle();
-    saveFrameSettings();
-  }
-  let refreshFrameUndoBtns;
-  const frameUndo = makeUndoManager(frameGetState, frameApplyState, { onChange: () => refreshFrameUndoBtns() });
-  refreshFrameUndoBtns = wireUndoButtons(frameUndo, 'frame-undo-btn', 'frame-redo-btn');
-  (function() {
-    const _origSaveFrameSettings = saveFrameSettings;
-    saveFrameSettings = function() { _origSaveFrameSettings(); frameUndo.requestCommit(); };
-  })();
-
   /* --- Circle --- */
   function circleGetState() {
     return { cColor, cAlpha, cX, cY, cR };
@@ -8694,7 +6251,7 @@
     let measureAxis = 'v'; // Box定規専用：'v'=縦のみ／'h'=横のみ
     // measurePhase: 'zoom'(拡大調整中・タップ無効) → 'pick1'(1点目待ち) → 'pick2'(2点目待ち) → 'adjust'(2点とも確定・ドラッグで伸縮調整可)
     let measurePhase = 'zoom';
-    let rulerMoveMode = false; // true の間は編み図側の定規（Line/Frame/Circle/Box）を動かせる
+    let rulerMoveMode = false; // true の間は編み図側の定規（Line/Circle/Box）を動かせる
     let adjustDragTarget = null; // 'pt1' | 'pt2' | 'line' | null（伸縮調整中/移動中につかんでいる対象）
     const PT_HIT_R = 22; // 点をつかむ判定の半径(px)
     const LINE_HIT_R = 16; // 線本体をつかむ判定の太さ(px)
@@ -8723,17 +6280,13 @@
       axisBtnV.classList.remove('active');
     });
 
-    // 定規を動かすボタンの中身を、今選ばれている定規（Line/Frame/Circle/Box）の
+    // 定規を動かすボタンの中身を、今選ばれている定規（Line/Circle/Box）の
     // 色・形にあわせたミニスウォッチに更新する（何を指しているボタンか一目でわかるように）
     function updateMoveRulerIcon() {
       const icon = document.getElementById('measure-move-ruler-icon');
       if (!icon) return;
       icon.className = ''; // 点マーク用クラスが残っていたら外す
-      if (currentRulerTab === 'frame') {
-        // フレーム＝中が透けている正方形の窓
-        const c = fColor, a = Math.min(1, fAlpha + 0.3);
-        icon.style.cssText = 'display:block; width:14px; height:14px; border-radius:3px; background:transparent; opacity:' + a + '; border:4px solid ' + c + ';';
-      } else if (currentRulerTab === 'circle') {
+      if (currentRulerTab === 'circle') {
         const c = cColor, a = Math.min(1, cAlpha + 0.3);
         icon.style.cssText = 'display:block; width:14px; height:14px; border-radius:50%; background:' + c + '; opacity:' + a + '; border:1.5px solid ' + c + ';';
       } else if (currentRulerTab === 'box') {
@@ -8746,7 +6299,7 @@
       }
     }
 
-    // 定規を動かすモード：ONの間は計測バー側のタップ判定を止めて、下の編み図側の定規（Line/Frame/Circle/Box）を操作できるようにする
+    // 定規を動かすモード：ONの間は計測バー側のタップ判定を止めて、下の編み図側の定規（Line/Circle/Box）を操作できるようにする
     let savedHintText = '', hintWasVisible = false, resultColWasVisible = false;
     function setRulerMoveMode(on) {
       rulerMoveMode = on;
@@ -8886,7 +6439,7 @@
         // 横計測（Box横モード）は左右の概念がはっきりしないため、画面上部中央に固定
         resetBarToCenter();
       } else {
-        // 斜め計測（Circle）・縦計測（Line/Frame/Box縦）共通：
+        // 斜め計測（Circle）・縦計測（Line/Box縦）共通：
         // 線の外接矩形を避けて、右→左→上→下の順で重ならない場所に配置する
         const minX = Math.min(pt1.x, pt2.x), maxX = Math.max(pt1.x, pt2.x);
         const minY = Math.min(pt1.y, pt2.y), maxY = Math.max(pt1.y, pt2.y);
@@ -8984,7 +6537,7 @@
         const dist = Math.round(Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y));
         ctx.font = '700 13px "Zen Maru Gothic", sans-serif';
         ctx.fillStyle = color;
-        // テキストは線の中点から右側に表示する（Line/Frame/Boxと同じく「右にpx・左にカード」で統一）
+        // テキストは線の中点から右側に表示する（Line/Boxと同じく「右にpx・左にカード」で統一）
         ctx.textAlign = 'left';
         ctx.fillText(dist + ' px', midX + 24, midY + 5);
       } else {
@@ -9020,7 +6573,7 @@
           ctx.fillText(dist + ' px', midX, y - 24);
           ctx.textAlign = 'left';
         } else {
-        const x = pt1.x; // Line/Frame/Box縦モードは常に1点目のX座標に揃えて描く（横ズレを無視した縦距離計測）
+        const x = pt1.x; // Line/Box縦モードは常に1点目のX座標に揃えて描く（横ズレを無視した縦距離計測）
         // 2点目のマーカー（X座標は1点目に揃える。実際のタップ座標の点は描かない）
         ctx.beginPath();
         ctx.arc(x, pt2.y, 6, 0, Math.PI * 2);
@@ -9147,7 +6700,6 @@
       overlay.style.pointerEvents = 'none';
       // 計測中は編み図を隠さないよう、定規本体を一時的に隠す（「定規を動かす」操作が不要になる）
       if (currentRulerTab === 'band') rulerHandle.style.display = 'none';
-      else if (currentRulerTab === 'frame') frameOverlay.style.display = 'none';
       else if (currentRulerTab === 'circle') circleOverlay.style.display = 'none';
       else if (currentRulerTab === 'box') boxOverlay.style.display = 'none';
       // 計測中は「タップでメニューを閉じられます」が実際の挙動と異なる（誤操作のもとになる）ので隠す
@@ -9169,15 +6721,13 @@
         drawImage();
         preMeasureScale = null; preMeasureOffsetX = null; preMeasureOffsetY = null;
         // 表示サイズを戻した分、「1段の高さ」も新しいscaleに合わせて再計算する
-        // （計測した瞬間の拡大率のままの生のピクセル値を使い続けないように。Line/Frame/Circle/Box共通）
+        // （計測した瞬間の拡大率のままの生のピクセル値を使い続けないように。Line/Circle/Box共通）
         if (currentRulerTab === 'band' && rulerBaseStep > 0) {
           rulerStep = Math.max(1, Math.round(rulerBaseStep * scale));
           const stepEl = document.getElementById('ruler-step');
           const stepLabelEl = document.getElementById('ruler-step-label');
           if (stepEl) stepEl.value = rulerStep;
           if (stepLabelEl) stepLabelEl.textContent = rulerStep + ' px';
-        } else if (currentRulerTab === 'frame' && frameStepBase > 0 && frameStep > 0) {
-          frameStep = Math.max(1, Math.round(frameStepBase * scale));
         } else if (currentRulerTab === 'circle' && circleStepBase > 0 && circleStep > 0) {
           circleStep = Math.max(1, Math.round(circleStepBase * scale));
         } else if (currentRulerTab === 'box' && boxStepBase > 0 && boxStep > 0) {
@@ -9198,7 +6748,6 @@
       document.getElementById('measure-float-btn').style.display = 'none';
       // 隠していた定規本体を元に戻す
       if (currentRulerTab === 'band') rulerHandle.style.display = '';
-      else if (currentRulerTab === 'frame') frameOverlay.style.display = 'block';
       else if (currentRulerTab === 'circle') circleOverlay.style.display = 'block';
       else if (currentRulerTab === 'box') boxOverlay.style.display = 'block';
       const tapHint = document.getElementById('tap-hint');
@@ -9250,17 +6799,7 @@
       if (!pt1 || !pt2) return;
       const dist = Math.min(999, Math.max(6, calcDist()));
       document.getElementById('measure-float-btn').style.display = 'none';
-      if (currentRulerTab === 'frame') {
-        frameStep = dist;
-        frameStepBase = scale > 0 ? dist / scale : dist;
-        frameGuideOn = true;
-        // 「今の段」モードで計測（または再計測）した場合、今の窓を基準に、
-        // 新しく測った1段の高さへすぐ合わせ直す（＋を押すまで待たせない）
-        if (frameGuideMode === 'ima') {
-          initFrameBandAtZero();
-        }
-        saveFrameSettings();
-      } else if (currentRulerTab === 'circle') {
+      if (currentRulerTab === 'circle') {
         circleStep = dist;
         circleStepBase = scale > 0 ? dist / scale : dist;
         circleGuideOn = true;
@@ -9343,7 +6882,7 @@
         // 横方向のみ計測：Y座標は固定し、Xだけ動かす
         target.x = x;
       } else {
-        // Line/Frame/Box(縦)：X座標は固定し、Yだけ動かす
+        // Line/Box(縦)：X座標は固定し、Yだけ動かす
         target.y = y;
       }
       draw();
