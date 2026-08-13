@@ -258,6 +258,11 @@
     #float-panel.tabs-scrolled #panel-current-ruler-badge {
       display: flex;
     }
+    /* ただし、パネルを開いた直後の3秒間だけ出るサブタイトルと重なる可能性があるため、
+       サブタイトル表示中はバッジを優先して隠す（サブタイトルが消えたら通常通りバッジが出る） */
+    #panel-header:has(#panel-title-sub.show) #panel-current-ruler-badge {
+      display: none;
+    }
     #panel-current-ruler-badge-sub {
       display: none;
       font-size: 7.5px;
@@ -653,11 +658,11 @@
       font-weight: 500;
       color: #A39B9B;
       background: transparent;
-      border: none;
+      border: 1.5px solid transparent;
       border-radius: 4.5px;
       cursor: pointer;
       letter-spacing: .04em;
-      transition: background .2s, color .2s, box-shadow .2s, font-weight .2s, transform .1s;
+      transition: background .2s, color .2s, box-shadow .2s, font-weight .2s, transform .1s, border-color .2s;
       -webkit-tap-highlight-color: transparent;
     }
     .box-shape-switch-btn:active {
@@ -669,6 +674,7 @@
       font-weight: 700;
       opacity: 1;
       box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+      border-color: #A07080;
     }
     .box-shape-switch-btn:disabled {
       opacity: .45;
@@ -1414,7 +1420,7 @@
       position: absolute;
       top: 50%; left: 0; right: 0;
       height: 2px;
-      background: #7A9B93;
+      background: #2D4A43;
       transform: translateY(-50%);
     }
     .move-ruler-tap-icon::after {
@@ -1423,7 +1429,7 @@
       top: 50%; left: 50%;
       width: 9px; height: 9px;
       border-radius: 50%;
-      background: #7A9B93;
+      background: #2D4A43;
       transform: translate(-50%, -50%);
     }
     /* 下段：カウンター行 */
@@ -1512,40 +1518,34 @@
       display: flex;
       gap: 6px;
       align-items: center;
+      justify-content: center;
       margin-bottom: 8px;
     }
-    .preset-name-input {
-      flex: 1;
-      font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 11px;
-      color: var(--text);
-      border: 1.5px solid var(--border);
-      border-radius: 20px;
-      padding: 5px 10px;
-      background: var(--surface);
-      outline: none;
-      min-width: 0;
-      user-select: text;
-      -webkit-user-select: text;
-    }
-    .preset-name-input:focus { border-color: #9ecfc4; }
     .preset-save-btn {
       font-family: 'Zen Maru Gothic', sans-serif;
       font-size: 11px;
       font-weight: 700;
-      color: #3a5c55;
-      background: var(--primary);
-      border: none;
-      border-radius: 20px;
-      padding: 4px 12px 6px;
+      color: var(--text);
+      background: #f8fdfc;
+      border: 1.5px solid var(--border);
+      border-radius: 15px;
+      padding: 7px 13px;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       white-space: nowrap;
       flex-shrink: 0;
+      line-height: 1;
       box-shadow: 0 1px 3px rgba(0,0,0,0.10);
-      transition: background .15s, box-shadow .1s, transform .1s, opacity .15s;
+      transition: background .15s, border-color .15s, box-shadow .1s, transform .1s;
       -webkit-tap-highlight-color: transparent;
     }
-    .preset-save-btn:hover { opacity: 0.75; }
+    .preset-save-btn-text {
+      display: inline-block;
+      transform: translateY(-1px);
+    }
+    .preset-save-btn:hover { background: #E4F2ED; border-color: #93B8AC; }
     .preset-save-btn:active {
       box-shadow: 0 1px 1px rgba(0,0,0,0.10);
       transform: scale(.95);
@@ -1593,19 +1593,6 @@
       color: var(--text-sub);
       white-space: nowrap;
       flex-shrink: 0;
-    }
-    .preset-name-edit {
-      font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 11px;
-      color: var(--text);
-      border: none;
-      border-bottom: 1.5px solid var(--primary);
-      background: transparent;
-      outline: none;
-      flex: 1;
-      min-width: 0;
-      padding: 0;
-      letter-spacing: .04em;
     }
     .preset-color-dot, .preset-swatch {
       width: 20px; height: 12px;
@@ -1824,6 +1811,20 @@
       gap: 8px;
       justify-content: center;
     }
+    .modal-name-input {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 13px;
+      color: var(--text);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 7px 14px;
+      background: var(--surface);
+      outline: none;
+      text-align: center;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .modal-name-input:focus { border-color: #9ecfc4; }
     .modal-btn {
       font-family: 'Zen Maru Gothic', sans-serif;
       font-size: 12px;
@@ -1985,6 +1986,7 @@
 <div id="preset-modal-overlay">
   <div id="preset-modal">
     <div class="modal-msg" id="modal-msg"></div>
+    <input type="text" id="modal-name-input" class="modal-name-input" placeholder="名前を入力…" maxlength="10" style="display:none;">
     <div class="modal-btns">
       <button class="modal-btn cancel"  id="modal-cancel">キャンセル</button>
       <button class="modal-btn confirm" id="modal-confirm">上書き保存</button>
@@ -2169,6 +2171,12 @@
         </button>
         <div class="card-accordion-body" style="padding:20px 12px 20px; gap:20px;">
           <div class="ruler-settings-group">
+          <div class="ruler-control" style="gap:12px;">
+            <label>リサイズ</label>
+            <div>
+              <div class="ruler-op-desc">枠の辺や角をドラッグ<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">またはピンチ</span></div>
+            </div>
+          </div>
           <div class="ruler-control ruler-color-row">
             <label>カラー</label>
             <div class="color-presets" id="color-presets">
@@ -2188,12 +2196,6 @@
             <div style="display:flex; align-items:center; gap:10px; width:100%; max-width:203px;">
               <input type="range" id="ruler-opacity" min="10" max="100" value="80" step="5" style="width:116px; flex:none;">
               <span id="ruler-opacity-label">80%</span>
-            </div>
-          </div>
-          <div class="ruler-control" style="gap:12px;">
-            <label>リサイズ</label>
-            <div>
-              <div class="ruler-op-desc">枠の辺や角をドラッグ<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">またはピンチ</span></div>
             </div>
           </div>
           <div class="ruler-control" style="gap:10px;">
@@ -2220,8 +2222,7 @@
         </button>
         <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
           <div class="preset-save-row">
-            <input type="text" id="preset-name-input" class="preset-name-input" placeholder="名前をつけて保存…" maxlength="10">
-            <button class="preset-save-btn" id="preset-save-btn">保存</button>
+            <button class="preset-save-btn" id="preset-save-btn"><span class="preset-save-btn-text">新規作成</span></button>
           </div>
           <div id="preset-list"></div>
         </div>
@@ -2280,6 +2281,12 @@
         </button>
         <div class="card-accordion-body" style="padding:20px 12px 20px; gap:20px;">
           <div class="ruler-settings-group">
+          <div class="ruler-control" style="gap:12px;">
+            <label>リサイズ</label>
+            <div>
+              <div class="ruler-op-desc">枠をドラッグ<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">またはピンチ</span></div>
+            </div>
+          </div>
           <div class="ruler-control ruler-color-row">
             <label>カラー</label>
             <div class="color-presets" id="circle-color-presets">
@@ -2299,12 +2306,6 @@
             <div style="display:flex; align-items:center; gap:10px; width:100%; max-width:203px;">
               <input type="range" id="circle-opacity" min="10" max="100" value="80" step="5" style="width:116px; flex:none;">
               <span id="circle-opacity-label">80%</span>
-            </div>
-          </div>
-          <div class="ruler-control" style="gap:12px;">
-            <label>リサイズ</label>
-            <div>
-              <div class="ruler-op-desc">枠をドラッグ<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">またはピンチ</span></div>
             </div>
           </div>
           <div class="ruler-control" style="gap:10px;">
@@ -2331,8 +2332,7 @@
         </button>
         <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
           <div class="preset-save-row">
-            <input type="text" id="circle-preset-name" class="preset-name-input" placeholder="名前をつけて保存…" maxlength="10">
-            <button class="preset-save-btn" onclick="saveCirclePreset()">保存</button>
+            <button class="preset-save-btn" onclick="saveCirclePreset()"><span class="preset-save-btn-text">新規作成</span></button>
           </div>
           <div id="circle-preset-list" class="preset-list"></div>
         </div>
@@ -2391,6 +2391,18 @@
         </button>
         <div class="card-accordion-body" style="padding:20px 12px 20px; gap:20px;">
           <div class="ruler-settings-group">
+          <div class="ruler-control" style="gap:12px;">
+            <label>リサイズ</label>
+            <div style="padding-right:14px;">
+              <div class="ruler-op-desc" style="margin-bottom:8px;">形を選択</div>
+              <div class="box-shape-switcher" id="box-shape-switcher">
+                <button type="button" class="box-shape-switch-btn" id="box-shape-btn-square" onclick="setSquareShapeMode(true)">正方形</button>
+                <button type="button" class="box-shape-switch-btn" id="box-shape-btn-rect" onclick="setSquareShapeMode(false)">長方形</button>
+              </div>
+              <div style="height:0; border-top:1.5px dotted rgba(107,82,88,0.35); margin:14px -8px;"></div>
+              <div class="ruler-op-desc">枠の辺や角をドラッグ<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">またはピンチ</span></div>
+            </div>
+          </div>
           <div class="ruler-control ruler-color-row">
             <label>カラー</label>
             <div class="color-presets" id="box-color-presets">
@@ -2410,18 +2422,6 @@
             <div style="display:flex; align-items:center; gap:10px; width:100%; max-width:203px;">
               <input type="range" id="box-opacity" min="10" max="100" value="80" step="5" style="width:116px; flex:none;">
               <span id="box-opacity-label">80%</span>
-            </div>
-          </div>
-          <div class="ruler-control" style="gap:12px;">
-            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; width:100%; padding-left:0;">
-              <label>リサイズ</label>
-              <div class="box-shape-switcher" id="box-shape-switcher" style="margin-left:3px;">
-                <button type="button" class="box-shape-switch-btn" id="box-shape-btn-square" onclick="setSquareShapeMode(true)">正方形</button>
-                <button type="button" class="box-shape-switch-btn" id="box-shape-btn-rect" onclick="setSquareShapeMode(false)">長方形</button>
-              </div>
-            </div>
-            <div>
-              <div class="ruler-op-desc">枠の辺や角をドラッグ<span style="white-space:nowrap; font-size:inherit; color:inherit; text-align:inherit;">またはピンチ</span></div>
             </div>
           </div>
           <div class="ruler-control" style="gap:10px;">
@@ -2448,8 +2448,7 @@
         </button>
         <div class="card-accordion-body" style="padding:20px 12px 20px; gap:6px;">
           <div class="preset-save-row">
-            <input type="text" id="box-preset-name" class="preset-name-input" placeholder="名前をつけて保存…" maxlength="10">
-            <button class="preset-save-btn" onclick="saveBoxPreset()">保存</button>
+            <button class="preset-save-btn" onclick="saveBoxPreset()"><span class="preset-save-btn-text">新規作成</span></button>
           </div>
           <div id="box-preset-list" class="preset-list"></div>
         </div>
@@ -2507,7 +2506,7 @@
           <p>① 「📂 編み図を開く」から画像を読み込みます（PDFは非対応）。対応ファイル形式は下記をご覧ください。すでに画像がある状態でもう一度読み込むと、確認のうえで入れ替わります。読み込んだ画像は、隣の「✕」ボタンでいつでも消せます（今のタブの画像だけが消え、他のタブには影響しません）。</p>
           <p>② 編み図はドラッグで移動、ピンチ（スマホ・トラックパッド）やマウスホイール（PC）で拡大・縮小できます。</p>
           <p>③ タブで定規の種類を切り替えられます（Line／Box／Circle）。各タブごとに別々の編み図を読み込めます。</p>
-          <p>④ 各定規はカラー・濃さ・サイズをカスタマイズでき、ドラッグで動かせます。よく使う設定はお気に入り定規に保存できます。</p>
+          <p>④ 各定規はサイズ・カラー・濃さをカスタマイズでき、ドラッグで動かせます。よく使う設定はお気に入り定規に保存できます。</p>
           <p>⑤ 段数カウンター、段ガイド機能は、各定規ごとに設定できます。詳しい設定・使用方法は各定規のメニューをご覧ください。</p>
           <p>⑥ メニューパネルと段数カウンターは、ドラッグで移動できます。</p>
         </div>
@@ -2547,7 +2546,7 @@
           <span class="data-note-arrow">▼</span>
         </button>
         <div class="data-note-body">
-          <p>定規の設定（カラー・濃さ・サイズ・カウンター・段ガイド）はこの端末のブラウザに保存されます。次回開いたときも同じ設定で使えます。スマホとPCなど、端末が異なると設定は共有されません。</p>
+          <p>定規の設定（サイズ・カラー・濃さ・カウンター・段ガイド）はこの端末のブラウザに保存されます。次回開いたときも同じ設定で使えます。スマホとPCなど、端末が異なると設定は共有されません。</p>
           <p>読み込んだ編み図画像はブラウザに保存されません。ページを閉じると消えます。</p>
           <p>ブラウザの「履歴を消去」や「キャッシュ削除」を行うと、保存された設定が消える場合があります。お気に入り定規など大切な設定が消えてしまう可能性があることをご了承ください。</p>
           <p>外部サーバーへの通信は一切行っておらず、すべての処理はこの端末内で完結します。</p>
@@ -3842,14 +3841,30 @@
   const modalMsg     = document.getElementById('modal-msg');
   const modalCancel  = document.getElementById('modal-cancel');
   const modalConfirm = document.getElementById('modal-confirm');
+  const modalNameInput = document.getElementById('modal-name-input');
 
-  function showModal(msg, confirmLabel, onConfirm, showCancel = true, cancelLabel = 'キャンセル', onCancel = null) {
+  // editableName に文字列を渡すと、名前編集欄を表示してonConfirmに（編集後の）名前を渡す。
+  // 渡さない（null）場合は今まで通り、名前欄なしのシンプルな確認モーダルになる。
+  function showModal(msg, confirmLabel, onConfirm, showCancel = true, cancelLabel = 'キャンセル', onCancel = null, editableName = null) {
     modalMsg.textContent = msg;
     modalConfirm.textContent = confirmLabel;
     modalCancel.textContent = cancelLabel;
     modalCancel.style.display = showCancel ? '' : 'none';
+    if (editableName !== null) {
+      modalNameInput.style.display = '';
+      modalNameInput.value = editableName;
+    } else {
+      modalNameInput.style.display = 'none';
+    }
     modalOverlay.classList.add('open');
-    modalConfirm.onclick = () => { closeModal(); onConfirm(); };
+    if (editableName !== null) {
+      setTimeout(() => { modalNameInput.focus(); modalNameInput.select(); }, 50);
+    }
+    modalConfirm.onclick = () => {
+      const resultName = editableName !== null ? (modalNameInput.value.trim() || editableName) : undefined;
+      closeModal();
+      onConfirm(resultName);
+    };
     modalCancel.onclick  = () => { closeModal(); if (onCancel) onCancel(); };
     modalOverlay.onclick = e => { if (e.target === modalOverlay) closeModal(); };
   }
@@ -3880,7 +3895,6 @@
   const PRESET_KEY   = 'yucchi_ruler_presets';
   const MAX_PRESETS  = 5;
   const presetList   = document.getElementById('preset-list');
-  const presetNameInput = document.getElementById('preset-name-input');
   const presetSaveBtn   = document.getElementById('preset-save-btn');
 
   let activePresetIndex    = -1;   // 現在選択中のプリセット番号（-1=未選択）
@@ -3960,52 +3974,46 @@
           <div class="preset-swatch" style="${swatchSize}background:${p.color};opacity:${Math.min(1, p.alpha + 0.3)};border:1.5px solid ${p.color}"></div>
         </div>
         <span class="preset-item-name"></span>
-        <button class="preset-overwrite-item-btn" data-i="${i}" data-tip="上書き（長押しで名前変更）" style="margin-left:auto">✎</button>
+        <button class="preset-overwrite-item-btn" data-i="${i}" data-tip="上書き保存" style="margin-left:auto">✎</button>
         <button class="preset-del-btn" data-i="${i}" data-tip="削除">✕</button>
       `;
       item.querySelector('.preset-item-name').textContent = p.name;
 
       item.addEventListener('click', e => {
         if (e.target.closest('.preset-del-btn')) return;
-        if (e.target.classList.contains('preset-name-edit')) return;
         const doSwitch = () => applyPreset(p, i);
         if (isPresetDirty()) {
           const ps = loadPresets();
           showModal(
-            `「${ps[activePresetIndex].name}」を上書き保存しますか？`,
+            `今の設定で上書き保存しますか？`,
             '上書き保存',
-            () => {
-              ps[activePresetIndex] = { name: ps[activePresetIndex].name, ...currentRulerSnapshot() };
+            (newName) => {
+              ps[activePresetIndex] = { name: newName, ...currentRulerSnapshot() };
               savePresets(ps);
               doSwitch();
-            }
+            },
+            true, 'キャンセル', () => { doSwitch(); }, ps[activePresetIndex].name
           );
-          modalCancel.onclick = () => { closeModal(); doSwitch(); };
         } else {
           doSwitch();
         }
       });
       const overwriteBtnLine = item.querySelector('.preset-overwrite-item-btn');
-      overwriteBtnLine.addEventListener('pointerdown', () => pencilPressStart('line', i));
-      overwriteBtnLine.addEventListener('pointerup', pencilPressEnd);
-      overwriteBtnLine.addEventListener('pointerleave', pencilPressEnd);
-      overwriteBtnLine.addEventListener('pointercancel', pencilPressEnd);
       overwriteBtnLine.addEventListener('click', e => {
         e.stopPropagation();
-        if (pencilLongPressed) { pencilLongPressed = false; return; }
         if (activePresetIndex !== i) {
           // 選んでいない項目 → まずその項目に切り替えるだけ（値はそのプリセットのものになるので保存は不要）
           applyPreset(p, i);
           return;
         }
-        // 選択中の項目 → 今の設定で上書き保存
-        showModal(`「${p.name}」を今の設定で\n上書き保存しますか？`, '上書き保存', () => {
+        // 選択中の項目 → 今の設定で上書き保存（名前もその場で変更できる）
+        showModal(`今の設定で上書き保存しますか？`, '上書き保存', (newName) => {
           const ps = loadPresets();
-          ps[i] = { name: p.name, ...currentRulerSnapshot() };
+          ps[i] = { name: newName, ...currentRulerSnapshot() };
           savePresets(ps);
           activePresetSnapshot = { ...currentRulerSnapshot() };
           renderPresets();
-        });
+        }, true, 'キャンセル', null, p.name);
       });
       item.querySelector('.preset-del-btn').addEventListener('click', e => {
         e.stopPropagation();
@@ -4022,119 +4030,41 @@
     });
   }
 
-  presetSaveBtn.addEventListener('click', () => {
-    const name = presetNameInput.value.trim();
-    // 名前なし → モーダル警告
-    if (!name) {
-      showModal('名前を入力してください。', 'OK', () => presetNameInput.focus(), false);
+  function openNewPresetModal() {
+    const presets = loadPresets();
+    if (presets.length >= MAX_PRESETS) {
+      showModal(`保存できるのは${MAX_PRESETS}個までです。\n先に削除してから保存してください。`, 'OK', () => {}, false);
       return;
     }
-    const presets = loadPresets();
-    const dupIdx  = presets.findIndex(p => p.name === name);
-    if (dupIdx !== -1) {
-      // 同名あり → 上書き確認モーダル
-      showModal(`「${name}」はすでに保存されています。\n上書きしますか？`, '上書き保存', () => {
-        presets[dupIdx] = { name, ...currentRulerSnapshot() };
-        savePresets(presets);
-        presetNameInput.value = '';
+    showModal(
+      '現在、編み図エリアに表示されている\n定規をお気に入り定規として\n新規保存しますか？',
+      '新規保存',
+      (name) => {
+        if (!name) {
+          showModal('名前を入力してください。', 'OK', () => openNewPresetModal(), false);
+          return;
+        }
+        const ps = loadPresets();
+        const dupIdx = ps.findIndex(p => p.name === name);
+        if (dupIdx !== -1) {
+          // 同名あり → 上書き確認モーダル
+          showModal(`「${name}」はすでに保存されています。\n上書きしますか？`, '上書き保存', () => {
+            ps[dupIdx] = { name, ...currentRulerSnapshot() };
+            savePresets(ps);
+            renderPresets();
+          });
+          return;
+        }
+        ps.push({ name, ...currentRulerSnapshot() });
+        savePresets(ps);
         renderPresets();
-      });
-    } else {
-      // 新規保存
-      if (presets.length >= MAX_PRESETS) {
-        showModal(`保存できるのは${MAX_PRESETS}個までです。\n先に削除してから保存してください。`, 'OK', () => {}, false);
-        return;
-      }
-      presets.push({ name, ...currentRulerSnapshot() });
-      savePresets(presets);
-      presetNameInput.value = '';
-      renderPresets();
-    }
-  });
+      },
+      true, 'キャンセル', null, ''
+    );
+  }
+  presetSaveBtn.addEventListener('click', openNewPresetModal);
 
   renderPresets();
-
-  /* ========== お気に入り(プリセット)：✎長押しで名前変更（4定規共通） ========== */
-  function presetListElId(kind) {
-    if (kind === 'line')   return 'preset-list';
-    if (kind === 'circle') return 'circle-preset-list';
-    return 'box-preset-list';
-  }
-  function getPresetArrByKind(kind) {
-    if (kind === 'line')   return loadPresets();
-    if (kind === 'circle') return circlePresets;
-    return boxPresets;
-  }
-  function commitPresetRename(kind, i, newName) {
-    if (kind === 'line') {
-      const ps = loadPresets();
-      if (!ps[i]) return;
-      ps[i].name = newName;
-      savePresets(ps);
-      renderPresets();
-    } else if (kind === 'circle') {
-      if (!circlePresets[i]) return;
-      circlePresets[i].name = newName;
-      saveCirclePresets();
-      renderCirclePresets();
-    } else if (kind === 'box') {
-      if (!boxPresets[i]) return;
-      boxPresets[i].name = newName;
-      saveBoxPresets();
-      renderBoxPresets();
-    }
-  }
-  function cancelPresetRename(kind) {
-    if (kind === 'line') renderPresets();
-    else if (kind === 'circle') renderCirclePresets();
-    else renderBoxPresets();
-  }
-  function startPresetRename(kind, i) {
-    const arr = getPresetArrByKind(kind);
-    const p = arr && arr[i];
-    if (!p) return;
-    const listEl = document.getElementById(presetListElId(kind));
-    if (!listEl) return;
-    const item = listEl.querySelectorAll('.preset-item')[i];
-    if (!item) return;
-    const nameEl = item.querySelector('.preset-item-name');
-    if (!nameEl) return;
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'preset-name-edit';
-    input.value = p.name;
-    input.maxLength = 10;
-    nameEl.replaceWith(input);
-    input.focus();
-    input.select();
-    let done = false;
-    const finish = () => {
-      if (done) return;
-      done = true;
-      const newName = input.value.trim() || p.name;
-      commitPresetRename(kind, i, newName);
-    };
-    input.addEventListener('click', e => e.stopPropagation());
-    input.addEventListener('blur', finish);
-    input.addEventListener('keydown', e => {
-      if (e.key === 'Enter') { input.blur(); }
-      if (e.key === 'Escape') { done = true; cancelPresetRename(kind); }
-    });
-  }
-  // ✎ボタンの長押し（0.5秒）で名前変更モードに入る。タップ（短押し）は今まで通り上書き保存
-  let pencilLongPressed = false;
-  let pencilPressTimer = null;
-  function pencilPressStart(kind, i) {
-    pencilLongPressed = false;
-    clearTimeout(pencilPressTimer);
-    pencilPressTimer = setTimeout(() => {
-      pencilLongPressed = true;
-      startPresetRename(kind, i);
-    }, 500);
-  }
-  function pencilPressEnd() {
-    clearTimeout(pencilPressTimer);
-  }
 
   /* ========== カウンターパネル ドラッグ ========== */
   let cpDragging = false, cpDragStartX = 0, cpDragStartY = 0;
@@ -5025,50 +4955,49 @@
     );
   }
   window.saveCirclePreset = function() {
-    const nameInput = document.getElementById('circle-preset-name');
-    const name = nameInput.value.trim();
-    // 名前なし → モーダル警告
-    if (!name) {
-      showModal('名前を入力してください。', 'OK', () => nameInput.focus(), false);
-      return;
-    }
-    // 同名チェック → 上書き確認
-    const dupIdx = circlePresets.findIndex(p => p.name === name);
-    if (dupIdx !== -1) {
-      showModal(`「${name}」はすでに保存されています。\n上書きしますか？`, '上書き保存', () => {
-        circlePresets[dupIdx] = { name, ...currentCircleSnapshot(), diameter: cR * 2 };
-        saveCirclePresets();
-        nameInput.value = '';
-        renderCirclePresets();
-      });
-      return;
-    }
-    // 上限チェック
     if (circlePresets.length >= 5) {
       showModal('保存できるのは5個までです。\n先に削除してから保存してください。', 'OK', () => {}, false);
       return;
     }
-    circlePresets.push({ name, ...currentCircleSnapshot(), diameter: cR * 2 });
-    activeCirclePresetIdx = circlePresets.length - 1;
-    saveCirclePresets();
-    renderCirclePresets();
-    nameInput.value = '';
+    showModal(
+      '現在、編み図エリアに表示されている\n定規をお気に入り定規として\n新規保存しますか？',
+      '新規保存',
+      (name) => {
+        if (!name) {
+          showModal('名前を入力してください。', 'OK', () => window.saveCirclePreset(), false);
+          return;
+        }
+        const dupIdx = circlePresets.findIndex(p => p.name === name);
+        if (dupIdx !== -1) {
+          showModal(`「${name}」はすでに保存されています。\n上書きしますか？`, '上書き保存', () => {
+            circlePresets[dupIdx] = { name, ...currentCircleSnapshot(), diameter: cR * 2 };
+            saveCirclePresets();
+            renderCirclePresets();
+          });
+          return;
+        }
+        circlePresets.push({ name, ...currentCircleSnapshot(), diameter: cR * 2 });
+        activeCirclePresetIdx = circlePresets.length - 1;
+        saveCirclePresets();
+        renderCirclePresets();
+      },
+      true, 'キャンセル', null, ''
+    );
   };
   // プリセット項目の上書きボタン：選択中ならその場で上書き保存、未選択ならまず切り替えるだけ
   window.overwriteCirclePresetItem = function(i) {
-    if (pencilLongPressed) { pencilLongPressed = false; return; }
     const p = circlePresets[i];
     if (!p) return;
     if (activeCirclePresetIdx !== i) {
       doApplyCirclePreset(p, i);
       return;
     }
-    showModal(`「${p.name}」を今の設定で\n上書き保存しますか？`, '上書き保存', () => {
-      circlePresets[i] = { name: p.name, ...currentCircleSnapshot(), diameter: cR * 2 };
+    showModal(`今の設定で上書き保存しますか？`, '上書き保存', (newName) => {
+      circlePresets[i] = { name: newName, ...currentCircleSnapshot(), diameter: cR * 2 };
       saveCirclePresets();
       activeCirclePresetSnapshot = { ...currentCircleSnapshot() };
       renderCirclePresets();
-    });
+    }, true, 'キャンセル', null, p.name);
   };
   function renderCirclePresets() {
     const list = document.getElementById('circle-preset-list');
@@ -5085,7 +5014,7 @@
           <div class="preset-item-name"></div>
 
         </div>
-        <button class="preset-overwrite-item-btn" data-tip="上書き（長押しで名前変更）" onpointerdown="pencilPressStart('circle', ${i})" onpointerup="pencilPressEnd()" onpointerleave="pencilPressEnd()" onpointercancel="pencilPressEnd()" onclick="overwriteCirclePresetItem(${i})">✎</button>
+        <button class="preset-overwrite-item-btn" data-tip="上書き保存" onclick="overwriteCirclePresetItem(${i})">✎</button>
         <button class="preset-del-btn" data-tip="削除" onclick="deleteCirclePreset(${i})">✕</button>
       </div>`).join('');
     list.querySelectorAll('.preset-item-name').forEach((el, i) => { el.textContent = circlePresets[i].name; });
@@ -5104,15 +5033,15 @@
     if (isCirclePresetDirty()) {
       const ps = circlePresets;
       showModal(
-        `「${ps[activeCirclePresetIdx].name}」を上書き保存しますか？`,
+        `今の設定で上書き保存しますか？`,
         '上書き保存',
-        () => {
-          ps[activeCirclePresetIdx] = { name: ps[activeCirclePresetIdx].name, ...currentCircleSnapshot(), diameter: cR * 2 };
+        (newName) => {
+          ps[activeCirclePresetIdx] = { name: newName, ...currentCircleSnapshot(), diameter: cR * 2 };
           saveCirclePresets();
           doSwitch();
-        }
+        },
+        true, 'キャンセル', () => { doSwitch(); }, ps[activeCirclePresetIdx].name
       );
-      modalCancel.onclick = () => { closeModal(); doSwitch(); };
     } else {
       doSwitch();
     }
@@ -5740,7 +5669,7 @@
   });
 
   boxCanvas.addEventListener('pointerdown', e => {
-    if (e.pointerType === 'touch') return; // ペン(Apple Pencil等)はマウスと同様に扱う
+    if (e.pointerType === 'touch' || e.pointerType === 'pen') return; // Apple Pencilはtouch側（指と同じルート）で処理する
     const hit = boxHitTest(e.clientX, e.clientY);
     if (hit && hit !== 'inside') {
       bxResizing = true;
@@ -5762,7 +5691,7 @@
     }
   });
   boxCanvas.addEventListener('pointermove', e => {
-    if (e.pointerType === 'touch') return; // ペンはマウスと同様に扱う
+    if (e.pointerType === 'touch' || e.pointerType === 'pen') return; // Apple Pencilはtouch側（指と同じルート）で処理する
     if (bxResizing) {
       applyBoxResize(bxResizeMode, e.clientX - bxResizeStartX, e.clientY - bxResizeStartY);
       applyBox();
@@ -5791,14 +5720,14 @@
     boxCanvas.style.removeProperty('cursor');
   });
   boxCanvas.addEventListener('pointerup', e => {
-    if (e.pointerType === 'touch') return; // ペンはマウスと同様に扱う
+    if (e.pointerType === 'touch' || e.pointerType === 'pen') return; // Apple Pencilはtouch側（指と同じルート）で処理する
     if (bxResizing || bxDragging) saveBoxSettings();
     bxDragging = false; bxResizing = false; bxResizeMode = null;
     setBoxDragging(false);
     boxCanvas.style.removeProperty('cursor');
   });
   boxCanvas.addEventListener('pointercancel', e => {
-    if (e.pointerType === 'touch') return; // ペンはマウスと同様に扱う
+    if (e.pointerType === 'touch' || e.pointerType === 'pen') return; // Apple Pencilはtouch側（指と同じルート）で処理する
     bxDragging = false; bxResizing = false; bxResizeMode = null;
     setBoxDragging(false);
   });
@@ -5811,8 +5740,6 @@
   let bxTouchStartX = 0, bxTouchStartY = 0;
 
   boxCanvas.addEventListener('touchstart', e => {
-    // Apple Pencil等のスタイラスはpointerイベント側（PCマウスと同様の処理）に一本化するため、ここでは扱わない
-    if (e.touches[0] && e.touches[0].touchType === 'stylus') return;
     if (e.touches.length === 2) {
       const t0 = e.touches[0], t1 = e.touches[1];
       const hit0 = boxHitTest(t0.clientX, t0.clientY);
@@ -5954,49 +5881,51 @@
     }
   }
   window.saveBoxPreset = function() {
-    const nameInput = document.getElementById('box-preset-name');
-    const name = nameInput.value.trim();
-    if (!name) {
-      showModal('名前を入力してください。', 'OK', () => nameInput.focus(), false);
-      return;
-    }
-    lockSquareModeIfSquareShaped();
-    const dupIdx = boxPresets.findIndex(p => p.name === name);
-    if (dupIdx !== -1) {
-      showModal(`「${name}」はすでに保存されています。\n上書きしますか？`, '上書き保存', () => {
-        boxPresets[dupIdx] = { name, ...currentBoxSnapshot() };
-        saveBoxPresets();
-        nameInput.value = '';
-        renderBoxPresets();
-      });
-      return;
-    }
     if (boxPresets.length >= 5) {
       showModal('保存できるのは5個までです。\n先に削除してから保存してください。', 'OK', () => {}, false);
       return;
     }
-    boxPresets.push({ name, ...currentBoxSnapshot() });
-    activeBoxPresetIdx = boxPresets.length - 1;
-    saveBoxPresets();
-    renderBoxPresets();
-    nameInput.value = '';
+    showModal(
+      '現在、編み図エリアに表示されている\n定規をお気に入り定規として\n新規保存しますか？',
+      '新規保存',
+      (name) => {
+        if (!name) {
+          showModal('名前を入力してください。', 'OK', () => window.saveBoxPreset(), false);
+          return;
+        }
+        lockSquareModeIfSquareShaped();
+        const dupIdx = boxPresets.findIndex(p => p.name === name);
+        if (dupIdx !== -1) {
+          showModal(`「${name}」はすでに保存されています。\n上書きしますか？`, '上書き保存', () => {
+            boxPresets[dupIdx] = { name, ...currentBoxSnapshot() };
+            saveBoxPresets();
+            renderBoxPresets();
+          });
+          return;
+        }
+        boxPresets.push({ name, ...currentBoxSnapshot() });
+        activeBoxPresetIdx = boxPresets.length - 1;
+        saveBoxPresets();
+        renderBoxPresets();
+      },
+      true, 'キャンセル', null, ''
+    );
   };
   // プリセット項目の上書きボタン：選択中ならその場で上書き保存、未選択ならまず切り替えるだけ
   window.overwriteBoxPresetItem = function(i) {
-    if (pencilLongPressed) { pencilLongPressed = false; return; }
     const p = boxPresets[i];
     if (!p) return;
     if (activeBoxPresetIdx !== i) {
       doApplyBoxPreset(p, i);
       return;
     }
-    showModal(`「${p.name}」を今の設定で\n上書き保存しますか？`, '上書き保存', () => {
+    showModal(`今の設定で上書き保存しますか？`, '上書き保存', (newName) => {
       lockSquareModeIfSquareShaped();
-      boxPresets[i] = { name: p.name, ...currentBoxSnapshot() };
+      boxPresets[i] = { name: newName, ...currentBoxSnapshot() };
       saveBoxPresets();
       activeBoxPresetSnapshot = { ...currentBoxSnapshot() };
       renderBoxPresets();
-    });
+    }, true, 'キャンセル', null, p.name);
   };
   function renderBoxPresets() {
     const list = document.getElementById('box-preset-list');
@@ -6020,7 +5949,7 @@
           <div class="preset-item-name"></div>
 
         </div>
-        <button class="preset-overwrite-item-btn" data-tip="上書き（長押しで名前変更）" onpointerdown="pencilPressStart('box', ${i})" onpointerup="pencilPressEnd()" onpointerleave="pencilPressEnd()" onpointercancel="pencilPressEnd()" onclick="overwriteBoxPresetItem(${i})">✎</button>
+        <button class="preset-overwrite-item-btn" data-tip="上書き保存" onclick="overwriteBoxPresetItem(${i})">✎</button>
         <button class="preset-del-btn" data-tip="削除" onclick="deleteBoxPreset(${i})">✕</button>
       </div>`;
     }).join('');
@@ -6045,15 +5974,15 @@
     if (isBoxPresetDirty()) {
       const ps = boxPresets;
       showModal(
-        `「${ps[activeBoxPresetIdx].name}」を上書き保存しますか？`,
+        `今の設定で上書き保存しますか？`,
         '上書き保存',
-        () => {
-          ps[activeBoxPresetIdx] = { name: ps[activeBoxPresetIdx].name, ...currentBoxSnapshot() };
+        (newName) => {
+          ps[activeBoxPresetIdx] = { name: newName, ...currentBoxSnapshot() };
           saveBoxPresets();
           doSwitch();
-        }
+        },
+        true, 'キャンセル', () => { doSwitch(); }, ps[activeBoxPresetIdx].name
       );
-      modalCancel.onclick = () => { closeModal(); doSwitch(); };
     } else {
       doSwitch();
     }
@@ -6465,7 +6394,7 @@
       ctx.clearRect(0, 0, cvs.width, cvs.height);
       if (!pt1) return;
 
-      const color = '#7A9B93';
+      const color = '#2D4A43'; // カウンター数字（--text）と同じ色に統一。編み図と重なった時の視認性を上げるため
       const isDiagonal = (currentRulerTab === 'circle');
       const isHorizontal = (currentRulerTab === 'box' && measureAxis === 'h');
 
