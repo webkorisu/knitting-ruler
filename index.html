@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="color-scheme" content="light only">
+  <meta name="theme-color" content="#FFFFFF">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -184,7 +185,8 @@
       #float-panel { top: 40px; }
     }
     /* 計測バー（編み図を拡大して1点目をタップ 等）の表示位置。
-       スマホ幅ではパネルを折りたたんだ高さ（top:40px + 約53px）より下に、余白を持たせて配置する */
+       ここでの値はJS実行前の一瞬だけ使われる暫定値。実際の位置は毎回JS（updateMeasureBarTopVar）が
+       設定パネル（#float-panel）と重なるかどうかを見て --measure-bar-top を上書きする。2026年8月〜 */
     :root { --measure-bar-top: 96px; }
     .measure-bar-pos { top: var(--measure-bar-top); cursor: grab; touch-action: none; }
     .measure-bar-pos.dragging {
@@ -382,6 +384,16 @@
       letter-spacing: .06em;
       white-space: nowrap;
       cursor: pointer;
+      flex-shrink: 0;
+    }
+    /* ファイル名＋クリアボタンをまとめる行。デスクトップ幅ではラベルの右側に続けて表示、
+       スマホ幅では下の段に折り返して、ファイル名がボタン幅いっぱい使えるようにする（2026年8月〜） */
+    .upload-filerow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
     }
     .upload-filename {
       font-size: 11px;
@@ -1060,6 +1072,9 @@
       -webkit-transform: translateZ(0);
       will-change: transform;
       min-width: 230px;
+      /* 画面の右端に寄せても中身（段ガイド行）が折り返されないよう、
+         位置に関係なく常に中身にぴったりの横幅を保つ（2026年8月〜） */
+      width: max-content;
     }
     #counter-panel:active { cursor: grabbing; }
     #counter-panel.dragging {
@@ -2143,8 +2158,10 @@
     <!-- ファイル選択 -->
     <div class="upload-btn" onclick="document.getElementById('file-input').click()">
       <span class="upload-btn-label">📂 編み図を開く</span>
-      <span class="upload-filename" id="filename-label">ファイルを選んでください</span>
-      <button type="button" class="upload-clear-btn" id="upload-clear-btn" title="画像を消す" onclick="event.stopPropagation(); if(window.confirmClearChartImage) window.confirmClearChartImage();">✕</button>
+      <div class="upload-filerow">
+        <span class="upload-filename" id="filename-label"></span>
+        <button type="button" class="upload-clear-btn" id="upload-clear-btn" title="画像を消す" onclick="event.stopPropagation(); if(window.confirmClearChartImage) window.confirmClearChartImage();">✕</button>
+      </div>
     </div>
     <div class="upload-caution upload-caution-link" onclick="jumpToHowTo()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')jumpToHowTo()">
       <span class="flower">✿</span> 使い方・注意事項等は下部の説明欄をご覧ください <span class="upload-caution-arrow">▼</span>
@@ -3216,7 +3233,7 @@
       if (circleCount > 0) {
         circleCount--;
         if (circleStep > 0) {
-          cR = Math.max(25, cR - circleStep);
+          cR = Math.max(CIRCLE_MIN_R, cR - circleStep);
           applyCircle();
         }
         cpNum.textContent = circleCount;
@@ -3226,14 +3243,20 @@
       if (boxCount > 0) {
         boxCount--;
         if (boxStep > 0) {
-          const MIN_HALF = BX_MIN_HALF;
           if (bxIsSquareMode) {
+            const MIN_HALF = getBxMinHalf();
             bxHalfW = Math.max(MIN_HALF, bxHalfW - boxStep);
             bxHalfH = Math.max(MIN_HALF, bxHalfH - boxStep);
           } else {
-            // 長方形モードも、正方形と同じく縦横それぞれ均等にstep分だけ縮む（比率維持の計算は極端な形で破綻するためやめた）
-            bxHalfW = Math.max(MIN_HALF, bxHalfW - boxStep);
-            bxHalfH = Math.max(MIN_HALF, bxHalfH - boxStep);
+            // 長方形モードは、縦横それぞれ均等にstep分だけ縮む（比率維持の計算は極端な形で破綻するためやめた）。
+            // 長い方の辺は40px・短い方の辺は20pxを下限とし、どちらか一方でも下限に達する回からは
+            // 両方まとめて縮小をストップする。向き（縦長／横長）は保ったまま、正方形にならずに
+            // 20px×40pxで止まるようにする（2026年8月〜）
+            const mins = getBxMinHalves(bxHalfW, bxHalfH);
+            if (bxHalfW - boxStep >= mins.w && bxHalfH - boxStep >= mins.h) {
+              bxHalfW -= boxStep;
+              bxHalfH -= boxStep;
+            }
           }
           applyBox();
         }
@@ -4098,12 +4121,11 @@
     const pos = getCpPos();
     cpDragStartX = e.clientX; cpDragStartY = e.clientY;
     cpPanelX = pos.x; cpPanelY = pos.y;
-    // 横幅・高さをドラッグ開始時に一度だけ記録し、固定値として使う。
-    // （left指定＋width:autoのまま動かすと、右端に近づくほどブラウザが利用可能幅を
-    //   狭く計算し直してしまい、段ガイド行が折り返される不具合になっていたため。2026年8月〜）
+    // 横幅・高さをドラッグ開始時に一度だけ記録し、クランプ計算に使う。
+    // （横幅自体はCSS側の width:max-content が常に保証してくれるので、
+    //   ここではJSでstyle.widthを固定する必要はない。2026年8月〜）
     cpPanelW = counterPanel.offsetWidth;
     cpPanelH = counterPanel.offsetHeight;
-    counterPanel.style.width = cpPanelW + 'px';
     counterPanel.setPointerCapture(e.pointerId);
     counterPanel.classList.add('dragging');
     e.preventDefault();
@@ -4317,7 +4339,7 @@
 
   // タブごとに独立した編み図（画像・拡大縮小・位置・ファイル名）を保持する
   function makeEmptyChartState() {
-    return { img: null, scale: 1.0, offsetX: 0, offsetY: 0, filename: 'ファイルを選んでください' };
+    return { img: null, scale: 1.0, offsetX: 0, offsetY: 0, filename: '' };
   }
   const chartTabStates = {
     band:   makeEmptyChartState(),
@@ -4349,7 +4371,7 @@
     canvas.style.display = 'none';
     viewer.classList.remove('has-image');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    filenameLabel.textContent = 'ファイルを選んでください';
+    filenameLabel.textContent = '';
     fileInput.value = '';
     updateUploadClearBtn();
     saveChartStateForTab(currentRulerTab);
@@ -4486,6 +4508,8 @@
   let circleGuideOn = false; // Circle定規の段ガイドON/OFF状態（タブ切替時もこの値が真実の源）
   let circleCount = 0;
   let showCircleCounter = true;
+  // カウンター・リサイズ・ピンチ共通の最小半径(px)。Box定規の正方形モードと同じ実寸30×30pxに揃えている（2026年8月〜）
+  const CIRCLE_MIN_R = 15;
   // 中心(cX,cY)から画面の最も遠い角までの距離。これを半径の上限にすれば、画面の四隅まで円で埋め尽くせる
   function circleMaxRForScreen() {
     const sw = window.innerWidth, sh = window.innerHeight;
@@ -4744,7 +4768,7 @@
         const factor = Math.exp(-e.deltaY * 0.01);
         // 中心から画面の最も遠い角までの距離を上限にする（画面の四隅まで円で埋め尽くせる）
         const maxR = circleMaxRForScreen();
-        cR = Math.max(25, Math.min(maxR, Math.round(cR * factor)));
+        cR = Math.max(CIRCLE_MIN_R, Math.min(maxR, Math.round(cR * factor)));
         syncCircleSizeUI(); applyCircle();
         setCircleDragging(true);
         clearTimeout(circleWheelPinchTimer);
@@ -4790,8 +4814,8 @@
     if (e.pointerType === 'touch' || e.pointerType === 'pen') return;
     const dx = e.clientX - cX, dy = e.clientY - cY;
     if (cResizing) {
-      // 最低44px（直径）は見えるよう、半径の下限を22pxに設定
-      const minR = Math.max(22, 44 - Math.min(cX, window.innerWidth - cX, cY, window.innerHeight - cY));
+      // 最低44px（直径）は見えるよう、かつ半径の下限はCIRCLE_MIN_R(15px)を下回らないようにする
+      const minR = Math.max(CIRCLE_MIN_R, 44 - Math.min(cX, window.innerWidth - cX, cY, window.innerHeight - cY));
       cR = Math.max(minR, Math.min(circleMaxRForScreen(), Math.round(Math.sqrt(dx * dx + dy * dy))));
       syncCircleSizeUI();
       applyCircle();
@@ -4883,7 +4907,7 @@
     if (cTouchMode === 'pinch' && e.touches.length === 2) {
       e.preventDefault();
       const ratio = pinchDist(e.touches) / cPinchDist0;
-      const minR = Math.max(22, 44 - Math.min(cX, window.innerWidth - cX, cY, window.innerHeight - cY));
+      const minR = Math.max(CIRCLE_MIN_R, 44 - Math.min(cX, window.innerWidth - cX, cY, window.innerHeight - cY));
       cR = Math.max(minR, Math.min(circleMaxRForScreen(), Math.round(cR0 * ratio)));
       syncCircleSizeUI(); applyCircle();
     } else if (cTouchMode === 'rim' && e.touches.length === 1) {
@@ -4891,7 +4915,7 @@
       const t = e.touches[0];
       const dx = t.clientX - cX, dy = t.clientY - cY;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const minR2 = Math.max(22, 44 - Math.min(cX, window.innerWidth - cX, cY, window.innerHeight - cY));
+      const minR2 = Math.max(CIRCLE_MIN_R, 44 - Math.min(cX, window.innerWidth - cX, cY, window.innerHeight - cY));
       cR = Math.max(minR2, Math.min(circleMaxRForScreen(), Math.round(cTouchResizeR0 * dist / cTouchResizeDist0)));
       syncCircleSizeUI(); applyCircle();
     } else if (cTouchMode === 'drag' && e.touches.length === 1) {
@@ -5413,7 +5437,21 @@
     if (!floatPanel.classList.contains('collapsed')) togglePanel(true);
   }
   const BX_HANDLE_R = 26; // 角・辺の当たり判定の許容範囲(px)　※スマホでも掴みやすいよう16→26に拡大
-  const BX_MIN_HALF = 10; // リサイズ・カウンター共通の最小半径(px)　※ここを変えると両方に反映される（幅・高さの実寸最小値はこの2倍＝20px）
+  // リサイズ・カウンター共通の最小半径(px)。モードごとに別の値を持つ（2026年8月〜）
+  // ※ここを変えると実寸の最小値はこの2倍になる
+  const BX_MIN_HALF_SQUARE    = 15; // 正方形モード：実寸の最小値＝30×30px
+  const BX_MIN_HALF_RECT_SHORT = 10; // 長方形モード：短い方の辺の最小半径　実寸20px
+  const BX_MIN_HALF_RECT_LONG  = 20; // 長方形モード：長い方の辺の最小半径　実寸40px
+  function getBxMinHalf() { return bxIsSquareMode ? BX_MIN_HALF_SQUARE : BX_MIN_HALF_RECT_SHORT; }
+  // 長方形モードの縦横それぞれの最小半径を、今の向き（refW・refHのどちらが長いか）に応じて返す。
+  // 短い方の辺は20px、長い方の辺は40pxを下限にすることで、縮めても正方形にならず、
+  // 元の向き（縦長／横長）を保ったまま20px×40pxで止まるようにする（2026年8月〜）
+  function getBxMinHalves(refW, refH) {
+    if (bxIsSquareMode) return { w: BX_MIN_HALF_SQUARE, h: BX_MIN_HALF_SQUARE };
+    return (refW >= refH)
+      ? { w: BX_MIN_HALF_RECT_LONG,  h: BX_MIN_HALF_RECT_SHORT } // 横長：幅が長い辺・高さが短い辺
+      : { w: BX_MIN_HALF_RECT_SHORT, h: BX_MIN_HALF_RECT_LONG }; // 縦長：高さが長い辺・幅が短い辺
+  }
 
   // 座標から「どの操作ゾーンか」を判定する。戻り値: null（外側） / 'inside'（移動） / 'corner-tl' などのリサイズモード
   function boxHitTest(px, py) {
@@ -5483,7 +5521,6 @@
   // リサイズ操作中：角は中心固定で正方形のまま拡大縮小、辺は片側のみ調整
   const BX_SNAP_TOLERANCE = 8; // 辺ドラッグでもう一方の辺に近づいたら正方形にスナップする許容誤差(px)
   function applyBoxResize(mode, dx, dy) {
-    const MIN_HALF = BX_MIN_HALF;
     const maxHalf = boxMaxHalfForScreen();
     const MAX_HALF_W = maxHalf.w, MAX_HALF_H = maxHalf.h;
     // 正方形モードの間は縦横で上限を共有する（片方だけ先に頭打ちになって形が崩れないように）。
@@ -5491,12 +5528,16 @@
     const sharedMax = Math.max(MAX_HALF_W, MAX_HALF_H);
     const capW = bxIsSquareMode ? sharedMax : MAX_HALF_W;
     const capH = bxIsSquareMode ? sharedMax : MAX_HALF_H;
-    // ドラッグ開始時点の位置から計算した、最低44px見えるための最小半幅・半高。
+    // ドラッグ開始時点の位置・向きから計算した、最低44px見えるための最小半幅・半高。
     // 「今動いている最中のリアルタイムの半幅(bxHalfW)」を使うと、1フレームごとに
     // 最小値自体が変化して雪だるま式に増えてしまう不具合があったため、
-    // ドラッグ開始時に固定されるbxX0・bxY0だけを使うよう修正（Line・Circle定規と同じ考え方。2026年8月〜）
-    const minVisW = Math.max(MIN_HALF, 44 - Math.min(bxX0, window.innerWidth  - bxX0));
-    const minVisH = Math.max(MIN_HALF, 44 - Math.min(bxY0, window.innerHeight - bxY0));
+    // ドラッグ開始時に固定されるbxX0・bxY0・bxHalfW0・bxHalfH0だけを使うよう修正
+    // （Line・Circle定規と同じ考え方。2026年8月〜）。
+    // 長方形モードは、ドラッグ開始時点で長い方の辺・短い方の辺を判定し、それぞれ別の下限
+    // （長い辺40px・短い辺20px）を使うことで、縮めても正方形にならず元の向きのまま止まる
+    const mins = getBxMinHalves(bxHalfW0, bxHalfH0);
+    const minVisW = Math.max(mins.w, 44 - Math.min(bxX0, window.innerWidth  - bxX0));
+    const minVisH = Math.max(mins.h, 44 - Math.min(bxY0, window.innerHeight - bxY0));
     if (mode === 'corner-tl') {
       if (bxIsSquareMode) {
         const d = Math.max(-dx, -dy);
@@ -5617,11 +5658,12 @@
         if (hit === 'edge-t' || hit === 'edge-b') {
           if (bxIsSquareMode) {
             // 正方形の間は辺のピンチでもコーナーと同じく両辺一緒に動かして正方形を保つ
-            bxHalfH = Math.max(15, Math.min(sharedMax, Math.round(bxHalfH * factor)));
-            bxHalfW = Math.max(15, Math.min(sharedMax, Math.round(bxHalfW * factor)));
+            bxHalfH = Math.max(BX_MIN_HALF_SQUARE, Math.min(sharedMax, Math.round(bxHalfH * factor)));
+            bxHalfW = Math.max(BX_MIN_HALF_SQUARE, Math.min(sharedMax, Math.round(bxHalfW * factor)));
           } else {
             const oldH = bxHalfH;
-            let newH = Math.max(15, Math.min(maxHalf.h, Math.round(bxHalfH * factor)));
+            const minH = getBxMinHalves(bxHalfW, bxHalfH).h;
+            let newH = Math.max(minH, Math.min(maxHalf.h, Math.round(bxHalfH * factor)));
             if (Math.abs(newH - bxHalfW) <= BX_SNAP_TOLERANCE) newH = bxHalfW; // 幅に近づいたら正方形にスナップ
             bxHalfH = newH;
             // 長方形モード：つまんだ辺の反対側は固定したまま動かす
@@ -5629,11 +5671,12 @@
           }
         } else if (hit === 'edge-l' || hit === 'edge-r') {
           if (bxIsSquareMode) {
-            bxHalfW = Math.max(15, Math.min(sharedMax, Math.round(bxHalfW * factor)));
-            bxHalfH = Math.max(15, Math.min(sharedMax, Math.round(bxHalfH * factor)));
+            bxHalfW = Math.max(BX_MIN_HALF_SQUARE, Math.min(sharedMax, Math.round(bxHalfW * factor)));
+            bxHalfH = Math.max(BX_MIN_HALF_SQUARE, Math.min(sharedMax, Math.round(bxHalfH * factor)));
           } else {
             const oldW = bxHalfW;
-            let newW = Math.max(15, Math.min(maxHalf.w, Math.round(bxHalfW * factor)));
+            const minW = getBxMinHalves(bxHalfW, bxHalfH).w;
+            let newW = Math.max(minW, Math.min(maxHalf.w, Math.round(bxHalfW * factor)));
             if (Math.abs(newW - bxHalfH) <= BX_SNAP_TOLERANCE) newW = bxHalfH; // 高さに近づいたら正方形にスナップ
             bxHalfW = newW;
             // 長方形モード：つまんだ辺の反対側は固定したまま動かす
@@ -5641,13 +5684,15 @@
           }
         } else if (bxIsSquareMode) {
           // 角または内側・正方形モード：縦横で上限を共有して正方形を保つ
-          bxHalfW = Math.max(15, Math.min(sharedMax, Math.round(bxHalfW * factor)));
-          bxHalfH = Math.max(15, Math.min(sharedMax, Math.round(bxHalfH * factor)));
+          bxHalfW = Math.max(BX_MIN_HALF_SQUARE, Math.min(sharedMax, Math.round(bxHalfW * factor)));
+          bxHalfH = Math.max(BX_MIN_HALF_SQUARE, Math.min(sharedMax, Math.round(bxHalfH * factor)));
         } else {
-          // 角または内側・長方形モード：比率を保ったまま、縦横それぞれ独立の上限まで拡大縮小できるようにする
+          // 角または内側・長方形モード：比率を保ったまま、縦横それぞれ独立の上限まで拡大縮小できるようにする。
+          // 下限も、短い辺20px・長い辺40px（getBxMinHalves）を使い、カウンター・ドラッグリサイズと揃える
+          const mins = getBxMinHalves(bxHalfW, bxHalfH);
           let effFactor = factor;
           effFactor = Math.min(effFactor, maxHalf.w / bxHalfW, maxHalf.h / bxHalfH);
-          effFactor = Math.max(effFactor, 20 / bxHalfW, 20 / bxHalfH);
+          effFactor = Math.max(effFactor, mins.w / bxHalfW, mins.h / bxHalfH);
           bxHalfW = Math.round(bxHalfW * effFactor);
           bxHalfH = Math.round(bxHalfH * effFactor);
         }
@@ -5788,13 +5833,15 @@
       if (bxIsSquareMode) {
         // 正方形モードは縦横で上限を共有して、片方だけ頭打ちで形が崩れないようにする
         const sharedMax = Math.max(maxHalf.w, maxHalf.h);
-        bxHalfW = Math.max(15, Math.min(sharedMax, Math.round(bxHalfW00 * ratio)));
-        bxHalfH = Math.max(15, Math.min(sharedMax, Math.round(bxHalfH00 * ratio)));
+        bxHalfW = Math.max(BX_MIN_HALF_SQUARE, Math.min(sharedMax, Math.round(bxHalfW00 * ratio)));
+        bxHalfH = Math.max(BX_MIN_HALF_SQUARE, Math.min(sharedMax, Math.round(bxHalfH00 * ratio)));
       } else {
-        // 長方形モードも、比率を保ったまま、縦横それぞれ独立の上限まで拡大縮小できるようにする
+        // 長方形モードも、比率を保ったまま、縦横それぞれ独立の上限まで拡大縮小できるようにする。
+        // 下限も、短い辺20px・長い辺40px（getBxMinHalves）を使い、カウンター・ドラッグリサイズと揃える
+        const mins = getBxMinHalves(bxHalfW00, bxHalfH00);
         let effRatio = ratio;
         effRatio = Math.min(effRatio, maxHalf.w / bxHalfW00, maxHalf.h / bxHalfH00);
-        effRatio = Math.max(effRatio, 20 / bxHalfW00, 20 / bxHalfH00);
+        effRatio = Math.max(effRatio, mins.w / bxHalfW00, mins.h / bxHalfH00);
         bxHalfW = Math.round(bxHalfW00 * effRatio);
         bxHalfH = Math.round(bxHalfH00 * effRatio);
       }
@@ -6267,9 +6314,51 @@
       setRulerMoveMode(!rulerMoveMode);
     });
 
+    // 計測バーの位置を、設定パネル（#float-panel）の今の実際の位置を見て毎回計算し直す。
+    // 優先順位：①画面上部中央 → ②パネルと重なるなら、パネルの右側に空きがあればそちらへ寄せる
+    // （PC幅でパネルを開いていても、右側の編み図エリアは広く空いていることが多いため）
+    // → ③右側にも空きがない時だけ、パネルの下（ただし下がりすぎないよう上限つき）に回す。2026年8月〜
+    const DESIRED_HIGH_TOP = 16;   // 何にも重ならない時の理想的な上余白
+    const SIDE_GAP         = 16;   // パネルの右側に寄せる時の余白
+    const GAP_BELOW_PANEL  = 14;   // パネルの下に回す時の余白
+
+    // 計測バーの「中身にぴったりの横幅」を見積もる（表示前でも呼べるよう、フォールバック値を用意）
+    function getBarSize() {
+      return {
+        w: Math.min(bar.offsetWidth  || 320, window.innerWidth - 24),
+        h: bar.offsetHeight || 40
+      };
+    }
+
+    // 画面上部中央に置いた場合の位置と、その位置がパネルと重なるかどうかを判定
+    function getPanelOverlapInfo(barW, barH, top) {
+      if (!floatPanel || getComputedStyle(floatPanel).display === 'none') return null;
+      const panelRect = floatPanel.getBoundingClientRect();
+      if (panelRect.width === 0 || panelRect.height === 0) return null;
+      const left = (window.innerWidth - barW) / 2;
+      const overlapsX = panelRect.right > left && panelRect.left < left + barW;
+      const overlapsY = panelRect.top < (top + barH) && panelRect.bottom > top;
+      return (overlapsX && overlapsY) ? panelRect : null;
+    }
+
+    // positionBar / positionBarAvoidingLine が「これより上には出さない」という
+    // 最低ラインとして使う値。パネルと重なる時だけ、パネルの下端付近まで下げる
+    // （ただし画面の上寄り40%までしか下げない＝下がりすぎ防止の上限つき）
+    function updateMeasureBarTopVar() {
+      const { w: barW, h: barH } = getBarSize();
+      let topPx = DESIRED_HIGH_TOP;
+      const panelRect = getPanelOverlapInfo(barW, barH, DESIRED_HIGH_TOP);
+      if (panelRect) {
+        const maxReasonableTop = window.innerHeight * 0.4;
+        topPx = Math.min(panelRect.bottom + GAP_BELOW_PANEL, maxReasonableTop);
+      }
+      document.documentElement.style.setProperty('--measure-bar-top', topPx + 'px');
+    }
+
     // バーをタップ位置の近くに表示（画面端では自動調整）
     // preferBelow: trueなら下側優先（2点目タップ後、計測線と被らないように）
     function positionBar(x, y, preferBelow) {
+      updateMeasureBarTopVar();
       bar.style.left = '0px';
       bar.style.transform = 'none';
       const barWidth  = bar.offsetWidth || 220;
@@ -6316,6 +6405,7 @@
     // 計測線（の外接矩形）を避けて、線の右→左→上→下の順で置ける場所を探す。
     // どこにも収まらない極端なケースのみ、画面内に収めるだけの配置にフォールバックする。
     function positionBarAvoidingLine(minX, maxX, minY, maxY, gap) {
+      updateMeasureBarTopVar();
       bar.style.left = '0px';
       bar.style.transform = 'none';
       const barWidth  = bar.offsetWidth  || 220;
@@ -6377,15 +6467,42 @@
     }
 
     function resetBarToCenter() {
-      bar.style.left = '50%';
-      const topVar = getComputedStyle(document.documentElement).getPropertyValue('--measure-bar-top').trim();
-      bar.style.top = topVar || '70px';
-      bar.style.transform = 'translateX(-50%)';
+      const { w: barW, h: barH } = getBarSize();
+      let left = (window.innerWidth - barW) / 2;
+      let top  = DESIRED_HIGH_TOP;
+
+      const panelRect = getPanelOverlapInfo(barW, barH, DESIRED_HIGH_TOP);
+      if (panelRect) {
+        // まずはパネルの右側に十分な空き（編み図エリア）があれば、そちらへ寄せる
+        // （PC幅でパネルを開いたままでも、下まで大きく回り込まずに済む）
+        const spaceRight = window.innerWidth - panelRect.right - SIDE_GAP;
+        if (spaceRight >= barW + 8) {
+          left = panelRect.right + SIDE_GAP;
+          top  = DESIRED_HIGH_TOP;
+        } else {
+          // 右側にも空きがない（スマホ幅など）時だけ、パネルの下に回す
+          top = Math.min(panelRect.bottom + GAP_BELOW_PANEL, window.innerHeight * 0.4);
+        }
+      }
+      bar.style.transform = 'none';
+      bar.style.left = left + 'px';
+      bar.style.top  = top + 'px';
     }
 
     function resizeCvs() {
       cvs.width  = window.innerWidth;
       cvs.height = window.innerHeight;
+      // 画面幅が変わると設定パネルとの重なり方も変わるため、計測バーの位置も計算し直す
+      // （計測中でない時は何もしない）
+      if (overlay.style.display !== 'none') {
+        if (measurePhase === 'adjust' && pt1 && pt2) {
+          positionBarForLine();
+        } else if (measurePhase === 'pick2' && pt1) {
+          positionBar(pt1.x, pt1.y);
+        } else {
+          resetBarToCenter();
+        }
+      }
     }
     resizeCvs();
     window.addEventListener('resize', resizeCvs);
