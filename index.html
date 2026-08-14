@@ -3635,6 +3635,13 @@
   rulerHandle.addEventListener('touchstart', e => {
     e.preventDefault();
     if (e.touches.length === 2) {
+      // 1本目の指のpointerdownで「ドラッグ」がすでに始まってしまっているケースがあるため、
+      // ピンチ開始時に強制的に解除する（そうしないと、ドラッグとピンチが同時に動いて
+      // 定規がチラチラ・不安定になる不具合になる。Box・Circle定規は最初からタッチ専用の
+      // 状態管理をしているため元々この問題は起きない。2026年8月〜）
+      rulerDragging = false;
+      resizeDragging = false;
+      rulerHandle.classList.remove('dragging');
       rulerPinchActive = true;
       rulerPinchDist0 = pinchDist(e.touches);
       rulerPinchW0 = rulerWidth;
