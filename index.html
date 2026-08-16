@@ -11,7 +11,7 @@
   <title>編み図ルーラー | Knitting Chart Ruler ✿ YUCCHI ✿</title>
   <link rel="icon" href="favicon.ico">
   <link rel="shortcut icon" href="favicon.ico">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Zen+Maru+Gothic:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     /* ===== CSS Variables: 04 Fresh Mint ===== */
     :root {
@@ -290,7 +290,7 @@
     }
     #panel-title-text {
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 600;
       color: var(--text);
       letter-spacing: .08em;
       white-space: nowrap;
@@ -541,12 +541,15 @@
       flex-direction: column;
       align-items: center;
       gap: 0;
+      font-weight: 500;
     }
     .tab-sub {
+      font-family: 'Cormorant Garamond', serif;
       font-size: 9px;
       font-weight: 500;
-      opacity: 0.7;
+      opacity: 0.75;
       letter-spacing: .06em;
+      white-space: nowrap;
       display: block;
     }
     .ruler-tab.active {
@@ -602,10 +605,10 @@
       width: 100%;
       background: #FFFFFF;
       border: none;
-      padding: 8px 12px;
+      padding: 7px 12px 9px;
       font-family: 'Zen Maru Gothic', sans-serif;
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 600;
       color: var(--text);
       cursor: pointer;
       display: flex;
@@ -641,7 +644,7 @@
     /* 操作説明ヒント（ruler-controlと統一） */
     .ruler-op-desc {
       font-size: 11px;
-      color: var(--text);
+      color: var(--text-sub);
       letter-spacing: .04em;
       line-height: 1.5;
       overflow-wrap: break-word;
@@ -775,12 +778,12 @@
       align-items: center;
       justify-content: center;
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 500;
       color: var(--text);
       letter-spacing: .02em;
       white-space: nowrap;
       background: #E8F4F1;
-      padding: 5px 10px;
+      padding: 4px 10px 6px;
       border-radius: 12px;
       flex-shrink: 0;
       min-width: 72px;
@@ -949,6 +952,16 @@
       cursor: pointer;
       flex-shrink: 0;
     }
+    /* .ruler-control label の共通スタイル（ピル背景・min-width等）が、
+       中身がlabelタグのtoggle-switchにも意図せず適用されてしまうのを打ち消す */
+    .ruler-control label.toggle-switch {
+      display: inline-block;
+      background: none;
+      padding: 0;
+      min-width: 0;
+      width: 36px;
+      border-radius: 0;
+    }
     .toggle-switch input { opacity: 0; width: 0; height: 0; }
     .toggle-knob {
       position: absolute;
@@ -1058,7 +1071,7 @@
     .ruler-edge.left   { left: 0;   top: 18px; bottom: 18px; width: 10px;  cursor: ew-resize; }
     .ruler-edge.right  { right: 0;  top: 18px; bottom: 18px; width: 10px;  cursor: ew-resize; }
 
-    /* ===== カウンターフローティングパネル（段ガイド機能付き） ===== */
+    /* ===== カウンターフローティングパネル（段数ガイド機能付き） ===== */
     #counter-panel {
       position: fixed;
       z-index: 200;
@@ -1079,14 +1092,86 @@
       -webkit-transform: translateZ(0);
       will-change: transform;
       min-width: 230px;
-      /* 画面の右端に寄せても中身（段ガイド行）が折り返されないよう、
-         位置に関係なく常に中身にぴったりの横幅を保つ（2026年8月〜） */
-      width: max-content;
+      /* 畳んだ状態（カウンターだけ）でも幅が変わらないよう、開いた状態（段数ガイド行）が
+         ちょうど収まる横幅で固定する。ドラッグ移動もしやすいよう、あえて余白を残している（2026年8月〜）
+         ラベルを2行・11pxにして幅を詰めた分、296px→264pxに縮小。
+         行の左右padding（18px/14px→10px/8px→左右10pxで統一）を詰めた分、264px→250pxに縮小（2026年8月〜） */
+      width: 250px;
     }
     #counter-panel:active { cursor: grabbing; }
     #counter-panel.dragging {
       box-shadow: 0 16px 40px rgba(0,0,0,0.22), 0 4px 12px rgba(0,0,0,0.12);
       opacity: 0.95;
+    }
+
+    #stitch-guide-bounds {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 210;
+    }
+    .stitch-guide-bound {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 32px;
+      margin-top: -16px;
+      pointer-events: all;
+      cursor: ns-resize;
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .stitch-guide-bound::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 15px;
+      border-top: 2px dashed var(--stitch-guide-color, #2D4A43);
+    }
+    .stitch-guide-bound-grip {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 34px;
+      height: 20px;
+      padding: 0 8px;
+      background: var(--stitch-guide-color, #2D4A43);
+      color: #FFFFFF;
+      border-radius: 10px;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    }
+    .stitch-guide-bound.dragging .stitch-guide-bound-grip { filter: brightness(0.75); }
+
+    #stitch-line-actions {
+      position: fixed;
+      z-index: 211;
+      display: none;
+      gap: 6px;
+      transform: translate(-50%, -50%);
+      pointer-events: all;
+    }
+    #stitch-line-actions button {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--stitch-guide-color, #2D4A43);
+      background: #FFFFFF;
+      border: 1.5px solid var(--stitch-guide-color, #2D4A43);
+      border-radius: 12px;
+      padding: 5px 10px 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.16);
+      -webkit-tap-highlight-color: transparent;
     }
 
     /* TOPへ戻るボタン：設定パネル「の中の」右下に、スクロールしてタブが見えなくなった時だけ表示する。
@@ -1119,12 +1204,49 @@
     @media (hover: hover) {
       #top-float-btn:hover { background: #a8d4cb; }
     }
-    /* 上段：段ガイド行（Line定規のときのみ表示） */
+    /* 上段：段数ガイド行（直線定規のときのみ表示） */
+    #cp-guide-toggle {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      width: 100%;
+      margin: 0;
+      padding: 8px 14px;
+      box-sizing: border-box;
+      background: #F4F9F7;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-sub);
+      letter-spacing: .04em;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      pointer-events: all;
+    }
+    #cp-guide-toggle-arrow {
+      font-size: 8px;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    #cp-guide-toggle-text b,
+    #cp-guide-toggle-text .off {
+      display: inline-block;
+      min-width: 24px;
+      text-align: left;
+    }
+    #cp-guide-toggle-text b { color: var(--text); font-weight: 700; }
+    #cp-guide-toggle-text .off { color: #a8a8a2; font-weight: 500; }
+    #cp-guide-group-body { display: none; }
+    #cp-guide-group-body.open { display: block; }
     #cp-guide-row {
       display: none;
       align-items: center;
       gap: 5px;
-      padding: 8px 14px 8px 18px;
+      padding: 8px 10px;
       min-height: 28px;
       box-sizing: content-box;
       border-bottom: 1px solid var(--border);
@@ -1132,16 +1254,35 @@
       flex-wrap: wrap;
       row-gap: 6px;
     }
+    /* 目数ガイド行：段数ガイド行と同じ寸法にして、トグルの縦位置を揃える。
+       色は少し薄いミントにして、2つの行がゆるやかに見分けられるようにしている */
+    #cp-stitch-row {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 10px;
+      min-height: 28px;
+      box-sizing: content-box;
+      border-bottom: 1px solid var(--border);
+      background: #cce8e2;
+    }
+    #stitch-mode-toggle-wrap {
+      flex-shrink: 0;
+      pointer-events: all;
+      transform: scale(0.82);
+      transform-origin: left center;
+    }
     .gp-caption {
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--text);
-      letter-spacing: .06em;
+      letter-spacing: .02em;
       pointer-events: none;
-      white-space: nowrap;
       flex-shrink: 0;
-      line-height: 1;
+      width: 38px;
+      line-height: 1.25;
+      text-align: center;
     }
     #gp-toggle-wrap {
       flex-shrink: 0;
@@ -1164,7 +1305,7 @@
       text-align: center;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding: 3px 6px;
+      padding: 2px 6px 4px;
       border-radius: 12px;
       background: rgba(255,255,255,0.55);
       line-height: 1;
@@ -1329,7 +1470,7 @@
       padding: 7px 13px;
       font-family: 'Zen Maru Gothic', sans-serif;
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 600;
       color: var(--text);
       cursor: pointer;
       display: flex;
@@ -1546,7 +1687,7 @@
     .preset-save-btn {
       font-family: 'Zen Maru Gothic', sans-serif;
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 600;
       color: var(--text);
       background: #f8fdfc;
       border: 1.5px solid var(--border);
@@ -1914,7 +2055,7 @@
       width: 100%;
       margin-top: 8px;
       margin-bottom: 8px;
-      padding: 9px 12px;
+      padding: 8px 12px 10px;
       background: var(--surface);
       border: 1.5px solid var(--border);
       border-radius: var(--radius-sm);
@@ -2029,10 +2170,27 @@
 </div>
 <input type="file" id="file-input" accept="image/*">
 
+
+<!-- ===== 目数ガイド：上端・下端の調整ハンドル（画像全体に共通） ===== -->
+<div id="stitch-guide-bounds" style="display:none;">
+  <div id="stitch-guide-top-handle" class="stitch-guide-bound">
+    <span class="stitch-guide-bound-grip">上端</span>
+  </div>
+  <div id="stitch-guide-bottom-handle" class="stitch-guide-bound">
+    <span class="stitch-guide-bound-grip">下端</span>
+  </div>
+</div>
+
+<!-- ===== 目数ガイド：選択した線の複製・削除 ===== -->
+<div id="stitch-line-actions">
+  <button type="button" id="stitch-line-duplicate-btn">📋 複製</button>
+  <button type="button" id="stitch-line-delete-btn">🗑 削除</button>
+</div>
+
 <!-- ===== 定規オーバーレイ ===== -->
 <div id="ruler-overlay">
   <div id="ruler-handle">
-    <!-- 立体枠（Line/Circle/Box定規と同じ仕組みでSVGを描画） -->
+    <!-- 立体枠（直線/円/四角定規と同じ仕組みでSVGを描画） -->
     <div id="ruler-3d-border" style="position:absolute; inset:0; pointer-events:none; z-index:1;"></div>
     <div class="ruler-corner tl" data-corner="tl"></div>
     <div class="ruler-corner tr" data-corner="tr"></div>
@@ -2052,17 +2210,17 @@
   <canvas id="circle-canvas" style="position:absolute;top:0;left:0;pointer-events:all;touch-action:none;cursor:grab;"></canvas>
 </div>
 
-<!-- ===== Box定規オーバーレイ ===== -->
+<!-- ===== 四角定規オーバーレイ ===== -->
 <div id="box-overlay" style="position:fixed;inset:0;pointer-events:none;z-index:100;display:none;">
   <!-- 見た目専用（SVG）。操作判定は下のcanvasが担当 -->
   <div id="box-3d-layer" style="position:absolute;top:0;left:0;pointer-events:none;"></div>
   <canvas id="box-canvas" style="position:absolute;top:0;left:0;pointer-events:all;touch-action:none;cursor:grab;"></canvas>
 </div>
 
-<!-- ===== Box定規：辺を掴んだ時のお知らせトースト ===== -->
+<!-- ===== 四角定規：辺を掴んだ時のお知らせトースト ===== -->
 <div id="box-edge-toast">▭ 長方形になります</div>
 
-<!-- ===== 段ガイド計測フロートバナー（未使用） ===== -->
+<!-- ===== 段数ガイド計測フロートバナー（未使用） ===== -->
 <div id="measure-float-btn" style="display:none;"></div>
 
 <!-- ===== 計測オーバーレイ ===== -->
@@ -2078,7 +2236,7 @@
     <!-- 拡大調整フェーズ専用：拡大完了ボタン -->
     <button id="measure-zoomdone-btn" style="display:none; background:var(--primary); border:none; border-radius:16px; padding:5px 14px 7px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; color:var(--text); cursor:pointer; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.10); flex-shrink:0; -webkit-tap-highlight-color:transparent;">完了</button>
 
-    <!-- Box定規専用：計測前に縦/横を選ぶトグル -->
+    <!-- 四角定規専用：計測前に縦/横を選ぶトグル -->
     <div id="measure-axis-toggle" style="display:none; align-items:center; gap:4px; flex-shrink:0; background:var(--bg); border-radius:14px; padding:3px;">
       <button id="measure-axis-v" class="measure-axis-btn active" data-axis="v" style="border:none; border-radius:11px; padding:5px 10px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; -webkit-tap-highlight-color:transparent;">↕ 縦</button>
       <button id="measure-axis-h" class="measure-axis-btn" data-axis="h" style="border:none; border-radius:11px; padding:5px 10px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; -webkit-tap-highlight-color:transparent;">↔ 横</button>
@@ -2103,12 +2261,17 @@
 </div>
 
 <!-- ===== カウンターフローティングパネル ===== -->
-<!-- ===== 段ガイドバー（フロート） ===== -->
-<!-- ===== カウンターバー（フロート・段ガイド機能付き） ===== -->
+<!-- ===== 段数ガイドバー（フロート） ===== -->
+<!-- ===== カウンターバー（フロート・段数ガイド機能付き） ===== -->
 <div id="counter-panel">
-  <!-- 上段：段ガイド行 -->
+  <!-- ガイド類の開閉ヘッダー -->
+  <button type="button" id="cp-guide-toggle">
+    <span id="cp-guide-toggle-text">ガイド</span><span id="cp-guide-toggle-arrow">▼</span>
+  </button>
+  <div id="cp-guide-group-body">
+  <!-- 上段：段数ガイド行 -->
   <div id="cp-guide-row">
-    <span class="gp-caption">段ガイド</span>
+    <span class="gp-caption">段数<br>ガイド</span>
     <label class="toggle-switch" id="gp-toggle-wrap">
       <input type="checkbox" id="gp-toggle-guide">
       <span class="toggle-knob"></span>
@@ -2116,6 +2279,15 @@
     <span id="gp-step-label" style="opacity:0;" onclick="toggleStepAdjust(event)">未計測</span>
     <button id="gp-measure-btn" style="opacity:0; pointer-events:none;"><span id="gp-measure-btn-text">計測</span></button>
   </div>
+  <!-- 中段：目数ガイド行（直線定規のみ・段数ガイド行と同じ作りで縦位置を揃える） -->
+  <div id="cp-stitch-row">
+    <span class="gp-caption">目数<br>ガイド</span>
+    <label class="toggle-switch" id="stitch-mode-toggle-wrap">
+      <input type="checkbox" id="stitch-mode-toggle">
+      <span class="toggle-knob"></span>
+    </label>
+  </div>
+  </div><!-- /#cp-guide-group-body -->
   <!-- 下段：カウンター行 -->
   <div id="cp-counter-row">
     <button class="cp-btn" id="cp-minus" title="−1">−</button>
@@ -2144,7 +2316,7 @@
   <!-- ドラッグハンドル兼ヘッダー -->
   <div id="panel-header">
     <span id="panel-current-ruler-badge">
-      <span id="panel-current-ruler-badge-main">Line</span>
+      <span id="panel-current-ruler-badge-main">直線定規</span>
       <span id="panel-current-ruler-badge-sub"></span>
     </span>
     <div id="panel-header-left">
@@ -2179,9 +2351,9 @@
     <!-- 定規タブ＋カード -->
     <div style="display:flex; flex-direction:column; gap:0;">
     <div class="ruler-tabs">
-      <button class="ruler-tab active" id="tab-band"   onclick="switchRulerTab('band')"><span class="tab-main">Line<span class="tab-sub">定規</span></span></button>
-      <button class="ruler-tab"        id="tab-box" onclick="switchRulerTab('box')"><span class="tab-main">Box<span class="tab-sub">定規</span></span></button>
-      <button class="ruler-tab"        id="tab-circle" onclick="switchRulerTab('circle')"><span class="tab-main">Circle<span class="tab-sub">定規</span></span></button>
+      <button class="ruler-tab active" id="tab-band"   onclick="switchRulerTab('band')"><span class="tab-main">直線定規<span class="tab-sub">Line Ruler</span></span></button>
+      <button class="ruler-tab"        id="tab-box" onclick="switchRulerTab('box')"><span class="tab-main">四角定規<span class="tab-sub">Box Ruler</span></span></button>
+      <button class="ruler-tab"        id="tab-circle" onclick="switchRulerTab('circle')"><span class="tab-main">円定規<span class="tab-sub">Circle Ruler</span></span></button>
     </div>
 
     <!-- 定規カスタマイズ -->
@@ -2190,7 +2362,7 @@
       <!-- アコーディオン①カスタマイズ -->
       <div class="card-accordion" id="band-acc-custom">
         <button class="card-accordion-btn" onclick="toggleCardAcc('band-acc-custom')">
-          <span>ライン定規のカスタマイズ</span>
+          <span>直線定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:20px 12px 20px; gap:20px;">
@@ -2266,31 +2438,70 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段ガイド機能も使えるようになります。<br>
-          <strong style="font-weight:700; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段数ガイド機能も使えるようになります。<br>
+          <strong style="font-weight:600; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・「−」を長押しすると、数字を0に戻せます（定規のサイズ・位置は変わりません）。</p>
         </div>
       </div>
 
-      <!-- アコーディオン④段ガイド機能 -->
+      <!-- アコーディオン④段数ガイド機能 -->
       <div class="card-accordion" id="band-acc-guide">
         <button class="card-accordion-btn" onclick="toggleCardAcc('band-acc-guide')">
-          <span>段ガイド機能</span>
+          <span>段数ガイド機能</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 14px; gap:6px;">
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「段ガイド」スイッチで、ON/OFFを切り替えます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">ライン定規が1段ずつ動きます</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
-          <strong style="font-weight:700; color:var(--text);">OFF</strong>：ライン定規をドラッグすると、手動で動かせます。<br><span style="display:block; height:6px;"></span>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「段数ガイド」スイッチで、ON/OFFを切り替えます。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">直線定規が1段ずつ動きます</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
+          <strong style="font-weight:600; color:var(--text);">OFF</strong>：直線定規をドラッグすると、手動で動かせます。<br><span style="display:block; height:6px;"></span>
           ・ONの間も定規の位置をドラッグで微調整でき、編み図の歪みなどでズレた時に便利です。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em; margin-top:2px;"><span style="font-size:11px; font-weight:700; color:var(--text);">【1段の高さの計測方法】</span><br>
-          段数カウンターの「段ガイド」スイッチをONにし、「計測」ボタンを押して、編み図の1段の高さを計測してください。<br><span style="display:block; height:6px;"></span>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em; margin-top:2px;"><span style="font-size:11px; font-weight:600; color:var(--text);">【1段の高さの計測方法】</span><br>
+          段数カウンターの「段数ガイド」スイッチをONにし、「計測」ボタンを押して、編み図の1段の高さを計測してください。<br><span style="display:block; height:6px;"></span>
           ・1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
           ・計測後は、カウンターの「1段：◯◯ px」の数値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。</p>
         </div>
       </div>
       <input type="hidden" id="ruler-step" value="40">
       <span id="ruler-step-label" style="display:none;">40 px</span>
+
+      <!-- アコーディオン⑤目数ガイド（直線定規のみ） -->
+      <div class="card-accordion" id="band-acc-stitch">
+        <button class="card-accordion-btn" onclick="toggleCardAcc('band-acc-stitch')">
+          <span>目数ガイド</span>
+          <span class="card-accordion-arrow">▼</span>
+        </button>
+        <div class="card-accordion-body" style="padding:14px 12px 14px; gap:6px;">
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">段数カウンターの中の「目数ガイド」スイッチをONにすると使えます。編み図をタップした場所に、目安の縦線を置けます。</p>
+          <div class="ruler-control" style="margin-top:8px; flex-direction:row !important; align-items:center !important; justify-content:space-between; width:100%;">
+            <label>線を表示</label>
+            <label class="toggle-switch" id="stitch-visible-toggle-wrap">
+              <input type="checkbox" id="stitch-visible-toggle" checked>
+              <span class="toggle-knob"></span>
+            </label>
+          </div>
+          <div class="ruler-control ruler-color-row">
+            <label>カラー</label>
+            <div class="color-presets" id="stitch-color-presets">
+              <button class="color-dot" data-color="#E8A8AC" style="background:#E8A8AC;" title="赤"></button>
+              <button class="color-dot" data-color="#F0C29C" style="background:#F0C29C;" title="橙"></button>
+              <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="黄"></button>
+              <button class="color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="緑"></button>
+              <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="青"></button>
+              <button class="color-dot" data-color="#A8AEDC" style="background:#A8AEDC;" title="藍"></button>
+              <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="紫"></button>
+              <input type="color" id="stitch-color" value="#2D4A43" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
+              <label for="stitch-color" class="color-custom-label" title="カラーを選ぶ"></label>
+            </div>
+          </div>
+          <div class="ruler-control ruler-slider-row">
+            <label for="stitch-thickness">太さ</label>
+            <div style="display:flex; align-items:center; gap:10px; width:100%; max-width:203px;">
+              <input type="range" id="stitch-thickness" min="2" max="8" value="4" step="1" style="width:116px; flex:none;">
+              <span id="stitch-thickness-label">4px</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
     </div><!-- /#ruler-card (帯定規) -->
 
@@ -2301,7 +2512,7 @@
       <!-- アコーディオン①カスタマイズ -->
       <div class="card-accordion" id="circle-acc-custom">
         <button class="card-accordion-btn" onclick="toggleCardAcc('circle-acc-custom')">
-          <span>サークル定規のカスタマイズ</span>
+          <span>円定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:20px 12px 20px; gap:20px;">
@@ -2377,25 +2588,25 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段ガイド機能も使えるようになります。<br>
-          <strong style="font-weight:700; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段数ガイド機能も使えるようになります。<br>
+          <strong style="font-weight:600; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・「−」を長押しすると、数字を0に戻せます（定規のサイズ・位置は変わりません）。</p>
         </div>
       </div>
 
-      <!-- アコーディオン④段ガイド機能 -->
+      <!-- アコーディオン④段数ガイド機能 -->
       <div class="card-accordion" id="circle-acc-guide">
         <button class="card-accordion-btn" onclick="toggleCardAcc('circle-acc-guide')">
-          <span>段ガイド機能</span>
+          <span>段数ガイド機能</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 14px; gap:6px;">
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「段ガイド」スイッチで、ON/OFFを切り替えます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">サークル定規が1段ずつ拡大縮小します</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
-          <strong style="font-weight:700; color:var(--text);">OFF</strong>：サークル定規をドラッグまたはピンチすると拡大縮小できます。<br><span style="display:block; height:6px;"></span>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「段数ガイド」スイッチで、ON/OFFを切り替えます。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">円定規が1段ずつ拡大縮小します</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
+          <strong style="font-weight:600; color:var(--text);">OFF</strong>：円定規をドラッグまたはピンチすると拡大縮小できます。<br><span style="display:block; height:6px;"></span>
           ・ONの間も定規の位置をドラッグで微調整でき、編み図の歪みなどでズレた時に便利です。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em; margin-top:2px;"><span style="font-size:11px; font-weight:700; color:var(--text);">【1段の高さの計測方法】</span><br>
-          段数カウンターの「段ガイド」スイッチをONにし、「計測」ボタンを押して、編み図の1段の高さを計測してください。<br><span style="display:block; height:6px;"></span>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em; margin-top:2px;"><span style="font-size:11px; font-weight:600; color:var(--text);">【1段の高さの計測方法】</span><br>
+          段数カウンターの「段数ガイド」スイッチをONにし、「計測」ボタンを押して、編み図の1段の高さを計測してください。<br><span style="display:block; height:6px;"></span>
           ・1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
           ・計測後は、カウンターの「1段：◯◯ px」の数値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。</p>
         </div>
@@ -2405,14 +2616,14 @@
 
     </div>
 
-    <!-- Box定規カード -->
+    <!-- 四角定規カード -->
     <div class="ruler-card" id="box-card" style="display:none;">
       <div class="ruler-usage-hint">💡 <span>四角モチーフのための定規</span></div>
 
       <!-- アコーディオン①カスタマイズ -->
       <div class="card-accordion" id="box-acc-custom">
         <button class="card-accordion-btn" onclick="toggleCardAcc('box-acc-custom')">
-          <span>ボックス定規のカスタマイズ</span>
+          <span>四角定規のカスタマイズ</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:20px 12px 20px; gap:20px;">
@@ -2494,25 +2705,25 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段ガイド機能も使えるようになります。<br>
-          <strong style="font-weight:700; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段数ガイド機能も使えるようになります。<br>
+          <strong style="font-weight:600; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・「−」を長押しすると、数字を0に戻せます（定規のサイズ・位置は変わりません）。</p>
         </div>
       </div>
 
-      <!-- アコーディオン④段ガイド機能 -->
+      <!-- アコーディオン④段数ガイド機能 -->
       <div class="card-accordion" id="box-acc-guide">
         <button class="card-accordion-btn" onclick="toggleCardAcc('box-acc-guide')">
-          <span>段ガイド機能</span>
+          <span>段数ガイド機能</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 14px; gap:6px;">
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「段ガイド」スイッチで、ON/OFFを切り替えます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:700; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">ボックス定規（正方形または長方形）が1段ずつ拡大縮小します</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
-          <strong style="font-weight:700; color:var(--text);">OFF</strong>：ボックス定規をドラッグまたはピンチすると拡大縮小できます。<br><span style="display:block; height:6px;"></span>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「段数ガイド」スイッチで、ON/OFFを切り替えます。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：カウントに連動して<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">四角定規（正方形または長方形）が1段ずつ拡大縮小します</span>。使用するには1段の高さの計測が必要です。計測方法は下記をご覧ください。<br>
+          <strong style="font-weight:600; color:var(--text);">OFF</strong>：四角定規をドラッグまたはピンチすると拡大縮小できます。<br><span style="display:block; height:6px;"></span>
           ・ONの間も定規の位置をドラッグで微調整でき、編み図の歪みなどでズレた時に便利です。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em; margin-top:2px;"><span style="font-size:11px; font-weight:700; color:var(--text);">【1段の高さの計測方法】</span><br>
-          段数カウンターの「段ガイド」スイッチをONにし、「計測」ボタンを押して、編み図の1段の高さを計測してください。<br><span style="display:block; height:6px;"></span>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em; margin-top:2px;"><span style="font-size:11px; font-weight:600; color:var(--text);">【1段の高さの計測方法】</span><br>
+          段数カウンターの「段数ガイド」スイッチをONにし、「計測」ボタンを押して、編み図の1段の高さを計測してください。<br><span style="display:block; height:6px;"></span>
           ・1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
           ・計測後は、カウンターの「1段：◯◯ px」の数値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。</p>
         </div>
@@ -2532,9 +2743,9 @@
         <div class="data-note-body">
           <p>① 「📂 ファイルを選択して編み図を開く」から画像を読み込みます（PDFは非対応）。対応ファイル形式は下記をご覧ください。すでに画像がある状態でもう一度読み込むと、確認のうえで入れ替わります。読み込んだ画像は、隣の「✕」ボタンでいつでも消せます（今のタブの画像だけが消え、他のタブには影響しません）。</p>
           <p>② 編み図はドラッグで移動、ピンチ（スマホ・トラックパッド）やマウスホイール（PC）で拡大・縮小できます。</p>
-          <p>③ タブで定規の種類を切り替えられます（Line／Box／Circle）。各タブごとに別々の編み図を読み込めます。</p>
+          <p>③ タブで定規の種類を切り替えられます（直線定規／四角定規／円定規）。各タブごとに別々の編み図を読み込めます。</p>
           <p>④ 各定規はサイズ・カラー・濃さをカスタマイズでき、ドラッグで動かせます。よく使う設定はお気に入り定規に保存できます。</p>
-          <p>⑤ 段数カウンター、段ガイド機能は、各定規ごとに設定できます。詳しい設定・使用方法は各定規のメニューをご覧ください。</p>
+          <p>⑤ 段数カウンター、段数ガイド機能は、各定規ごとに設定できます。詳しい設定・使用方法は各定規のメニューをご覧ください。</p>
           <p>⑥ メニューパネルと段数カウンターは、ドラッグで移動できます。</p>
         </div>
       </div>
@@ -2546,11 +2757,10 @@
         </button>
         <div class="data-note-body">
           <p>JPG / PNG / WebP / GIFなど、ブラウザが対応している画像形式が読み込めます。HEIC（iPhoneの写真）はSafariでは開けますが、他のブラウザでは開けないことがあります。</p>
-          <p>📱 HEICが開けない時は、写真をスクリーンショットで撮り直すと読み込めます（PDFの時と同じ方法です）。</p>
-          <p>⚙️ もしくは、iPhoneの「設定 → カメラ → フォーマット」を「互換性優先」にすると、今後撮る写真が自動的にJPEGで保存され、この問題自体が起きなくなります（すでに撮った写真は変わりません）。</p>
+          <p>📱 HEICが開けない時は、写真をスクリーンショットで撮り直すと読み込めます。</p>
           <p>⚠️ PDFはそのままでは開けません。スクリーンショットで画像に変換してからお使いください。</p>
-          <p>📱 スマホ：スクリーンショットで撮影（撮り方は機種によって異なります）。</p>
-          <p>💻 Mac：Shift+⌘+4 で切り取り。Windows：Snipping Toolで切り取り。</p>
+          <p>📱 スマホ：スクリーンショットで撮影。</p>
+          <p style="display:flex; gap:6px;"><span>💻</span><span>Mac：Shift+⌘+4 で切り取り。<br>Windows：Snipping Toolで切り取り。</span></p>
         </div>
       </div>
 
@@ -2573,11 +2783,11 @@
           <span class="data-note-arrow">▼</span>
         </button>
         <div class="data-note-body">
-          <p>定規の設定（サイズ・カラー・濃さ・カウンター・段ガイド）はこの端末のブラウザに保存されます。次回開いたときも同じ設定で使えます。スマホとPCなど、端末が異なると設定は共有されません。</p>
+          <p>定規の設定（サイズ・カラー・濃さ・カウンター・段数ガイド）はこの端末のブラウザに保存されます。次回開いたときも同じ設定で使えます。スマホとPCなど、端末が異なると設定は共有されません。</p>
           <p>読み込んだ編み図画像はブラウザに保存されません。ページを閉じると消えます。</p>
           <p>ブラウザの「履歴を消去」や「キャッシュ削除」を行うと、保存された設定が消える場合があります。お気に入り定規など大切な設定が消えてしまう可能性があることをご了承ください。</p>
           <p>外部サーバーへの通信は一切行っておらず、すべての処理はこの端末内で完結します。</p>
-          <p>📱 ホーム画面に追加してご利用の場合、アップデート後もすぐには最新版に切り替わらないことがあります。反映されない時は、アプリスイッチャーから一度完全に閉じて開き直すか、下のボタンで最新版を読み込み直せます（お気に入り定規などの保存データが消えることはありませんが、読み込んでいる編み図画像は消えるため、再度読み込み直してください）。</p>
+          <p>📱 ホーム画面に追加してご利用の場合、アップデート後もすぐには最新版に切り替わらないことがあります。反映されない時は、アプリスイッチャーから一度完全に閉じて開き直すか、下のボタンで最新版を読み込み直せます。その場合、お気に入り定規などの保存データが消えることはありませんが、読み込んでいる編み図画像は消えるため、再度読み込み直してください。</p>
           <button type="button" class="reload-latest-btn" onclick="reloadLatestVersion()">🔄 最新版を読み込み直す</button>
         </div>
       </div>
@@ -2618,6 +2828,19 @@
   const placeholder  = document.getElementById('placeholder');
   const fileInput    = document.getElementById('file-input');
   const filenameLabel= document.getElementById('filename-label');
+  const stitchModeToggle = document.getElementById('stitch-mode-toggle');
+  const cpStitchRow = document.getElementById('cp-stitch-row');
+  const stitchGuideBoundsWrap = document.getElementById('stitch-guide-bounds');
+  const stitchGuideTopHandle = document.getElementById('stitch-guide-top-handle');
+  const stitchGuideBottomHandle = document.getElementById('stitch-guide-bottom-handle');
+  const stitchLineActionsWrap = document.getElementById('stitch-line-actions');
+  const stitchLineDuplicateBtn = document.getElementById('stitch-line-duplicate-btn');
+  const stitchLineDeleteBtn = document.getElementById('stitch-line-delete-btn');
+  const stitchColorInput = document.getElementById('stitch-color');
+  const stitchColorPresets = document.getElementById('stitch-color-presets');
+  const stitchThicknessInput = document.getElementById('stitch-thickness');
+  const stitchThicknessLabel = document.getElementById('stitch-thickness-label');
+  const stitchVisibleToggle = document.getElementById('stitch-visible-toggle');
   const rulerOverlay = document.getElementById('ruler-overlay');
   const rulerHandle  = document.getElementById('ruler-handle');
   const rulerSizeInput    = document.getElementById('ruler-size');
@@ -2632,6 +2855,11 @@
   
   const counterPanel = document.getElementById('counter-panel');
   const cpGuideRow = document.getElementById('cp-guide-row');
+  const cpGuideGroupBody = document.getElementById('cp-guide-group-body');
+  const cpGuideToggleArrow = document.getElementById('cp-guide-toggle-arrow');
+  const cpGuideToggleText = document.getElementById('cp-guide-toggle-text');
+  let guideGroupOpen = false; // ガイド類（段数ガイド・目数ガイド）の開閉状態。普段はカウンターだけ見せるため初期値はfalse
+  const cpCounterRow = document.getElementById('cp-counter-row');
   const cpNum   = document.getElementById('cp-num');
   const cpPlus  = document.getElementById('cp-plus');
   const cpMinus = document.getElementById('cp-minus');
@@ -2654,13 +2882,27 @@
   let showCounter = true;
   let rulerStep   = 40;  // 1段のスライド量（px）
   let rulerBaseStep = 0; // 実寸ステップ（scale補正用）
-  let rulerGuideOn = false; // Line定規の段ガイドON/OFF状態（タブ切替時もこの値が真実の源）
+  let rulerGuideOn = false; // 直線定規の段数ガイドON/OFF状態（タブ切替時もこの値が真実の源）
+
+  // ===== 目数ガイド（直線定規のみ・構想段階の第1段：線を置く→画像に追従） =====
+  let stitchGuideMode  = false; // 「線を引く」モードON/OFF
+  let stitchGuideLines = [];    // 画像内のx座標（img等倍・offsetX/scale適用前の座標）を保持
+  // 上端・下端（画像内のy座標。null＝未調整＝画像の一番上/一番下をそのまま使う。
+  // 画像自体の余白量に合わせて、線ごとではなく画像全体で共通の値として持つ）
+  let stitchGuideTopY    = null;
+  let stitchGuideBottomY = null;
+  let selectedStitchLine  = null; // 選択中の線のインデックス（null＝未選択）
+  let stitchLineDragIndex = null; // ドラッグで移動中の線のインデックス（null＝移動中ではない）
+  let stitchGuideColor     = '#2D4A43'; // 線・点線・つまみ・複製削除ボタンの色（共通）
+  let stitchGuideThickness = 4;         // 線の太さ(px)
+  let stitchGuideVisible   = true;      // 表示ON/OFF（線を消さずに一時的に隠すだけのスイッチ）
 
   let rowCount    = 0;
   let rulerAlpha100 = 80;
 
   /* ========== localStorage ========== */
   const STORAGE_KEY = 'yucchi_ruler';
+  const GUIDE_GROUP_KEY = 'yucchi_ruler_guide_open';
 
   function saveSettings() {
     try {
@@ -2668,7 +2910,8 @@
         color: rulerColor, alpha: rulerAlpha, height: rulerHeight,
         width: rulerWidth, left: rulerLeft, top: rulerTop, step: rulerStep,
         baseStep: rulerBaseStep, guideOn: rulerGuideOn,
-        showCounter, count: rowCount
+        showCounter, count: rowCount,
+        stitchColor: stitchGuideColor, stitchThickness: stitchGuideThickness
       }));
     } catch(e) {}
   }
@@ -2686,10 +2929,15 @@
       if (s.step   != null) rulerStep   = s.step;
       if (s.baseStep != null) rulerBaseStep = s.baseStep;
       if (s.showCounter != null) showCounter = s.showCounter;
+      if (s.stitchColor) stitchGuideColor = s.stitchColor;
+      if (s.stitchThickness != null) stitchGuideThickness = s.stitchThickness;
       document.getElementById('ruler-step').value = rulerStep;
       document.getElementById('ruler-step-label').textContent = rulerStep + ' px';
       if (s.count  != null) rowCount = s.count;
       rulerColorInput.value = rulerColor;
+      if (stitchColorInput) stitchColorInput.value = stitchGuideColor;
+      if (stitchThicknessInput) { stitchThicknessInput.value = stitchGuideThickness; stitchThicknessLabel.textContent = stitchGuideThickness + 'px'; }
+      if (typeof applyStitchGuideColor === 'function') applyStitchGuideColor();
       rulerAlpha100 = Math.round(rulerAlpha * 100);
       rulerOpacityInput.value  = rulerAlpha100;
       rulerOpacityLabel.textContent = rulerAlpha100 + '%';
@@ -2699,7 +2947,7 @@
       if (rulerWidthLabel) rulerWidthLabel.textContent = rulerWidth + '%';
       toggleCounterEl.checked = showCounter;
       cpNum.textContent = rowCount;
-      // 段ガイドの状態（Line専用変数に保持。DOM反映はsyncGuideRowUIに一本化）
+      // 段数ガイドの状態（直線専用変数に保持。DOM反映はsyncGuideRowUIに一本化）
       rulerGuideOn = !!s.guideOn;
       if (!rulerGuideOn) rulerStep = 0;
       document.querySelectorAll('.color-dot').forEach(d => {
@@ -2728,6 +2976,17 @@
         const image = new Image();
         image.onload = () => {
           img = image;
+          // 直線定規タブでの読み込みの時だけ、目数ガイドの線をリセットする
+          // （四角/円定規タブでの画像入れ替えで、直線定規側の線を消してしまわないため）
+          if (currentRulerTab === 'band') {
+            stitchGuideLines = [];
+            stitchGuideMode = false;
+            selectedStitchLine = null;
+            stitchGuideTopY = null;
+            stitchGuideBottomY = null;
+            if (stitchModeToggle) stitchModeToggle.checked = false;
+            viewer.style.cursor = '';
+          }
           canvas.style.display = 'block';
           viewer.classList.add('has-image');
           updateUploadClearBtn();
@@ -2766,6 +3025,59 @@
     if (!img) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, offsetX, offsetY, img.width * scale, img.height * scale);
+    drawStitchGuideLines();
+  }
+
+  // 目数ガイドの縦線を描画する。編み図の画像そのものに紐づく線なので、
+  // 定規（窓）の位置・高さとは無関係に、画像の上端〜下端（調整済みならその範囲）まで通しで引く。
+  function drawStitchGuideLines() {
+    positionStitchGuideBounds();
+    positionStitchLineActions();
+    if (currentRulerTab !== 'band' || !stitchGuideLines.length || !stitchGuideVisible) return;
+    const topImgY    = stitchGuideTopY    ?? 0;
+    const bottomImgY = stitchGuideBottomY ?? img.height;
+    const top    = offsetY + topImgY * scale;
+    const bottom = offsetY + bottomImgY * scale;
+    ctx.save();
+    stitchGuideLines.forEach((x, i) => {
+      const isSelected = (i === selectedStitchLine);
+      ctx.strokeStyle = stitchGuideColor;
+      ctx.lineWidth = isSelected ? stitchGuideThickness + 3 : stitchGuideThickness;
+      const sx = offsetX + x * scale;
+      ctx.beginPath();
+      ctx.moveTo(sx, top);
+      ctx.lineTo(sx, bottom);
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  // 目数ガイド：選択中の線の座標に、複製・削除ミニボタンを合わせる
+  function positionStitchLineActions() {
+    if (!stitchLineActionsWrap) return;
+    const shouldShow = stitchGuideMode && stitchGuideVisible && currentRulerTab === 'band' && img
+      && selectedStitchLine !== null && stitchGuideLines[selectedStitchLine] !== undefined;
+    stitchLineActionsWrap.style.display = shouldShow ? 'flex' : 'none';
+    if (!shouldShow) return;
+    const x = stitchGuideLines[selectedStitchLine];
+    const sx = offsetX + x * scale;
+    const topImgY    = stitchGuideTopY    ?? 0;
+    const bottomImgY = stitchGuideBottomY ?? img.height;
+    const midY = offsetY + ((topImgY + bottomImgY) / 2) * scale;
+    stitchLineActionsWrap.style.left = sx + 'px';
+    stitchLineActionsWrap.style.top  = midY + 'px';
+  }
+
+  // 上端・下端ハンドルの表示位置を、今の画像の縮尺・移動量に合わせて更新する
+  function positionStitchGuideBounds() {
+    if (!stitchGuideBoundsWrap) return;
+    const shouldShow = stitchGuideMode && stitchGuideVisible && currentRulerTab === 'band' && img && stitchGuideLines.length > 0;
+    stitchGuideBoundsWrap.style.display = shouldShow ? 'block' : 'none';
+    if (!shouldShow) return;
+    const topImgY    = stitchGuideTopY    ?? 0;
+    const bottomImgY = stitchGuideBottomY ?? img.height;
+    stitchGuideTopHandle.style.top    = (offsetY + topImgY * scale) + 'px';
+    stitchGuideBottomHandle.style.top = (offsetY + bottomImgY * scale) + 'px';
   }
 
   /* 画像が完全に画面外へ消えないよう、常に一定量(margin)は画面内に残るようオフセットを補正 */
@@ -2791,7 +3103,7 @@
   }
 
   // 定規が薄い/細い時、角の当たり判定(固定サイズ)が辺の当たり判定を飲み込んでしまわないよう、
-  // 現在の高さ・幅に応じて角のサイズと辺の除外幅を動的に縮める（Box定規のcornerR方式と同じ考え方）
+  // 現在の高さ・幅に応じて角のサイズと辺の除外幅を動的に縮める（四角定規のcornerR方式と同じ考え方）
   function updateRulerHandleGeometry(widthPx, heightPx) {
     const isTouch = window.matchMedia('(pointer: coarse)').matches;
     const baseCorner = isTouch ? 28 : 18;
@@ -2818,7 +3130,7 @@
     const sh = window.innerHeight;
     // 安全装置：ドラッグ・リサイズ、どの操作が原因でも、定規が画面から44px未満しか
     // 見えない状態には絶対にしない。サイズは変えず、位置だけを画面内へ寄せて補正する
-    // （Box定規と同じ考え方。角のリサイズは対角の角を固定して行うため、定規を画面の隅
+    // （四角定規と同じ考え方。角のリサイズは対角の角を固定して行うため、定規を画面の隅
     //   ギリギリまで動かした状態から縮小すると、固定される角ごと画面外に取り残されて
     //   全部隠れてしまうことがあったため追加した。2026年8月〜）
     const leftPxCheck  = (rulerLeft  / 100) * sw;
@@ -2852,7 +3164,7 @@
     // 実際の表示サイズ（pxベース）。applyRulerPos()で設定済みのDOM実測値を使う
     const ow = rulerHandle.offsetWidth  || (rulerWidth / 100) * window.innerWidth;
     const oh = rulerHandle.offsetHeight || rulerHeight;
-    const rad = Math.min(8, ow/3, oh/3); // 箱が小さい時に真円になってしまわないよう、サイズに応じて丸みも小さくする　※角丸を少なめにお試し中（Lineのみ・2026年8月）
+    const rad = Math.min(8, ow/3, oh/3); // 箱が小さい時に真円になってしまわないよう、サイズに応じて丸みも小さくする　※角丸を少なめにお試し中（直線のみ・2026年8月）
     const hl = Math.min(12, ow/3, oh/3); // ハイライトの太さ：上下左右すべて共通の値にする
     const M  = 16; // 外側の光がはみ出すための余白（SVGのキャンバス自体を4辺とも同じだけ広げる）
 
@@ -2954,8 +3266,8 @@
     saveSettings();
   });
 
-  // フロートカウンターの段ガイドトグル
-  // ===== 段ガイドバー =====
+  // フロートカウンターの段数ガイドトグル
+  // ===== 段数ガイドバー =====
   const gpToggleGuide = document.getElementById('gp-toggle-guide');
   const gpStepLabel   = document.getElementById('gp-step-label');
   const gpMeasureBtn  = document.getElementById('gp-measure-btn');
@@ -2969,6 +3281,28 @@
 
   // 「1段：66px」をタップした時、微調整カードの表示を切り替える（未計測の時は開かない）
   let stepAdjustLocked = false; // 計測中はtrue（微調整カードを開けなくする）
+  // ガイド類（段数ガイド・目数ガイド）の開閉
+  function updateGuideGroupUI() {
+    if (!cpGuideGroupBody) return;
+    cpGuideGroupBody.classList.toggle('open', guideGroupOpen);
+    if (cpGuideToggleArrow) cpGuideToggleArrow.textContent = guideGroupOpen ? '▲' : '▼';
+  }
+  window.toggleGuideGroup = function() {
+    // ドラッグ済み（top/left指定に切り替わっている）の時だけ、高さの変化分を位置補正する。
+    // 初期位置（CSSのbottom/right指定のまま）は、画面下端に自然と追従するので補正不要。
+    const wasDragged = !!counterPanel.style.left;
+    const beforeH = wasDragged ? counterPanel.offsetHeight : 0;
+    guideGroupOpen = !guideGroupOpen;
+    updateGuideGroupUI();
+    if (wasDragged) {
+      const afterH = counterPanel.offsetHeight;
+      const delta = afterH - beforeH; // 開く時は正、閉じる時は負
+      const pos = getCpPos();
+      setCpPos(pos.x, pos.y - delta); // 下端（カウンター部分）の画面上の位置を変えないよう補正
+    }
+    try { localStorage.setItem(GUIDE_GROUP_KEY, guideGroupOpen ? '1' : '0'); } catch(e) {}
+  };
+
   function toggleStepAdjust(e) {
     if (e) e.stopPropagation();
     if (stepAdjustLocked) return;
@@ -3047,7 +3381,7 @@
     syncGuideRowUI(currentRulerTab);
     updateStepAdjustCardValue();
   }
-  // 計測した1段の高さを未計測に戻す（段ガイドのON/OFFはそのまま維持する）
+  // 計測した1段の高さを未計測に戻す（段数ガイドのON/OFFはそのまま維持する）
   function resetStepValue() {
     if (currentRulerTab === 'circle') {
       circleStep = 0; circleStepBase = 0;
@@ -3079,7 +3413,7 @@
     document.querySelectorAll('.inline-help-body.show').forEach(el => el.classList.remove('show'));
   });
 
-  // タブ切替時や設定読込時に、段ガイド行（トグル・ラベル・計測ボタン）の表示をそのタブの状態に同期する
+  // タブ切替時や設定読込時に、段数ガイド行（トグル・ラベル・計測ボタン）の表示をそのタブの状態に同期する
   function syncGuideRowUI(tab) {
     let isOn, baseStep, effStep, scaledBase;
     if (tab === 'circle') {
@@ -3108,6 +3442,21 @@
     } else {
       gpStepLabel.textContent = '未計測';
     }
+    updateGuideStatusText();
+  }
+
+  // 折りたたみヘッダーに、今の各ガイドのON/OFF状態を表示する
+  function updateGuideStatusText() {
+    if (!cpGuideToggleText) return;
+    let isOn;
+    if (currentRulerTab === 'circle') isOn = circleGuideOn;
+    else if (currentRulerTab === 'box') isOn = boxGuideOn;
+    else isOn = rulerGuideOn;
+    let html = '段数ガイド：' + (isOn ? '<b>ON</b>' : '<span class="off">OFF</span>');
+    if (currentRulerTab === 'band') {
+      html += '　目数ガイド：' + (stitchGuideMode ? '<b>ON</b>' : '<span class="off">OFF</span>');
+    }
+    cpGuideToggleText.innerHTML = html;
   }
 
   gpToggleGuide.addEventListener('change', function() {
@@ -3159,6 +3508,7 @@
       }
       saveSettings();
     }
+    updateGuideStatusText();
   });
 
   // 📏計測ボタン：押したときだけ計測モードを起動（カウント中の誤タップ対策として確認モーダルを挟む）
@@ -3186,7 +3536,7 @@
   /* ========== カウンター ========== */
   function updateCounter() { cpNum.textContent = rowCount; saveSettings(); }
 
-  // 段ガイドONかつ計測済みのときだけステップ移動。OFFや未計測なら0（移動なし）
+  // 段数ガイドONかつ計測済みのときだけステップ移動。OFFや未計測なら0（移動なし）
   function getEffectiveStep() {
     if (!rulerGuideOn) return 0;
     if (rulerBaseStep > 0) return Math.round(rulerBaseStep * scale);
@@ -3209,7 +3559,7 @@
       if (boxCount < 999) {
         boxCount++;
         if (boxStep > 0) {
-          // サークル定規と同様、中心位置から画面を覆いきれる大きさまでは拡大できるようにする。
+          // 円定規と同様、中心位置から画面を覆いきれる大きさまでは拡大できるようにする。
           const maxHalf = boxMaxHalfForScreen();
           if (bxIsSquareMode) {
             // 正方形モードは縦横同じ上限（余裕がある方）を共有して、形が崩れないようにする
@@ -3637,7 +3987,7 @@
     if (e.touches.length === 2) {
       // 1本目の指のpointerdownで「ドラッグ」がすでに始まってしまっているケースがあるため、
       // ピンチ開始時に強制的に解除する（そうしないと、ドラッグとピンチが同時に動いて
-      // 定規がチラチラ・不安定になる不具合になる。Box・Circle定規は最初からタッチ専用の
+      // 定規がチラチラ・不安定になる不具合になる。四角・円定規は最初からタッチ専用の
       // 状態管理をしているため元々この問題は起きない。2026年8月〜）
       rulerDragging = false;
       resizeDragging = false;
@@ -3734,7 +4084,7 @@
   function viewerMouseDown(e) {
     if (!img) return;
     // パネル上のマウス操作は無視
-    if (e.target.closest('#float-panel')) return;
+    if (e.target.closest('#float-panel') || e.target.closest('#stitch-guide-bounds') || e.target.closest('#stitch-line-actions')) return;
     panning = true;
     panStartX = e.clientX; panStartY = e.clientY;
     panOffsetX = offsetX;  panOffsetY = offsetY;
@@ -3744,7 +4094,7 @@
     if (panning) e.preventDefault();
   });
   window.addEventListener('mousemove', e => {
-    if (!panning) return;
+    if (!panning || stitchLineDragIndex !== null) return;
     offsetX = panOffsetX + (e.clientX - panStartX);
     offsetY = panOffsetY + (e.clientY - panStartY);
     clampOffset();
@@ -3778,7 +4128,7 @@
     offsetX = cx - ratio * (cx - offsetX);
     offsetY = cy - ratio * (cy - offsetY);
     scale = ns;
-    // ステップをscaleに合わせて補正（Line/Circle定規共通。編み図の拡大縮小に1段の高さを追従させる）
+    // ステップをscaleに合わせて補正（直線/円定規共通。編み図の拡大縮小に1段の高さを追従させる）
     if (currentRulerTab === 'band' && rulerBaseStep > 0) {
       const scaledStep = Math.min(999, Math.max(1, Math.round(rulerBaseStep * scale)));
       const stepEl = document.getElementById('ruler-step');
@@ -3819,17 +4169,18 @@
   /* ========== タッチ：パン＋ピンチ（感度調整） ========== */
   let touches = [], lastPinchDist = 0, lastTouchX = 0, lastTouchY = 0;
 
-  // 編み図のパン・ピンチ処理本体。Circle定規の円の外側タッチからも呼ばれる（共通化）。
+  // 編み図のパン・ピンチ処理本体。円定規の円の外側タッチからも呼ばれる（共通化）。
   function viewerTouchStart(e) {
     if (!img) return;
-    if (e.target.closest('#float-panel') || e.target.closest('#ruler-handle')) return;
+    if (e.target.closest('#float-panel') || e.target.closest('#ruler-handle') || e.target.closest('#stitch-guide-bounds') || e.target.closest('#stitch-line-actions')) return;
     touches = Array.from(e.touches);
     if (touches.length === 1) { lastTouchX = touches[0].clientX; lastTouchY = touches[0].clientY; }
     else if (touches.length === 2) { lastPinchDist = pinchDist(touches); }
   }
   function viewerTouchMove(e) {
     if (!img) return;
-    if (e.target.closest('#float-panel') || e.target.closest('#ruler-handle')) return;
+    if (e.target.closest('#float-panel') || e.target.closest('#ruler-handle') || e.target.closest('#stitch-guide-bounds') || e.target.closest('#stitch-line-actions')) return;
+    if (stitchLineDragIndex !== null) return;
     const now = Array.from(e.touches);
     if (now.length === 1 && touches.length === 1) {
       offsetX += now[0].clientX - lastTouchX;
@@ -3873,6 +4224,233 @@
     return Math.sqrt(dx*dx + dy*dy);
   }
 
+  // 目数ガイド：上端・下端ハンドルのドラッグ（画像全体で共通の範囲を決める）
+  function setupStitchGuideBoundDrag(handleEl, boundKey) {
+    if (!handleEl) return;
+    let dragging = false;
+    const MIN_GAP = 10; // 上端と下端が重ならないよう最低限あける間隔（画像px単位）
+
+    function moveTo(clientY) {
+      if (!img) return;
+      const rect = viewer.getBoundingClientRect();
+      let imgY = (clientY - rect.top - offsetY) / scale;
+      imgY = Math.max(0, Math.min(img.height, imgY));
+      const topNow    = stitchGuideTopY    ?? 0;
+      const bottomNow = stitchGuideBottomY ?? img.height;
+      if (boundKey === 'top') {
+        stitchGuideTopY = Math.min(imgY, bottomNow - MIN_GAP);
+      } else {
+        stitchGuideBottomY = Math.max(imgY, topNow + MIN_GAP);
+      }
+      drawImage();
+    }
+    function start(clientY, e) {
+      dragging = true;
+      handleEl.classList.add('dragging');
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    function end() {
+      dragging = false;
+      handleEl.classList.remove('dragging');
+    }
+
+    handleEl.addEventListener('mousedown', e => start(e.clientY, e));
+    window.addEventListener('mousemove', e => { if (dragging) moveTo(e.clientY); });
+    window.addEventListener('mouseup', end);
+
+    handleEl.addEventListener('touchstart', e => start(e.touches[0].clientY, e), { passive: false });
+    handleEl.addEventListener('touchmove', e => { if (dragging) { e.preventDefault(); moveTo(e.touches[0].clientY); } }, { passive: false });
+    handleEl.addEventListener('touchend', end);
+  }
+  setupStitchGuideBoundDrag(stitchGuideTopHandle, 'top');
+  setupStitchGuideBoundDrag(stitchGuideBottomHandle, 'bottom');
+
+  // 目数ガイド：カラー・太さの設定
+  function applyStitchGuideColor() {
+    document.documentElement.style.setProperty('--stitch-guide-color', stitchGuideColor);
+    drawImage();
+  }
+  if (stitchColorInput) {
+    stitchColorInput.addEventListener('input', () => {
+      stitchGuideColor = stitchColorInput.value;
+      if (stitchColorPresets) stitchColorPresets.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+      applyStitchGuideColor();
+      saveSettings();
+    });
+  }
+  if (stitchColorPresets) {
+    stitchColorPresets.addEventListener('click', e => {
+      const dot = e.target.closest('.color-dot');
+      if (!dot) return;
+      stitchGuideColor = dot.dataset.color;
+      stitchColorInput.value = stitchGuideColor;
+      stitchColorPresets.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+      dot.classList.add('active');
+      applyStitchGuideColor();
+      saveSettings();
+    });
+  }
+  if (stitchThicknessInput) {
+    stitchThicknessInput.addEventListener('input', () => {
+      stitchGuideThickness = parseInt(stitchThicknessInput.value);
+      stitchThicknessLabel.textContent = stitchGuideThickness + 'px';
+      drawImage();
+      saveSettings();
+    });
+  }
+  applyStitchGuideColor(); // 初期値をCSS変数に反映（見た目の色を最初から統一させる）
+
+  if (stitchVisibleToggle) {
+    stitchVisibleToggle.addEventListener('change', () => {
+      stitchGuideVisible = stitchVisibleToggle.checked;
+      // OFFにした時、線を操作するモード中だと見えないまま操作できてしまうので、モードごと終了する
+      if (!stitchGuideVisible && stitchGuideMode) stopStitchGuideMode();
+      drawImage();
+    });
+  }
+
+  /* ========== 目数ガイド：線を引くモード（直線定規のみ） ========== */
+  // 段数ガイドと同じ考え方で、トグル1つでモードのON/OFFを切り替える（確認モーダルは挟まない）。
+  // トグル自体は#cp-stitch-rowに常設なので、モード中も#cp-stitch-rowだけは隠さない
+  // （隠すと自分自身をOFFに戻せなくなるため）。段数ガイド行・カウント行はモード中だけ隠す。
+  function startStitchGuideMode() {
+    stitchGuideMode = true;
+    if (stitchModeToggle) stitchModeToggle.checked = true;
+    viewer.style.cursor = 'crosshair';
+    selectedStitchLine = null;
+    // 線を操作するモードなので、表示が隠れたままだと見えなくて困る→必ずONに戻す
+    stitchGuideVisible = true;
+    if (stitchVisibleToggle) stitchVisibleToggle.checked = true;
+    // 定規本体だけは操作の邪魔になるので隠すが、カウンター・段数ガイドはそのまま見えるようにしておく
+    if (currentRulerTab === 'band') {
+      rulerOverlay.style.display = 'none';
+    }
+    positionStitchGuideBounds();
+    positionStitchLineActions();
+    updateGuideStatusText();
+  }
+  function stopStitchGuideMode() {
+    stitchGuideMode = false;
+    if (stitchModeToggle) stitchModeToggle.checked = false;
+    viewer.style.cursor = '';
+    selectedStitchLine = null;
+    if (currentRulerTab === 'band') {
+      rulerOverlay.style.display = 'block';
+    }
+    positionStitchGuideBounds();
+    positionStitchLineActions();
+    updateGuideStatusText();
+  }
+  if (stitchModeToggle) {
+    stitchModeToggle.addEventListener('change', () => {
+      if (stitchModeToggle.checked) {
+        // 確定するまではOFFに戻しておき、「使う」が押されたら本当にONにする
+        stitchModeToggle.checked = false;
+        showModal('目数ガイドを使いますか？\n目と目の境をタップすると、\n縦線を引けます。', '使う', () => {
+          startStitchGuideMode();
+        });
+      } else {
+        stopStitchGuideMode();
+      }
+    });
+  }
+
+  // 「タップ（ドラッグせずに指を離す）」を線の配置として扱う。
+  // 既存の線の近くをタップした場合は、配置ではなく「選択」または「ドラッグで移動」になる。
+  // パン・ピンチ用のmousedown/touchstartは既存のまま動かし続け、
+  // ここでは移動量と経過時間からタップかどうかだけを別途判定する（Pointer Eventsで両対応）。
+  const STITCH_LINE_HIT_R = 14; // 線をつかむ判定の半径（画面px）
+  function findNearestStitchLineIndex(screenX) {
+    if (!img || !stitchGuideLines.length) return null;
+    let bestIdx = null, bestDist = Infinity;
+    stitchGuideLines.forEach((x, i) => {
+      const sx = offsetX + x * scale;
+      const d = Math.abs(sx - screenX);
+      if (d < bestDist) { bestDist = d; bestIdx = i; }
+    });
+    return bestDist <= STITCH_LINE_HIT_R ? bestIdx : null;
+  }
+
+  let stitchTapActive = false, stitchTapStartX = 0, stitchTapStartY = 0, stitchTapStartTime = 0;
+  viewer.addEventListener('pointerdown', e => {
+    if (!stitchGuideMode || !img) return;
+    if (e.target.closest('#float-panel') || e.target.closest('#counter-panel') || e.target.closest('#stitch-guide-bounds') || e.target.closest('#stitch-line-actions')) return;
+    const rect = viewer.getBoundingClientRect();
+    const sx = e.clientX - rect.left;
+    stitchLineDragIndex = findNearestStitchLineIndex(sx);
+    stitchTapActive   = true;
+    stitchTapStartX   = e.clientX;
+    stitchTapStartY   = e.clientY;
+    stitchTapStartTime = Date.now();
+  });
+  viewer.addEventListener('pointermove', e => {
+    if (stitchLineDragIndex === null) return;
+    const rect = viewer.getBoundingClientRect();
+    const sx = e.clientX - rect.left;
+    let imgX = (sx - offsetX) / scale;
+    imgX = Math.max(0, Math.min(img.width, imgX));
+    stitchGuideLines[stitchLineDragIndex] = imgX;
+    drawImage();
+  });
+  viewer.addEventListener('pointerup', e => {
+    if (!stitchTapActive) return;
+    stitchTapActive = false;
+    if (!stitchGuideMode || !img || currentRulerTab !== 'band') { stitchLineDragIndex = null; return; }
+
+    // 既存の線の上でタップ/ドラッグを終えた場合：その線を選択状態にする（移動していてもいなくても）
+    if (stitchLineDragIndex !== null) {
+      selectedStitchLine = stitchLineDragIndex;
+      stitchLineDragIndex = null;
+      drawImage();
+      return;
+    }
+
+    const dx = e.clientX - stitchTapStartX;
+    const dy = e.clientY - stitchTapStartY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const dt = Date.now() - stitchTapStartTime;
+    if (dist < 8 && dt < 600) {
+      if (selectedStitchLine !== null) {
+        // 何かを選択中に、線のない場所をタップ→選択解除だけ行う（新規配置はしない）
+        selectedStitchLine = null;
+        drawImage();
+      } else {
+        const rect = viewer.getBoundingClientRect();
+        const sx = e.clientX - rect.left;
+        const imgX = (sx - offsetX) / scale;
+        if (imgX >= 0 && imgX <= img.width) {
+          stitchGuideLines.push(imgX);
+          drawImage();
+        }
+      }
+    }
+  });
+
+  // 選択中の線の複製・削除
+  if (stitchLineDuplicateBtn) {
+    stitchLineDuplicateBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (selectedStitchLine === null || !img) return;
+      const baseX = stitchGuideLines[selectedStitchLine];
+      let newX = baseX + 20;
+      if (newX > img.width) newX = baseX - 20;
+      newX = Math.max(0, Math.min(img.width, newX));
+      stitchGuideLines.push(newX);
+      selectedStitchLine = stitchGuideLines.length - 1;
+      drawImage();
+    });
+  }
+  if (stitchLineDeleteBtn) {
+    stitchLineDeleteBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (selectedStitchLine === null) return;
+      stitchGuideLines.splice(selectedStitchLine, 1);
+      selectedStitchLine = null;
+      drawImage();
+    });
+  }
+
   /* ========== リサイズ・向き変更対応 ========== */
   function onResize() {
     const pw = canvas.width, ph = canvas.height;
@@ -3884,7 +4462,7 @@
       offsetY += (canvas.height - ph) / 2;
       drawImage();
     }
-    // Line定規：位置だけ画面内に収まるようクランプ（サイズは変えない。10%だけ画面内に見えていればOK、最低44px保証）
+    // 直線定規：位置だけ画面内に収まるようクランプ（サイズは変えない。10%だけ画面内に見えていればOK、最低44px保証）
     {
       const vVisible = Math.max(44, rulerHeight * 0.1);
       const hVisible = Math.max(44, (rulerWidth / 100) * window.innerWidth * 0.1);
@@ -3893,12 +4471,12 @@
       rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - hVisiblePct, rulerLeft));
     }
     applyRulerPos();
-    // Circle定規：位置だけ画面内に収まるようクランプ（サイズは変えない。直径の10%だけ画面内に見えていればOK）
+    // 円定規：位置だけ画面内に収まるようクランプ（サイズは変えない。直径の10%だけ画面内に見えていればOK）
     if (typeof applyCircle === 'function') {
       clampCircleCenter();
       resizeCircleCanvas();
     }
-    // Box定規：位置だけ画面内に収まるようクランプ（サイズは変えない。10%だけ画面内に見えていればOK）
+    // 四角定規：位置だけ画面内に収まるようクランプ（サイズは変えない。10%だけ画面内に見えていればOK）
     if (typeof applyBox === 'function') {
       const marginW = bxHalfW * 0.8;
       const marginH = bxHalfH * 0.8;
@@ -3908,6 +4486,7 @@
     }
     // パネルが画面外に出ないようにクランプ
     clampPanel();
+    clampCounterPanel();
   }
 
   window.addEventListener('resize', onResize);
@@ -4046,7 +4625,7 @@
       item.className = 'preset-item' + (i === activePresetIndex ? ' preset-active' : '');
       // 幅は%・太さはpxで単位が違うため、今の画面幅で概算してから向きを判定する
       const widthPx = (p.width / 100) * window.innerWidth;
-      const isSquareish = Math.abs(widthPx - p.height) <= 3; // 数px以内の差ならBoxと同じ正方形扱い
+      const isSquareish = Math.abs(widthPx - p.height) <= 3; // 数px以内の差なら四角定規と同じ正方形扱い
       const isTall = !isSquareish && widthPx < p.height;
       const swatchSize = isSquareish ? 'width:16px;height:16px;' : (isTall ? 'width:12px;height:20px;' : 'width:20px;height:12px;');
       item.innerHTML = `
@@ -4148,6 +4727,7 @@
 
   /* ========== カウンターパネル ドラッグ ========== */
   let cpDragging = false, cpDragStartX = 0, cpDragStartY = 0;
+  let cpDragMoved = false, cpDragStartOnGuideToggle = false;
   let cpPanelX = 0, cpPanelY = 0;
   let cpPanelW = 0, cpPanelH = 0;
 
@@ -4165,16 +4745,28 @@
     counterPanel.style.left = cx + 'px';
     counterPanel.style.top  = cy + 'px';
   }
+  // 画面がリサイズされた時、カウンターパネルが画面外に置き去りにならないようにする。
+  // ただし、一度もドラッグされていない（CSSのbottom/rightのまま）場合は、
+  // ブラウザが自動で画面端に追従してくれるので、ここでは何もしない。
+  function clampCounterPanel() {
+    if (!counterPanel.style.left) return;
+    const pos = getCpPos();
+    setCpPos(pos.x, pos.y);
+  }
 
   counterPanel.addEventListener('pointerdown', e => {
     if (e.target.closest('.cp-btn')) return;
     if (e.target.closest('#gp-toggle-wrap')) return;
+    if (e.target.closest('#stitch-mode-toggle-wrap')) return;
     if (e.target.closest('#gp-measure-btn')) return;
     // 未計測の時はタップしても何も起きないので、そこからパネルをドラッグできるようにする。
     // 計測値が出ている時（例：1段：66px）は、タップで調整カードを開く動作を優先し、ドラッグは始めない。
     if (e.target.closest('#gp-step-label') && gpStepLabel.textContent !== '未計測') return;
     if (e.target.closest('#step-adjust-card')) return;
     cpDragging = true;
+    cpDragMoved = false;
+    // ガイド開閉ヘッダーだけは「タップ＝開閉」「ドラッグ＝パネル移動」を移動量で見分ける
+    cpDragStartOnGuideToggle = !!e.target.closest('#cp-guide-toggle');
     const pos = getCpPos();
     cpDragStartX = e.clientX; cpDragStartY = e.clientY;
     cpPanelX = pos.x; cpPanelY = pos.y;
@@ -4189,10 +4781,18 @@
   });
   counterPanel.addEventListener('pointermove', e => {
     if (!cpDragging) return;
-    setCpPos(cpPanelX + e.clientX - cpDragStartX, cpPanelY + e.clientY - cpDragStartY);
+    const dx = e.clientX - cpDragStartX, dy = e.clientY - cpDragStartY;
+    if (Math.abs(dx) > 6 || Math.abs(dy) > 6) cpDragMoved = true;
+    setCpPos(cpPanelX + dx, cpPanelY + dy);
     e.preventDefault();
   });
-  counterPanel.addEventListener('pointerup', () => { cpDragging = false; counterPanel.classList.remove('dragging'); });
+  counterPanel.addEventListener('pointerup', () => {
+    cpDragging = false;
+    counterPanel.classList.remove('dragging');
+    // ガイド開閉ヘッダーから始まり、ほぼ動いていなければ「タップ」とみなして開閉する
+    if (cpDragStartOnGuideToggle && !cpDragMoved) toggleGuideGroup();
+    cpDragStartOnGuideToggle = false;
+  });
   counterPanel.addEventListener('pointercancel', () => { cpDragging = false; counterPanel.classList.remove('dragging'); });
 
 
@@ -4299,7 +4899,7 @@
     }
   });
 
-  // パネルを開いている時も、スクロールしてタブ（Line/Box/Circle）が見えなくなったら、
+  // パネルを開いている時も、スクロールしてタブ（直線定規/四角定規/円定規）が見えなくなったら、
   // 折りたたみ時と同じ「今の定規名バッジ」をヘッダーに表示する（どのタブを見ているか分かるように）
   // 同時に、右下のTOPへ戻るボタンもこのタイミングだけ表示する（家マーク＝ポータルリンクとは別物と分かるように）
   (function() {
@@ -4435,6 +5035,17 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     filenameLabel.textContent = '';
     fileInput.value = '';
+    if (currentRulerTab === 'band') {
+      stitchGuideLines = [];
+      stitchGuideMode = false;
+      selectedStitchLine = null;
+      stitchGuideTopY = null;
+      stitchGuideBottomY = null;
+      if (stitchModeToggle) stitchModeToggle.checked = false;
+      viewer.style.cursor = '';
+      rulerOverlay.style.display = 'block';
+      positionStitchGuideBounds();
+    }
     updateUploadClearBtn();
     saveChartStateForTab(currentRulerTab);
   };
@@ -4463,7 +5074,7 @@
     updateUploadClearBtn();
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    // Line/Circle定規：このタブ自身のscaleに合わせて段ガイドのステップを再計算する
+    // 直線/円定規：このタブ自身のscaleに合わせて段数ガイドのステップを再計算する
     if (tab === 'band' && rulerBaseStep > 0) {
       rulerStep = Math.max(1, Math.round(rulerBaseStep * scale));
       const stepEl = document.getElementById('ruler-step');
@@ -4479,12 +5090,12 @@
     drawImage();
   }
 
-  // ヘッダーのバッジ（今使っている定規、Boxなら正方形/長方形も）を更新する
+  // ヘッダーのバッジ（今使っている定規、四角定規なら正方形/長方形も）を更新する
   function updateCurrentRulerBadge() {
-    const labels = { band: 'Line定規', circle: 'Circle定規', box: 'Box定規' };
+    const labels = { band: '直線定規', circle: '円定規', box: '四角定規' };
     const mainEl = document.getElementById('panel-current-ruler-badge-main');
     const subEl  = document.getElementById('panel-current-ruler-badge-sub');
-    if (mainEl) mainEl.textContent = labels[currentRulerTab] || 'Line定規';
+    if (mainEl) mainEl.textContent = labels[currentRulerTab] || '直線定規';
     if (subEl) {
       if (currentRulerTab === 'box') {
         // ロック（モード）ではなく、今実際に見えている形をそのまま表示する
@@ -4516,18 +5127,22 @@
     if (tab === 'band') {
       counterWrap.style.display = showCounter ? 'flex' : 'none';
       cpGuideRow.style.display = showCounter ? 'flex' : 'none';
+      if (cpStitchRow) cpStitchRow.style.display = showCounter ? 'flex' : 'none';
       cpNum.textContent = rowCount;
     } else if (tab === 'circle') {
       counterWrap.style.display = showCircleCounter ? 'flex' : 'none';
       cpGuideRow.style.display = showCircleCounter ? 'flex' : 'none';
+      if (cpStitchRow) cpStitchRow.style.display = 'none';
       cpNum.textContent = circleCount;
     } else if (tab === 'box') {
       counterWrap.style.display = showBoxCounter ? 'flex' : 'none';
       cpGuideRow.style.display = showBoxCounter ? 'flex' : 'none';
+      if (cpStitchRow) cpStitchRow.style.display = 'none';
       cpNum.textContent = boxCount;
     } else {
       counterWrap.style.display = 'none';
       cpGuideRow.style.display = 'none';
+      if (cpStitchRow) cpStitchRow.style.display = 'none';
     }
     syncGuideRowUI(tab);
     if (tab === 'band') {
@@ -4547,6 +5162,14 @@
       boxOverlay.style.display = 'block';
       applyBox();
     }
+    // 目数ガイドは直線定規のみの機能なので、他タブに切り替えたらモードを強制終了する
+    if (tab !== 'band') {
+      stitchGuideMode = false;
+      selectedStitchLine = null;
+      if (stitchModeToggle) stitchModeToggle.checked = false;
+      viewer.style.cursor = '';
+    }
+    positionStitchGuideBounds();
   };
 
   /* ========== 丸定規 ========== */
@@ -4565,12 +5188,12 @@
   let cR = 50;                 // 半径（直径100px）
   let cColor = '#b2aaaa';
   let cAlpha = 0.80;
-  let circleStep  = 0;       // 段ガイドON時に有効な1段の幅（OFF時は0）
-  let circleStepBase = 0;    // 計測した実寸（段ガイドOFFでも保持、未計測なら0）
-  let circleGuideOn = false; // Circle定規の段ガイドON/OFF状態（タブ切替時もこの値が真実の源）
+  let circleStep  = 0;       // 段数ガイドON時に有効な1段の幅（OFF時は0）
+  let circleStepBase = 0;    // 計測した実寸（段数ガイドOFFでも保持、未計測なら0）
+  let circleGuideOn = false; // 円定規の段数ガイドON/OFF状態（タブ切替時もこの値が真実の源）
   let circleCount = 0;
   let showCircleCounter = true;
-  // カウンター・リサイズ・ピンチ共通の最小半径(px)。Box定規の正方形モードと同じ実寸30×30pxに揃えている（2026年8月〜）
+  // カウンター・リサイズ・ピンチ共通の最小半径(px)。四角定規の正方形モードと同じ実寸30×30pxに揃えている（2026年8月〜）
   const CIRCLE_MIN_R = 15;
   // 中心(cX,cY)から画面の最も遠い角までの距離。これを半径の上限にすれば、画面の四隅まで円で埋め尽くせる
   function circleMaxRForScreen() {
@@ -4597,7 +5220,7 @@
     applyCircle();
   }
 
-  // Circle定規：中心(cX,cY)が画面から離れすぎないよう、実際の距離ベースでクランプする。
+  // 円定規：中心(cX,cY)が画面から離れすぎないよう、実際の距離ベースでクランプする。
   // X軸・Y軸を別々にクランプすると、斜め方向にドラッグした時に画面の四隅をすり抜けて
   // 円が完全に画面外に消えてしまうことがあったため（各軸は条件を満たしていても、
   // 実際の中心〜画面までの距離は半径より遠いということが起こり得た）、距離ベースの判定に統一する
@@ -4618,7 +5241,7 @@
   function applyCircle() {
     // 安全装置：ドラッグ・リサイズ・ピンチ、どの操作が原因でも、定規が画面から44px未満
     // しか見えない状態には絶対にしない。サイズは変えず、位置だけを画面内へ寄せて補正する
-    // （Box・Line定規と同じ考え方。2026年8月〜）
+    // （四角・直線定規と同じ考え方。2026年8月〜）
     const sw = window.innerWidth, sh = window.innerHeight;
     if (cX + cR < 44) cX = 44 - cR;
     else if (cX - cR > sw - 44) cX = sw - 44 + cR;
@@ -4635,11 +5258,11 @@
     const b = parseInt(hex.slice(5,7),16);
     const la = Math.min(1, cAlpha * 1.6);
 
-    // 見た目専用レイヤー：円がちょうど収まる正方形のSVGをその位置に配置する（Line/Box定規と同じ仕組み）
+    // 見た目専用レイヤー：円がちょうど収まる正方形のSVGをその位置に配置する（直線/四角定規と同じ仕組み）
     const left = cX - cR, top = cY - cR;
     const size = cR * 2;
     const hiW  = Math.min(cR * 0.22, 12); // ハイライトの太さ（上限は他の3定規と統一して12px）
-    const M    = 16; // 外側の光がはみ出すための余白（Line/Box定規と同じ仕組み）
+    const M    = 16; // 外側の光がはみ出すための余白（直線/四角定規と同じ仕組み）
     const cHiStart = Math.max(0, (1 - hiW / cR) * 100); // ハイライトが効き始める位置(%)
 
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size + M*2}" height="${size + M*2}">
@@ -4653,7 +5276,7 @@
         </filter>
       </defs>
       <g transform="translate(${M},${M})">
-        <!-- 外側の光（Line/Box定規と同じfeGaussianBlurで描く） -->
+        <!-- 外側の光（直線/四角定規と同じfeGaussianBlurで描く） -->
         <circle cx="${cR}" cy="${cR}" r="${cR}" fill="rgba(${r},${g},${b},0.28)" filter="url(#cglow)"/>
         <!-- 本体＋枠線を同じ円で描く -->
         <circle cx="${cR}" cy="${cR}" r="${cR}" fill="rgba(${r},${g},${b},${cAlpha})" stroke="rgba(${r},${g},${b},${la})" stroke-width="1.5"/>
@@ -4840,7 +5463,7 @@
     }
     viewerWheel(e);
   }, { passive: false });
-  // タッチで円の外側を押した瞬間にパネルを閉じる（Lineのviewer pointerdownと同じ即時クローズ方式）
+  // タッチで円の外側を押した瞬間にパネルを閉じる（直線のviewer pointerdownと同じ即時クローズ方式）
   circleCanvas.addEventListener('pointerdown', e => {
     if (e.pointerType !== 'touch') return;
     const dx = e.clientX - cX, dy = e.clientY - cY;
@@ -5141,7 +5764,7 @@
     });
   };
 
-  /* ========== Box定規 ========== */
+  /* ========== 四角定規 ========== */
   const boxOverlay  = document.getElementById('box-overlay');
   const boxCanvas   = document.getElementById('box-canvas');
   const boxCtx      = boxCanvas.getContext('2d');
@@ -5166,15 +5789,15 @@
   let bxIsSquareMode = true;  // 「正方形⇔長方形」ボタンで選んだモード（数字の一致とは独立。辺ロックの判定に使う）
   let bxColor = '#b2aaaa';
   let bxAlpha = 0.80;
-  let boxStep  = 0;       // 段ガイドON時に有効な1段の幅（OFF時は0）
-  let boxStepBase = 0;    // 計測した実寸（段ガイドOFFでも保持、未計測なら0）
-  let boxGuideOn = false; // Box定規の段ガイドON/OFF状態（タブ切替時もこの値が真実の源）
+  let boxStep  = 0;       // 段数ガイドON時に有効な1段の幅（OFF時は0）
+  let boxStepBase = 0;    // 計測した実寸（段数ガイドOFFでも保持、未計測なら0）
+  let boxGuideOn = false; // 四角定規の段数ガイドON/OFF状態（タブ切替時もこの値が真実の源）
   let boxCount = 0;
   let showBoxCounter = true;
-  // サークル定規のcircleMaxRForScreen()と同じ考え方：中心位置から画面を覆いきれる大きさまでは拡大できるようにする
+  // 円定規のcircleMaxRForScreen()と同じ考え方：中心位置から画面を覆いきれる大きさまでは拡大できるようにする
   function boxMaxHalfForScreen() {
     // 「画面の端にちょうど届く」距離だけだと、中央配置の時にはみ出せないので、
-    // サークル定規と同じ考え方で、対角線分の余裕を持たせる
+    // 円定規と同じ考え方で、対角線分の余裕を持たせる
     const sw = window.innerWidth, sh = window.innerHeight;
     const diag = Math.hypot(sw, sh);
     return {
@@ -5221,12 +5844,12 @@
     const b = parseInt(hex.slice(5,7),16);
     const la = Math.min(1, bxAlpha * 1.6);
 
-    // 見た目専用レイヤー：正方形/長方形がちょうど収まるSVGをその位置に配置する（Line/Circle定規と同じ仕組み）
+    // 見た目専用レイヤー：正方形/長方形がちょうど収まるSVGをその位置に配置する（直線/円定規と同じ仕組み）
     const left = bxX - bxHalfW, top = bxY - bxHalfH;
     const ow = bxHalfW * 2, oh = bxHalfH * 2;
-    const rad = Math.min(8, ow/3, oh/3); // 箱が小さい時に真円になってしまわないよう、サイズに応じて丸みも小さくする　※Line定規と揃えて8pxに（2026年8月）
-    const hl  = Math.min(12, ow/3, oh/3); // ハイライトの太さ：上下左右すべて共通の値にする（Line定規と同じ考え方）
-    const M   = 16; // 外側の光がはみ出すための余白（Line定規と同じ仕組み）
+    const rad = Math.min(8, ow/3, oh/3); // 箱が小さい時に真円になってしまわないよう、サイズに応じて丸みも小さくする　※直線定規と揃えて8pxに（2026年8月）
+    const hl  = Math.min(12, ow/3, oh/3); // ハイライトの太さ：上下左右すべて共通の値にする（直線定規と同じ考え方）
+    const M   = 16; // 外側の光がはみ出すための余白（直線定規と同じ仕組み）
 
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${ow + M*2}" height="${oh + M*2}">
       <defs>
@@ -5254,13 +5877,13 @@
         </clipPath>
       </defs>
       <g transform="translate(${M},${M})">
-        <!-- 外側の光（Line定規と同じfeGaussianBlurで描く） -->
+        <!-- 外側の光（直線定規と同じfeGaussianBlurで描く） -->
         <rect x="0" y="0" width="${ow}" height="${oh}" rx="${rad}" ry="${rad}"
           fill="rgba(${r},${g},${b},0.28)" filter="url(#sqglow)"/>
         <!-- 本体＋枠線を同じ四角形で描く -->
         <rect x="0" y="0" width="${ow}" height="${oh}" rx="${rad}" ry="${rad}"
           fill="rgba(${r},${g},${b},${bxAlpha})" stroke="rgba(${r},${g},${b},${la})" stroke-width="1.5"/>
-        <!-- ハイライト（本体と同じ丸みでクリップし、角に直線の継ぎ目が出ないようにする。Line定規と同じ仕組み） -->
+        <!-- ハイライト（本体と同じ丸みでクリップし、角に直線の継ぎ目が出ないようにする。直線定規と同じ仕組み） -->
         <g clip-path="url(#sqclip)">
           <path fill="url(#sqlg_t)"
             d="M${rad},0 H${ow-rad} Q${ow},0 ${ow},${rad} V${hl} H0 V${rad} Q0,0 ${rad},0 Z"/>
@@ -5594,7 +6217,7 @@
     // 「今動いている最中のリアルタイムの半幅(bxHalfW)」を使うと、1フレームごとに
     // 最小値自体が変化して雪だるま式に増えてしまう不具合があったため、
     // ドラッグ開始時に固定されるbxX0・bxY0・bxHalfW0・bxHalfH0だけを使うよう修正
-    // （Line・Circle定規と同じ考え方。2026年8月〜）。
+    // （直線・円定規と同じ考え方。2026年8月〜）。
     // 長方形モードは、ドラッグ開始時点で長い方の辺・短い方の辺を判定し、それぞれ別の下限
     // （長い辺40px・短い辺20px）を使うことで、縮めても正方形にならず元の向きのまま止まる
     const mins = getBxMinHalves(bxHalfW0, bxHalfH0);
@@ -5714,7 +6337,7 @@
       if (hit !== null) {
         e.preventDefault();
         const factor = Math.exp(-e.deltaY * 0.01);
-        // サークル定規と同様、中心位置から画面を覆いきれる大きさまでは拡大できるようにする
+        // 円定規と同様、中心位置から画面を覆いきれる大きさまでは拡大できるようにする
         const maxHalf = boxMaxHalfForScreen();
         const sharedMax = Math.max(maxHalf.w, maxHalf.h); // 正方形を保つ時は縦横で上限を共有（片方だけ頭打ちで形が崩れないように）
         if (hit === 'edge-t' || hit === 'edge-b') {
@@ -6120,7 +6743,7 @@
   loadBoxPresets();
 
   /* ========== カスタマイズのUndo/Redo ==========
-     対象は「色・濃さ・サイズ・位置」のみ（カウンター・段ガイドは対象外）。
+     対象は「色・濃さ・サイズ・位置」のみ（カウンター・段数ガイドは対象外）。
      セッション内のみメモリ保持。ページを閉じる/リロードするとリセットされる。 */
   function makeUndoManager(getState, applyState, opts) {
     opts = opts || {};
@@ -6191,7 +6814,7 @@
     return refresh;
   }
 
-  /* --- Line（band） --- */
+  /* --- 直線（band） --- */
   function bandGetState() {
     return { color: rulerColor, alpha: rulerAlpha, height: rulerHeight, width: rulerWidth, left: rulerLeft, top: rulerTop };
   }
@@ -6219,7 +6842,7 @@
     saveSettings = function() { _origSaveSettings(); bandUndo.requestCommit(); };
   })();
 
-  /* --- Circle --- */
+  /* --- 円 --- */
   function circleGetState() {
     return { cColor, cAlpha, cX, cY, cR };
   }
@@ -6237,7 +6860,7 @@
     saveCircleSettings = function() { _origSaveCircleSettings(); circleUndo.requestCommit(); };
   })();
 
-  /* --- Box --- */
+  /* --- 四角 --- */
   function boxGetState() {
     return { bxColor, bxAlpha, bxX, bxY, bxHalfW, bxHalfH, bxRectHalfW, bxRectHalfH, bxSquareSide, bxSquareColor, bxSquareAlpha, bxRectColor, bxRectAlpha, bxIsSquareMode };
   }
@@ -6263,6 +6886,11 @@
 
   // 初期タブをbandに統一（全定規の表示状態をリセット）
   switchRulerTab('band');
+  // ガイド類（段数ガイド・目数ガイド）の開閉状態を復元（保存がなければ畳んだ状態がデフォルト）
+  try {
+    guideGroupOpen = localStorage.getItem(GUIDE_GROUP_KEY) === '1';
+  } catch(e) {}
+  updateGuideGroupUI();
   // スマホ幅（680px未満）の場合は、画面を広く使えるよう最初からメニューパネルを閉じておく
   if (window.innerWidth < 680) {
     floatPanel.classList.add('collapsed');
@@ -6286,10 +6914,10 @@
     const moveRulerBtn = document.getElementById('measure-move-ruler-btn');
 
     let pt1 = null, pt2 = null;
-    let measureAxis = 'v'; // Box定規専用：'v'=縦のみ／'h'=横のみ
+    let measureAxis = 'v'; // 四角定規専用：'v'=縦のみ／'h'=横のみ
     // measurePhase: 'zoom'(拡大調整中・タップ無効) → 'pick1'(1点目待ち) → 'pick2'(2点目待ち) → 'adjust'(2点とも確定・ドラッグで伸縮調整可)
     let measurePhase = 'zoom';
-    let rulerMoveMode = false; // true の間は編み図側の定規（Line/Circle/Box）を動かせる
+    let rulerMoveMode = false; // true の間は編み図側の定規（直線/円/四角）を動かせる
     let adjustDragTarget = null; // 'pt1' | 'pt2' | 'line' | null（伸縮調整中/移動中につかんでいる対象）
     const PT_HIT_R = 22; // 点をつかむ判定の半径(px)
     const LINE_HIT_R = 16; // 線本体をつかむ判定の太さ(px)
@@ -6318,7 +6946,7 @@
       axisBtnV.classList.remove('active');
     });
 
-    // 定規を動かすボタンの中身を、今選ばれている定規（Line/Circle/Box）の
+    // 定規を動かすボタンの中身を、今選ばれている定規（直線/円/四角）の
     // 色・形にあわせたミニスウォッチに更新する（何を指しているボタンか一目でわかるように）
     function updateMoveRulerIcon() {
       const icon = document.getElementById('measure-move-ruler-icon');
@@ -6331,13 +6959,13 @@
         const c = bxColor, a = Math.min(1, bxAlpha + 0.3);
         icon.style.cssText = 'display:block; width:13px; height:13px; border-radius:2px; background:' + c + '; opacity:' + a + '; border:1.5px solid ' + c + ';';
       } else {
-        // Line（帯定規）：横長のバー形状
+        // 直線（帯定規）：横長のバー形状
         const c = rulerColor, a = Math.min(1, rulerAlpha + 0.3);
         icon.style.cssText = 'display:block; width:16px; height:6px; border-radius:3px; background:' + c + '; opacity:' + a + '; border:1.5px solid ' + c + ';';
       }
     }
 
-    // 定規を動かすモード：ONの間は計測バー側のタップ判定を止めて、下の編み図側の定規（Line/Circle/Box）を操作できるようにする
+    // 定規を動かすモード：ONの間は計測バー側のタップ判定を止めて、下の編み図側の定規（直線/円/四角）を操作できるようにする
     let savedHintText = '', hintWasVisible = false, resultColWasVisible = false;
     function setRulerMoveMode(on) {
       rulerMoveMode = on;
@@ -6517,10 +7145,10 @@
       if (!pt1 || !pt2) { resetBarToCenter(); return; }
       const isHorizontal = (currentRulerTab === 'box' && measureAxis === 'h');
       if (isHorizontal) {
-        // 横計測（Box横モード）は左右の概念がはっきりしないため、画面上部中央に固定
+        // 横計測（四角横モード）は左右の概念がはっきりしないため、画面上部中央に固定
         resetBarToCenter();
       } else {
-        // 斜め計測（Circle）・縦計測（Line/Box縦）共通：
+        // 斜め計測（円）・縦計測（直線/四角縦）共通：
         // 線の外接矩形を避けて、右→左→上→下の順で重ならない場所に配置する
         const minX = Math.min(pt1.x, pt2.x), maxX = Math.max(pt1.x, pt2.x);
         const minY = Math.min(pt1.y, pt2.y), maxY = Math.max(pt1.y, pt2.y);
@@ -6645,12 +7273,12 @@
         const dist = Math.round(Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y));
         ctx.font = '700 13px "Zen Maru Gothic", sans-serif';
         ctx.fillStyle = color;
-        // テキストは線の中点から右側に表示する（Line/Boxと同じく「右にpx・左にカード」で統一）
+        // テキストは線の中点から右側に表示する（直線/四角と同じく「右にpx・左にカード」で統一）
         ctx.textAlign = 'left';
         ctx.fillText(dist + ' px', midX + 24, midY + 5);
       } else {
         if (isHorizontal) {
-          const y = pt1.y; // Box横モード：1点目のY座標に揃えて描く（縦ズレを無視した横距離計測）
+          const y = pt1.y; // 四角横モード：1点目のY座標に揃えて描く（縦ズレを無視した横距離計測）
           // 2点目のマーカー（Y座標は1点目に揃える）
           ctx.beginPath();
           ctx.arc(pt2.x, y, 6, 0, Math.PI * 2);
@@ -6681,7 +7309,7 @@
           ctx.fillText(dist + ' px', midX, y - 24);
           ctx.textAlign = 'left';
         } else {
-        const x = pt1.x; // Line/Box縦モードは常に1点目のX座標に揃えて描く（横ズレを無視した縦距離計測）
+        const x = pt1.x; // 直線/四角縦モードは常に1点目のX座標に揃えて描く（横ズレを無視した縦距離計測）
         // 2点目のマーカー（X座標は1点目に揃える。実際のタップ座標の点は描かない）
         ctx.beginPath();
         ctx.arc(x, pt2.y, 6, 0, Math.PI * 2);
@@ -6719,7 +7347,7 @@
       hint.style.display = 'inline';
       resultCol.style.display = 'none';
       zoomDoneBtn.style.display = showZoomDoneBtn ? 'inline-block' : 'none';
-      // Box定規：1点目を選ぶ前（やり直し含む）だけ縦/横トグルを見せる（拡大調整中は出さない）
+      // 四角定規：1点目を選ぶ前（やり直し含む）だけ縦/横トグルを見せる（拡大調整中は出さない）
       axisToggle.style.display = (currentRulerTab === 'box' && !showZoomDoneBtn) ? 'flex' : 'none';
     }
 
@@ -6774,7 +7402,7 @@
       // 計測が終わったら自動で戻せるよう、今の表示サイズ・位置を覚えておく
       preMeasureScale = scale; preMeasureOffsetX = offsetX; preMeasureOffsetY = offsetY;
       document.getElementById('measure-float-btn').style.display = 'none';
-      // 計測中に段ガイドのON/OFFを誤って切り替えられないようにする（切り替えても計測結果には反映されず、
+      // 計測中に段数ガイドのON/OFFを誤って切り替えられないようにする（切り替えても計測結果には反映されず、
       // 紛らわしいだけなので、計測が終わるまで触れないようにする）
       gpToggleGuide.disabled = true;
       // 同じ理由でカウンターの＋／−も計測中は押せないようにする
@@ -6796,7 +7424,7 @@
       resetBarToCenter();
       measurePhase = 'zoom';
       showHintMode('編み図を拡大したら「完了」をタップ', true);
-      // Box定規のときは毎回「縦」から開始（表示・非表示はshowHintModeが担当）
+      // 四角定規のときは毎回「縦」から開始（表示・非表示はshowHintModeが担当）
       if (currentRulerTab === 'box') {
         measureAxis = 'v';
         axisBtnV.classList.add('active');
@@ -6806,6 +7434,9 @@
       // 拡大調整中は編み図側のピンチ/ホイール操作をそのまま通すため、overlay自体はクリックを拾わない。
       // バー（#measure-bar）にはpointer-events:allが個別指定済みなので、ボタン操作はできる。
       overlay.style.pointerEvents = 'none';
+      // 計測中は目数ガイドの操作と混ざらないよう、モードが動いていたら終了し、トグル行も隠す
+      if (stitchGuideMode) stopStitchGuideMode();
+      if (cpStitchRow) cpStitchRow.style.display = 'none';
       // 計測中は編み図を隠さないよう、定規本体を一時的に隠す（「定規を動かす」操作が不要になる）
       if (currentRulerTab === 'band') rulerHandle.style.display = 'none';
       else if (currentRulerTab === 'circle') circleOverlay.style.display = 'none';
@@ -6829,7 +7460,7 @@
         drawImage();
         preMeasureScale = null; preMeasureOffsetX = null; preMeasureOffsetY = null;
         // 表示サイズを戻した分、「1段の高さ」も新しいscaleに合わせて再計算する
-        // （計測した瞬間の拡大率のままの生のピクセル値を使い続けないように。Line/Circle/Box共通）
+        // （計測した瞬間の拡大率のままの生のピクセル値を使い続けないように。直線/円/四角共通）
         if (currentRulerTab === 'band' && rulerBaseStep > 0) {
           rulerStep = Math.max(1, Math.round(rulerBaseStep * scale));
           const stepEl = document.getElementById('ruler-step');
@@ -6858,6 +7489,8 @@
       if (currentRulerTab === 'band') rulerHandle.style.display = '';
       else if (currentRulerTab === 'circle') circleOverlay.style.display = 'block';
       else if (currentRulerTab === 'box') boxOverlay.style.display = 'block';
+      // 隠していた目数ガイドの行も、直線定規タブなら元に戻す
+      if (cpStitchRow && currentRulerTab === 'band') cpStitchRow.style.display = showCounter ? 'flex' : 'none';
       const tapHint = document.getElementById('tap-hint');
       if (tapHint) tapHint.style.display = '';
     }
@@ -6923,7 +7556,7 @@
         rulerGuideOn = true;
         saveSettings();
       }
-      // 段ガイドバーの表示を更新（ONにして高さを表示。チェック状態だけでなく、
+      // 段数ガイドバーの表示を更新（ONにして高さを表示。チェック状態だけでなく、
       // 表示/非表示のopacityもここで正しく同期する。JSでcheckedを直接書き換えるだけだと
       // 'change'イベントが発火せず、本物のタップ時にしか動かない表示切り替え処理が
       // スキップされてしまうため、この共通関数を必ず通す）
@@ -6990,7 +7623,7 @@
         // 横方向のみ計測：Y座標は固定し、Xだけ動かす
         target.x = x;
       } else {
-        // Line/Box(縦)：X座標は固定し、Yだけ動かす
+        // 直線/四角(縦)：X座標は固定し、Yだけ動かす
         target.y = y;
       }
       draw();
