@@ -1095,13 +1095,16 @@
       /* 畳んだ状態（カウンターだけ）でも幅が変わらないよう、開いた状態（段数ガイド行）が
          ちょうど収まる横幅で固定する。ドラッグ移動もしやすいよう、あえて余白を残している（2026年8月〜）
          ラベルを2行・11pxにして幅を詰めた分、296px→264pxに縮小。
-         行の左右padding（18px/14px→10px/8px→左右10pxで統一）を詰めた分、264px→250pxに縮小（2026年8月〜） */
-      width: 250px;
+         行の左右padding（18px/14px→10px/8px→左右10pxで統一）を詰めた分、264px→250pxに縮小（2026年8月〜）
+         ボタンの文言を「計測」「線引」→「計測する」「線を引く」に変更した分、250px→280pxに再拡大（2026年8月〜）
+         ラベル幅を78px→90pxに拡大（3桁px対応）、ボタン幅を78px固定にした分、
+         一度280px→300pxに拡大したが、パネル自体は広げずに済むよう、行内の余白
+         （padding・gap・ボタン幅など）を詰める方向に変更し、280pxへ戻した（2026年8月〜） */
+      width: 280px;
     }
     #counter-panel:active { cursor: grabbing; }
     #counter-panel.dragging {
       box-shadow: 0 16px 40px rgba(0,0,0,0.22), 0 4px 12px rgba(0,0,0,0.12);
-      opacity: 0.95;
     }
 
     #stitch-guide-bounds {
@@ -1173,6 +1176,95 @@
       box-shadow: 0 4px 14px rgba(0,0,0,0.16);
       -webkit-tap-highlight-color: transparent;
     }
+    /* 「全部消す」だけは、他の線の色に関わらず常に警告色にして区別する
+       （取り返しがつかない操作なので、複製・削除より一段強い注意を引く色にしている） */
+    #stitch-line-clear-all-btn {
+      color: #993C1D !important;
+      border-color: #993C1D !important;
+    }
+
+    /* 目数ガイド：線引ボタンを押している間、編み図の上部中央に浮かべるカラーパレット */
+    /* 目数ガイド：線引ボタンを押している間、編み図の上部中央に浮かべるヒントバー。
+       段数ガイドの計測バー（#measure-bar）と全く同じ考え方（説明文＋完了ボタン、ドラッグ可能）で作り、
+       一貫性を出している。カラーパレットより上に置くので、カラーパレットのtopはこの下にずらしてある */
+    #stitch-hint-bar {
+      position: fixed;
+      top: 96px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 211;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: nowrap;
+      background: #FFFFFF;
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 8px 10px 8px 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      font-family: 'Zen Maru Gothic', sans-serif;
+      pointer-events: all;
+      width: max-content;
+      max-width: calc(100vw - 24px);
+      cursor: grab;
+      touch-action: none;
+    }
+    #stitch-hint-bar.show { display: flex; }
+    #stitch-hint-bar.dragging {
+      cursor: grabbing;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.24), 0 3px 10px rgba(0,0,0,0.12);
+      opacity: 0.96;
+    }
+    #stitch-hint-text {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: normal;
+      flex-shrink: 1;
+      min-width: 0;
+      text-align: left;
+      line-height: 1.5;
+    }
+    #stitch-hint-done-btn {
+      background: var(--primary);
+      border: none;
+      border-radius: 16px;
+      padding: 5px 14px 7px;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.10);
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity .15s, transform .1s;
+    }
+    #stitch-color-float {
+      position: fixed;
+      top: 154px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 211;
+      display: none;
+      gap: 6px;
+      align-items: center;
+      background: #FFFFFF;
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 8px 11px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.16);
+      pointer-events: all;
+      cursor: grab;
+      touch-action: none;
+    }
+    #stitch-color-float.show { display: flex; }
+    #stitch-color-float.dragging {
+      cursor: grabbing;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.24), 0 3px 10px rgba(0,0,0,0.12);
+      opacity: 0.96;
+    }
 
     /* TOPへ戻るボタン：設定パネル「の中の」右下に、スクロールしてタブが見えなくなった時だけ表示する。
        パネル自体を基準にした配置なので、パネルをドラッグで動かしても常にパネルの右下についてくる */
@@ -1215,7 +1307,7 @@
       margin: 0;
       padding: 8px 14px;
       box-sizing: border-box;
-      background: #F4F9F7;
+      background: #cce8e2;
       border: none;
       border-bottom: 1px solid var(--border);
       font-family: 'Zen Maru Gothic', sans-serif;
@@ -1228,49 +1320,109 @@
       pointer-events: all;
     }
     #cp-guide-toggle-arrow {
-      font-size: 8px;
+      font-size: 9px;
       display: inline-block;
       flex-shrink: 0;
+      transition: transform .25s ease;
+      color: var(--text-sub);
+      opacity: .6;
     }
+    #cp-guide-toggle-arrow.open { transform: rotate(180deg); }
     #cp-guide-toggle-text b,
     #cp-guide-toggle-text .off {
       display: inline-block;
       min-width: 24px;
       text-align: left;
     }
-    #cp-guide-toggle-text b { color: var(--text); font-weight: 700; }
-    #cp-guide-toggle-text .off { color: #a8a8a2; font-weight: 500; }
+    #cp-guide-toggle-text b { color: #B8434F; font-weight: 700; }
+    #cp-guide-toggle-text .off { color: var(--text-sub); font-weight: 700; }
     #cp-guide-group-body { display: none; }
     #cp-guide-group-body.open { display: block; }
     #cp-guide-row {
       display: none;
       align-items: center;
-      gap: 5px;
-      padding: 8px 10px;
+      gap: 3px;
+      padding: 8px 7px 8px 14px;
       min-height: 28px;
       box-sizing: content-box;
       border-bottom: 1px solid var(--border);
-      background: #cce8e2;
+      background: #EEF6F3;
       flex-wrap: wrap;
       row-gap: 6px;
     }
     /* 目数ガイド行：段数ガイド行と同じ寸法にして、トグルの縦位置を揃える。
-       色は少し薄いミントにして、2つの行がゆるやかに見分けられるようにしている */
+       背景はヘッダー（プライマリカラー）よりだいぶ淡い色にして、階層をはっきりさせている。
+       #EEF6F3はvar(--bg)（#D4E9E2）よりさらに薄めた色。パレットを変えたら手動調整が必要な点に注意 */
     #cp-stitch-row {
       display: none;
       align-items: center;
-      gap: 5px;
-      padding: 8px 10px;
+      gap: 3px;
+      padding: 8px 7px 8px 14px;
       min-height: 28px;
       box-sizing: content-box;
       border-bottom: 1px solid var(--border);
-      background: #cce8e2;
+      background: #EEF6F3;
     }
-    #stitch-mode-toggle-wrap {
+    #cp-stitch-row #stitch-visible-toggle-wrap {
       flex-shrink: 0;
       pointer-events: all;
       transform: scale(0.82);
       transform-origin: left center;
+    }
+    #stitch-count-label {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      pointer-events: none;
+      margin-left: auto;
+      margin-right: 8px;
+      width: 84px;
+      box-sizing: border-box;
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 7px 2px 9px 6px;
+      border-radius: 15px;
+      background: transparent;
+      line-height: 1;
+      transform: translateY(1px);
+      transition: opacity .15s;
+    }
+    #stitch-edit-btn {
+      background: #FFFFFF;
+      border: 1.5px solid var(--border);
+      border-radius: 15px;
+      padding: 7px 13px;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      line-height: 1;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.10);
+      transition: background .15s, border-color .15s, box-shadow .1s, transform .1s;
+      margin-left: 6px;
+      margin-right: 2px;
+      width: 74px;
+      box-sizing: border-box;
+      text-align: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #stitch-edit-btn:hover { background: #E4F2ED; border-color: #93B8AC; }
+    #stitch-edit-btn:active { box-shadow: 0 1px 1px rgba(0,0,0,0.10); transform: scale(.95); }
+    #stitch-edit-btn:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    /* 編集中は少し色を付けて「今アクティブ」であることを示す（無効化されていても、色でそれと分かるように） */
+    #stitch-edit-btn.active {
+      background: #E4F2ED;
+      border-color: #6F9C8C;
     }
     .gp-caption {
       font-family: 'Zen Maru Gothic', sans-serif;
@@ -1280,7 +1432,7 @@
       letter-spacing: .02em;
       pointer-events: none;
       flex-shrink: 0;
-      width: 38px;
+      width: 36px;
       line-height: 1.25;
       text-align: center;
     }
@@ -1289,7 +1441,6 @@
       pointer-events: all;
       transform: scale(0.82);
       transform-origin: left center;
-      margin-right: -6px;
     }
     #gp-step-label {
       font-family: 'Zen Maru Gothic', sans-serif;
@@ -1300,22 +1451,23 @@
       pointer-events: auto;
       cursor: pointer;
       margin-left: auto;
+      margin-right: 8px;
       width: 84px;
       box-sizing: border-box;
-      text-align: center;
+      text-align: left;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding: 2px 6px 4px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.55);
+      padding: 7px 2px 9px 6px;
+      border-radius: 15px;
+      background: transparent;
       line-height: 1;
-      transition: opacity .15s, color .15s, background .15s, transform .1s;
+      transition: opacity .15s, color .15s, background .15s, transform .1s, filter .15s;
     }
     #gp-step-label:hover {
-      background: rgba(255,255,255,0.85);
+      filter: opacity(0.6);
     }
     #gp-step-label:active {
-      background: #FFFFFF;
+      filter: opacity(0.6);
       transform: scale(0.94);
     }
     /* 未計測の間は、押せそうに見えないようにする（実際タップしても何も起きないため）。
@@ -1324,17 +1476,15 @@
     #gp-step-label.unmeasured {
       cursor: default;
       background: transparent;
-      text-align: left;
       opacity: 0.45;
       font-weight: 500;
       font-size: 11px;
       color: #D98C8C;
-      transform: translateY(-1px);
     }
     #gp-step-label.unmeasured:hover,
     #gp-step-label.unmeasured:active {
       background: transparent;
-      transform: translateY(-1px);
+      transform: none;
     }
     /* 1段の高さ微調整カード（浮き出るカード） */
     #step-adjust-card {
@@ -1464,7 +1614,7 @@
     }
     #step-adjust-card-reset:active { opacity: 1; }
     #gp-measure-btn {
-      background: #f8fdfc;
+      background: #FFFFFF;
       border: 1.5px solid var(--border);
       border-radius: 15px;
       padding: 7px 13px;
@@ -1475,6 +1625,7 @@
       cursor: pointer;
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 3px;
       -webkit-tap-highlight-color: transparent;
       white-space: nowrap;
@@ -1482,7 +1633,10 @@
       line-height: 1;
       box-shadow: 0 1px 3px rgba(0,0,0,0.10);
       transition: background .15s, border-color .15s, box-shadow .1s, transform .1s;
-      margin-left: 8px;
+      margin-left: 6px;
+      margin-right: 2px;
+      width: 74px;
+      box-sizing: border-box;
     }
     #gp-measure-btn:hover {
       background: #E4F2ED;
@@ -1497,7 +1651,13 @@
       cursor: not-allowed;
       pointer-events: none;
     }
-    #gp-measure-btn-text {
+    /* 計測中は少し色を付けて「今アクティブ」であることを示す（線引ボタンの.activeと同じ考え方） */
+    #gp-measure-btn.active {
+      background: #E4F2ED;
+      border-color: #6F9C8C;
+    }
+    #gp-measure-btn-text,
+    #stitch-edit-btn-text {
       display: inline-block;
       transform: translateY(-1px);
     }
@@ -1518,19 +1678,25 @@
     #measure-zoomdone-btn,
     #measure-move-ruler-btn,
     #measure-redo-btn,
-    #measure-close-btn {
+    #measure-close-btn,
+    #stitch-hint-undo-btn,
+    #stitch-hint-close-btn {
       transition: opacity .15s, transform .1s, background .15s, border-color .15s;
     }
     #measure-zoomdone-btn:hover,
+    #stitch-hint-done-btn:hover,
     .measure-apply-btn:hover,
     .measure-axis-btn:hover {
       opacity: 0.75;
     }
     #measure-zoomdone-btn:active,
+    #stitch-hint-done-btn:active,
     .measure-axis-btn:active,
     #measure-move-ruler-btn:active,
     #measure-redo-btn:active,
-    #measure-close-btn:active {
+    #measure-close-btn:active,
+    #stitch-hint-undo-btn:active,
+    #stitch-hint-close-btn:active {
       transform: scale(.95);
     }
     #measure-move-ruler-btn.active {
@@ -1541,7 +1707,9 @@
     /* やり直す・閉じる・定規を動かすは、吹き出しをはっきり見せたいのでボタンごと薄くはしない。枠線の色で反応を伝える */
     #measure-move-ruler-btn:hover,
     #measure-redo-btn:hover,
-    #measure-close-btn:hover {
+    #measure-close-btn:hover,
+    #stitch-hint-undo-btn:hover,
+    #stitch-hint-close-btn:hover {
       border-color: var(--primary);
     }
     /* ホバーでふわっと出るツールチップ（やり直す・閉じる・定規を動かす、共通） */
@@ -2185,6 +2353,34 @@
 <div id="stitch-line-actions">
   <button type="button" id="stitch-line-duplicate-btn">📋 複製</button>
   <button type="button" id="stitch-line-delete-btn">🗑 削除</button>
+  <button type="button" id="stitch-line-clear-all-btn">🗑 全部消す</button>
+</div>
+
+<!-- ===== 目数ガイド：線引ボタンを押している間だけ、編み図の上に浮かべるカラーパレット =====
+     設定パネルの色選択と違い、こちらは「今から引く線の色」をその場で選べるようにするためのもの。
+     7色は薄いパステルではなく、線としての視認性を優先した濃い目のトーンにしている（2026年8月〜） -->
+<div id="stitch-color-float">
+  <button class="color-dot" data-color="#B8434F" style="background:#B8434F;" title="赤"></button>
+  <button class="color-dot" data-color="#C07A2E" style="background:#C07A2E;" title="橙"></button>
+  <button class="color-dot" data-color="#A88816" style="background:#A88816;" title="黄"></button>
+  <button class="color-dot" data-color="#357A62" style="background:#357A62;" title="緑"></button>
+  <button class="color-dot" data-color="#3A5FA0" style="background:#3A5FA0;" title="青"></button>
+  <button class="color-dot" data-color="#544FA0" style="background:#544FA0;" title="藍"></button>
+  <button class="color-dot" data-color="#8A4FA0" style="background:#8A4FA0;" title="紫"></button>
+  <input type="color" id="stitch-color" value="#2D4A43" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
+  <label for="stitch-color" class="color-custom-label" title="カラーを選ぶ"></label>
+</div>
+
+<!-- ===== 目数ガイド：線引ボタンを押している間、編み図の上に浮かべるヒントバー =====
+     段数ガイドの計測バー（#measure-bar）と全く同じ考え方（説明文＋操作ボタン、ドラッグ可能）で、
+     操作の一貫性を出している。ここの「完了」を押せば、フロートパネルまで戻らなくても編集を終えられる。
+     線が0本の間は「✕」のみ（まだ何も引いていないので、それ自体が「やめる」の意味になる）。
+     1本以上引いたら「戻る（直前の1本を取り消す。連打で複数本を遡って消せる）」＋「完了」に切り替える -->
+<div id="stitch-hint-bar">
+  <span id="stitch-hint-text">目の境目をタップ</span>
+  <button id="stitch-hint-undo-btn" title="戻る" style="display:none; position:relative; width:28px; height:28px; border-radius:50%; font-size:14px; color:var(--text-sub); background:#f8fdfc; border:1.5px solid var(--border); cursor:pointer; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent;">↺</button>
+  <button id="stitch-hint-close-btn" title="やめる" style="position:relative; width:28px; height:28px; border-radius:50%; background:#f8fdfc; border:1.5px solid var(--border); color:var(--text-sub); font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent;">✕</button>
+  <button id="stitch-hint-done-btn" style="display:none;">完了</button>
 </div>
 
 <!-- ===== 定規オーバーレイ ===== -->
@@ -2233,9 +2429,6 @@
     <!-- ヒント表示（タップ案内） -->
     <span id="measure-hint" style="font-size:13px; font-weight:700; color:var(--text); white-space:normal; flex-shrink:1; min-width:0; text-align:left; line-height:1;">編み図を拡大して1点目をタップ</span>
 
-    <!-- 拡大調整フェーズ専用：拡大完了ボタン -->
-    <button id="measure-zoomdone-btn" style="display:none; background:var(--primary); border:none; border-radius:16px; padding:5px 14px 7px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; color:var(--text); cursor:pointer; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.10); flex-shrink:0; -webkit-tap-highlight-color:transparent;">完了</button>
-
     <!-- 四角定規専用：計測前に縦/横を選ぶトグル -->
     <div id="measure-axis-toggle" style="display:none; align-items:center; gap:4px; flex-shrink:0; background:var(--bg); border-radius:14px; padding:3px;">
       <button id="measure-axis-v" class="measure-axis-btn active" data-axis="v" style="border:none; border-radius:11px; padding:5px 10px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; -webkit-tap-highlight-color:transparent;">↕ 縦</button>
@@ -2248,10 +2441,12 @@
       <button id="measure-apply-btn" class="measure-apply-btn" style="background:var(--primary); border:none; border-radius:16px; padding:6px 14px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; color:var(--text); cursor:pointer; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.10); transition:box-shadow .1s, transform .1s; -webkit-tap-highlight-color:transparent;">1段の高さに設定</button>
     </div>
 
-    <!-- 常設：やり直す・閉じる・定規を動かす -->
+    <!-- 常設：やり直す・閉じる・拡大完了・定規を動かす（キャンセル系→確定系の順に統一。線引バーと同じ考え方） -->
     <div id="measure-action-col" style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
       <button id="measure-redo-btn" title="戻る" style="display:none; position:relative; width:28px; height:28px; border-radius:50%; font-size:14px; color:var(--text-sub); background:#f8fdfc; border:1.5px solid var(--border); cursor:pointer; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent;">↺<span class="action-tooltip">戻る</span></button>
       <button id="measure-close-btn" title="計測を中止する" style="position:relative; width:28px; height:28px; border-radius:50%; background:#f8fdfc; border:1.5px solid var(--border); color:var(--text-sub); font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent;">✕<span class="action-tooltip">計測を中止する</span></button>
+      <!-- 拡大調整フェーズ専用：拡大完了ボタン -->
+      <button id="measure-zoomdone-btn" style="display:none; background:var(--primary); border:none; border-radius:16px; padding:5px 14px 7px; font-family:'Zen Maru Gothic',sans-serif; font-size:11px; font-weight:700; color:var(--text); cursor:pointer; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.10); flex-shrink:0; -webkit-tap-highlight-color:transparent;">完了</button>
       <button id="measure-move-ruler-btn" title="定規を動かす" style="display:none; position:relative; width:28px; height:28px; border-radius:50%; background:#f8fdfc; border:1.5px solid var(--border); cursor:pointer; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent; flex-shrink:0; padding:0;">
         <span id="measure-move-ruler-icon" style="display:block;"></span>
         <span class="action-tooltip">定規を動かす</span>
@@ -2276,16 +2471,19 @@
       <input type="checkbox" id="gp-toggle-guide">
       <span class="toggle-knob"></span>
     </label>
-    <span id="gp-step-label" style="opacity:0;" onclick="toggleStepAdjust(event)">未計測</span>
-    <button id="gp-measure-btn" style="opacity:0; pointer-events:none;"><span id="gp-measure-btn-text">計測</span></button>
+    <button id="gp-measure-btn" style="opacity:0; pointer-events:none;"><span id="gp-measure-btn-text">計測する</span></button>
+    <span id="gp-step-label" style="opacity:0; pointer-events:none;" onclick="toggleStepAdjust(event)">未計測</span>
   </div>
-  <!-- 中段：目数ガイド行（直線定規のみ・段数ガイド行と同じ作りで縦位置を揃える） -->
+  <!-- 中段：目数ガイド行（直線定規のみ・段数ガイド行と全く同じ構成にして一貫性を出す：
+       キャプション／表示トグル／線引ボタン／本数ラベル） -->
   <div id="cp-stitch-row">
     <span class="gp-caption">目数<br>ガイド</span>
-    <label class="toggle-switch" id="stitch-mode-toggle-wrap">
-      <input type="checkbox" id="stitch-mode-toggle">
+    <label class="toggle-switch" id="stitch-visible-toggle-wrap">
+      <input type="checkbox" id="stitch-visible-toggle">
       <span class="toggle-knob"></span>
     </label>
+    <button id="stitch-edit-btn" style="opacity:0; pointer-events:none;"><span id="stitch-edit-btn-text">線を引く</span></button>
+    <span id="stitch-count-label" style="opacity:0; pointer-events:none;">縦線：0本</span>
   </div>
   </div><!-- /#cp-guide-group-body -->
   <!-- 下段：カウンター行 -->
@@ -2308,7 +2506,6 @@
   </div>
   <button type="button" id="step-adjust-card-reset" onclick="confirmResetStepValue()">未計測に戻す</button>
 </div>
-
 
 
 
@@ -2471,33 +2668,18 @@
           <span class="card-accordion-arrow">▼</span>
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 14px; gap:6px;">
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">段数カウンターの中の「目数ガイド」スイッチをONにすると使えます。編み図をタップした場所に、目安の縦線を置けます。</p>
-          <div class="ruler-control" style="margin-top:8px; flex-direction:row !important; align-items:center !important; justify-content:space-between; width:100%;">
-            <label>線を表示</label>
-            <label class="toggle-switch" id="stitch-visible-toggle-wrap">
-              <input type="checkbox" id="stitch-visible-toggle" checked>
-              <span class="toggle-knob"></span>
-            </label>
-          </div>
-          <div class="ruler-control ruler-color-row">
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">段数カウンターの中の「目数ガイド」の「線を引く」ボタンを押すと使えます。編み図をタップした場所に、目安の縦線を置けます。</p>
+          <div class="ruler-control" style="gap:12px; margin-top:8px;">
             <label>カラー</label>
-            <div class="color-presets" id="stitch-color-presets">
-              <button class="color-dot" data-color="#E8A8AC" style="background:#E8A8AC;" title="赤"></button>
-              <button class="color-dot" data-color="#F0C29C" style="background:#F0C29C;" title="橙"></button>
-              <button class="color-dot" data-color="#F4E8B8" style="background:#F4E8B8;" title="黄"></button>
-              <button class="color-dot" data-color="#B8DCD4" style="background:#B8DCD4;" title="緑"></button>
-              <button class="color-dot" data-color="#B8C8E2" style="background:#B8C8E2;" title="青"></button>
-              <button class="color-dot" data-color="#A8AEDC" style="background:#A8AEDC;" title="藍"></button>
-              <button class="color-dot" data-color="#D4C6E2" style="background:#D4C6E2;" title="紫"></button>
-              <input type="color" id="stitch-color" value="#2D4A43" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
-              <label for="stitch-color" class="color-custom-label" title="カラーを選ぶ"></label>
+            <div>
+              <div class="ruler-op-desc">「線を引く」を押すと表示されるパレットから選択</div>
             </div>
           </div>
           <div class="ruler-control ruler-slider-row">
             <label for="stitch-thickness">太さ</label>
             <div style="display:flex; align-items:center; gap:10px; width:100%; max-width:203px;">
-              <input type="range" id="stitch-thickness" min="2" max="8" value="4" step="1" style="width:116px; flex:none;">
-              <span id="stitch-thickness-label">4px</span>
+              <input type="range" id="stitch-thickness" min="2" max="8" value="5" step="1" style="width:116px; flex:none;">
+              <span id="stitch-thickness-label">5px</span>
             </div>
           </div>
         </div>
@@ -2828,7 +3010,9 @@
   const placeholder  = document.getElementById('placeholder');
   const fileInput    = document.getElementById('file-input');
   const filenameLabel= document.getElementById('filename-label');
-  const stitchModeToggle = document.getElementById('stitch-mode-toggle');
+  const stitchEditBtn = document.getElementById('stitch-edit-btn');
+  const stitchEditBtnText = document.getElementById('stitch-edit-btn-text');
+  const stitchCountLabel = document.getElementById('stitch-count-label');
   const cpStitchRow = document.getElementById('cp-stitch-row');
   const stitchGuideBoundsWrap = document.getElementById('stitch-guide-bounds');
   const stitchGuideTopHandle = document.getElementById('stitch-guide-top-handle');
@@ -2836,8 +3020,14 @@
   const stitchLineActionsWrap = document.getElementById('stitch-line-actions');
   const stitchLineDuplicateBtn = document.getElementById('stitch-line-duplicate-btn');
   const stitchLineDeleteBtn = document.getElementById('stitch-line-delete-btn');
+  const stitchLineClearAllBtn = document.getElementById('stitch-line-clear-all-btn');
   const stitchColorInput = document.getElementById('stitch-color');
-  const stitchColorPresets = document.getElementById('stitch-color-presets');
+  const stitchColorPresets = document.getElementById('stitch-color-float');
+  const stitchHintBar = document.getElementById('stitch-hint-bar');
+  const stitchHintText = document.getElementById('stitch-hint-text');
+  const stitchHintUndoBtn = document.getElementById('stitch-hint-undo-btn');
+  const stitchHintCloseBtn = document.getElementById('stitch-hint-close-btn');
+  const stitchHintDoneBtn = document.getElementById('stitch-hint-done-btn');
   const stitchThicknessInput = document.getElementById('stitch-thickness');
   const stitchThicknessLabel = document.getElementById('stitch-thickness-label');
   const stitchVisibleToggle = document.getElementById('stitch-visible-toggle');
@@ -2894,8 +3084,11 @@
   let selectedStitchLine  = null; // 選択中の線のインデックス（null＝未選択）
   let stitchLineDragIndex = null; // ドラッグで移動中の線のインデックス（null＝移動中ではない）
   let stitchGuideColor     = '#2D4A43'; // 線・点線・つまみ・複製削除ボタンの色（共通）
-  let stitchGuideThickness = 4;         // 線の太さ(px)
-  let stitchGuideVisible   = true;      // 表示ON/OFF（線を消さずに一時的に隠すだけのスイッチ）
+  let stitchGuideThickness = 5;         // 線の太さ(px)。初回起動時のデフォルト
+  let stitchGuideVisible   = false;     // 表示ON/OFF（線を消さずに一時的に隠すだけのスイッチ）。初期状態はOFF
+                                         // （編み図を開いても自動ではONにしない。編み図が変われば線は
+                                         //   どのみち引き直しになるので、毎回ユーザー自身が
+                                         //   「トグルON→線引ボタン」の順で使い始める形に統一する）
 
   let rowCount    = 0;
   let rulerAlpha100 = 80;
@@ -2984,8 +3177,15 @@
             selectedStitchLine = null;
             stitchGuideTopY = null;
             stitchGuideBottomY = null;
-            if (stitchModeToggle) stitchModeToggle.checked = false;
+            // 画像が変わればどのみち線は引き直しになるので、自動でONには戻さない。
+            // 毎回ユーザー自身が「トグルON→線引ボタン」の順で使い始める形に統一する
+            stitchGuideVisible = false;
+            if (stitchVisibleToggle) stitchVisibleToggle.checked = false;
+            if (typeof updateStitchWidthLabelVisibility === 'function') updateStitchWidthLabelVisibility();
+            if (typeof updateStitchLineCountLabel === 'function') updateStitchLineCountLabel();
+            if (stitchEditBtn) { stitchEditBtn.disabled = false; stitchEditBtn.classList.remove('active'); }
             viewer.style.cursor = '';
+            resetStitchModeRulerLook();
           }
           canvas.style.display = 'block';
           viewer.classList.add('has-image');
@@ -3055,6 +3255,7 @@
   // 目数ガイド：選択中の線の座標に、複製・削除ミニボタンを合わせる
   function positionStitchLineActions() {
     if (!stitchLineActionsWrap) return;
+    // 見るだけモードでは線に触れられない＝選択も起こらないので、編集モード中に限定する
     const shouldShow = stitchGuideMode && stitchGuideVisible && currentRulerTab === 'band' && img
       && selectedStitchLine !== null && stitchGuideLines[selectedStitchLine] !== undefined;
     stitchLineActionsWrap.style.display = shouldShow ? 'flex' : 'none';
@@ -3285,7 +3486,8 @@
   function updateGuideGroupUI() {
     if (!cpGuideGroupBody) return;
     cpGuideGroupBody.classList.toggle('open', guideGroupOpen);
-    if (cpGuideToggleArrow) cpGuideToggleArrow.textContent = guideGroupOpen ? '▲' : '▼';
+    // 矢印はテキストの切り替えではなく、既存の.card-accordion-arrowと同じ「▼固定＋回転」方式に統一
+    if (cpGuideToggleArrow) cpGuideToggleArrow.classList.toggle('open', guideGroupOpen);
   }
   window.toggleGuideGroup = function() {
     // ドラッグ済み（top/left指定に切り替わっている）の時だけ、高さの変化分を位置補正する。
@@ -3295,10 +3497,16 @@
     guideGroupOpen = !guideGroupOpen;
     updateGuideGroupUI();
     if (wasDragged) {
-      const afterH = counterPanel.offsetHeight;
-      const delta = afterH - beforeH; // 開く時は正、閉じる時は負
-      const pos = getCpPos();
-      setCpPos(pos.x, pos.y - delta); // 下端（カウンター部分）の画面上の位置を変えないよう補正
+      // 高さの再測定（offsetHeight）は次のフレームまで遅らせる。
+      // updateGuideGroupUI()の直後にoffsetHeightを読むとブラウザが強制的にレイアウトを
+      // 再計算してしまい、そのタイミングによっては矢印のtransform（回転）トランジションが
+      // 開始前に完了扱いにされてスキップされることがあったため（2026年8月〜）
+      requestAnimationFrame(() => {
+        const afterH = counterPanel.offsetHeight;
+        const delta = afterH - beforeH; // 開く時は正、閉じる時は負
+        const pos = getCpPos();
+        setCpPos(pos.x, pos.y - delta); // 下端（カウンター部分）の画面上の位置を変えないよう補正
+      });
     }
     try { localStorage.setItem(GUIDE_GROUP_KEY, guideGroupOpen ? '1' : '0'); } catch(e) {}
   };
@@ -3359,6 +3567,18 @@
     if (e.target.closest('#step-adjust-card') || e.target.closest('#gp-step-label')) return;
     closeStepAdjustCard();
   });
+
+  /* ===== 目数ガイド：線の本数ラベル（縦線：◯本）と、ヒントバーの表示を更新 =====
+     線が1本もない間は「目の境目をタップ」＋✕（それ自体が「やめる」の意味を兼ねる）。
+     1本以上引いたら「引き終わったら『完了』をタップ」＋戻る（直前の1本を取り消す）＋完了に切り替える */
+  function updateStitchLineCountLabel() {
+    if (stitchCountLabel) stitchCountLabel.textContent = '縦線：' + stitchGuideLines.length + '本';
+    const hasLines = stitchGuideLines.length > 0;
+    if (stitchHintText) stitchHintText.textContent = hasLines ? '引き終わったら「完了」をタップ' : '目の境目をタップ';
+    if (stitchHintUndoBtn) stitchHintUndoBtn.style.display = hasLines ? 'flex' : 'none';
+    if (stitchHintCloseBtn) stitchHintCloseBtn.style.display = hasLines ? 'none' : 'flex';
+    if (stitchHintDoneBtn) stitchHintDoneBtn.style.display = hasLines ? 'inline-block' : 'none';
+  }
   // ±ボタン：1段の高さを1pxだけ微調整する
   function adjustStepValue(delta) {
     const MAX_STEP = 999;
@@ -3432,8 +3652,18 @@
       effStep = rulerStep;
       scaledBase = baseStep > 0 ? Math.max(1, Math.round(baseStep * scale)) : 0;
     }
+    // 保存データにガイドON状態が残っていても、肝心の画像が無ければ使えないので強制OFFに戻す
+    // （ページの再読み込み直後は画像が空の状態からスタートするため、ここで必ず整合させる）
+    if (isOn && !img) {
+      isOn = false;
+      effStep = 0;
+      if (tab === 'circle') { circleGuideOn = false; circleStep = 0; }
+      else if (tab === 'box') { boxGuideOn = false; boxStep = 0; }
+      else { rulerGuideOn = false; rulerStep = 0; }
+    }
     gpToggleGuide.checked = isOn;
     gpStepLabel.style.opacity = isOn ? '1' : '0';
+    gpStepLabel.style.pointerEvents = isOn ? 'auto' : 'none';
     gpMeasureBtn.style.opacity = isOn ? '1' : '0';
     gpMeasureBtn.style.pointerEvents = isOn ? 'auto' : 'none';
     if (baseStep > 0) {
@@ -3454,14 +3684,20 @@
     else isOn = rulerGuideOn;
     let html = '段数ガイド：' + (isOn ? '<b>ON</b>' : '<span class="off">OFF</span>');
     if (currentRulerTab === 'band') {
-      html += '　目数ガイド：' + (stitchGuideMode ? '<b>ON</b>' : '<span class="off">OFF</span>');
+      html += '　目数ガイド：' + (stitchGuideVisible ? '<b>ON</b>' : '<span class="off">OFF</span>');
     }
     cpGuideToggleText.innerHTML = html;
   }
 
   gpToggleGuide.addEventListener('change', function() {
     const isOn = this.checked;
+    if (isOn && !img) {
+      this.checked = false;
+      showModal('段数ガイドを使うためには\nメニューパネルから\n編み図を開いてください', 'OK', () => {}, false);
+      return;
+    }
     gpStepLabel.style.opacity = isOn ? '1' : '0';
+    gpStepLabel.style.pointerEvents = isOn ? 'auto' : 'none';
     gpMeasureBtn.style.opacity = isOn ? '1' : '0';
     gpMeasureBtn.style.pointerEvents = isOn ? 'auto' : 'none';
     if (currentRulerTab === 'circle') {
@@ -3514,6 +3750,10 @@
   // 📏計測ボタン：押したときだけ計測モードを起動（カウント中の誤タップ対策として確認モーダルを挟む）
   let measureBtnTouched = false;
   function confirmStartMeasure() {
+    if (!img) {
+      showModal('段数ガイドを使うためには\nメニューパネルから\n編み図を開いてください', 'OK', () => {}, false);
+      return;
+    }
     showModal('1段の高さを計測しますか？', '計測する', () => {
       if (window.startMeasure) window.startMeasure();
     });
@@ -4290,7 +4530,137 @@
       applyStitchGuideColor();
       saveSettings();
     });
+
+    /* ===== カラーパレットのドラッグ（自由に位置を動かせるように。計測バーと同じ考え方） ===== */
+    let scfDragging = false, scfDragStartX = 0, scfDragStartY = 0, scfBarX = 0, scfBarY = 0;
+    function getScfPos() {
+      const r = stitchColorPresets.getBoundingClientRect();
+      return { x: r.left, y: r.top };
+    }
+    function setScfPos(x, y) {
+      const bw = stitchColorPresets.offsetWidth;
+      const bh = stitchColorPresets.offsetHeight;
+      const cx = Math.max(8, Math.min(window.innerWidth  - bw - 8, x));
+      const cy = Math.max(8, Math.min(window.innerHeight - bh - 8, y));
+      stitchColorPresets.style.transform = 'none';
+      stitchColorPresets.style.left = cx + 'px';
+      stitchColorPresets.style.top  = cy + 'px';
+    }
+    // 色ドット・カスタムピッカーの上ではドラッグを開始しない（タップでの色選択を優先する）
+    function isScfDragExcluded(target) {
+      return !!(target.closest('.color-dot') || target.closest('.color-custom-label'));
+    }
+    stitchColorPresets.addEventListener('pointerdown', e => {
+      if (isScfDragExcluded(e.target)) return;
+      e.stopPropagation();
+      e.preventDefault();
+      scfDragging = true;
+      const pos = getScfPos();
+      scfDragStartX = e.clientX; scfDragStartY = e.clientY;
+      scfBarX = pos.x; scfBarY = pos.y;
+      stitchColorPresets.setPointerCapture(e.pointerId);
+      stitchColorPresets.classList.add('dragging');
+    });
+    stitchColorPresets.addEventListener('pointermove', e => {
+      if (!scfDragging) return;
+      e.stopPropagation();
+      setScfPos(scfBarX + e.clientX - scfDragStartX, scfBarY + e.clientY - scfDragStartY);
+    });
+    stitchColorPresets.addEventListener('pointerup', e => {
+      if (!scfDragging) return;
+      e.stopPropagation();
+      scfDragging = false;
+      stitchColorPresets.classList.remove('dragging');
+    });
+    stitchColorPresets.addEventListener('pointercancel', () => {
+      scfDragging = false;
+      stitchColorPresets.classList.remove('dragging');
+    });
+    // パレット上でのタップ・タッチが、下の編み図側（線の配置やパン操作）に伝わらないようにする
+    stitchColorPresets.addEventListener('click', e => e.stopPropagation());
+    stitchColorPresets.addEventListener('touchstart', e => e.stopPropagation());
   }
+
+  // ヒントバーの「完了」ボタン：フロートパネルまで戻らなくても、その場で編集を終えられる
+  if (stitchHintDoneBtn) {
+    stitchHintDoneBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      stopStitchGuideMode();
+    });
+  }
+  // ヒントバーの「✕」：線がまだ0本の間だけ出ている。押すと編集モードを終了する（完了ボタンと同じ動作）
+  if (stitchHintCloseBtn) {
+    stitchHintCloseBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      stopStitchGuideMode();
+    });
+  }
+  // ヒントバーの「戻る」：一番最後に引いた線を1本だけ取り消す。何度でも押せて、押すたびに1本ずつ遡って消える
+  if (stitchHintUndoBtn) {
+    stitchHintUndoBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (stitchGuideLines.length === 0) return;
+      stitchGuideLines.pop();
+      if (selectedStitchLine !== null && selectedStitchLine >= stitchGuideLines.length) {
+        selectedStitchLine = null;
+      }
+      updateStitchLineCountLabel();
+      positionStitchLineActions();
+      drawImage();
+    });
+  }
+  // ヒントバーのドラッグ（自由に位置を動かせるように。カラーパレットと同じ考え方）
+  if (stitchHintBar) {
+    let shbDragging = false, shbDragStartX = 0, shbDragStartY = 0, shbBarX = 0, shbBarY = 0;
+    function getShbPos() {
+      const r = stitchHintBar.getBoundingClientRect();
+      return { x: r.left, y: r.top };
+    }
+    function setShbPos(x, y) {
+      const bw = stitchHintBar.offsetWidth;
+      const bh = stitchHintBar.offsetHeight;
+      const cx = Math.max(8, Math.min(window.innerWidth  - bw - 8, x));
+      const cy = Math.max(8, Math.min(window.innerHeight - bh - 8, y));
+      stitchHintBar.style.transform = 'none';
+      stitchHintBar.style.left = cx + 'px';
+      stitchHintBar.style.top  = cy + 'px';
+    }
+    // ボタン（完了・戻る・✕）の上ではドラッグを開始しない
+    function isShbDragExcluded(target) {
+      return !!(target.closest('#stitch-hint-done-btn')
+        || target.closest('#stitch-hint-undo-btn')
+        || target.closest('#stitch-hint-close-btn'));
+    }
+    stitchHintBar.addEventListener('pointerdown', e => {
+      if (isShbDragExcluded(e.target)) return;
+      e.stopPropagation();
+      e.preventDefault();
+      shbDragging = true;
+      const pos = getShbPos();
+      shbDragStartX = e.clientX; shbDragStartY = e.clientY;
+      shbBarX = pos.x; shbBarY = pos.y;
+      stitchHintBar.setPointerCapture(e.pointerId);
+      stitchHintBar.classList.add('dragging');
+    });
+    stitchHintBar.addEventListener('pointermove', e => {
+      if (!shbDragging) return;
+      e.stopPropagation();
+      setShbPos(shbBarX + e.clientX - shbDragStartX, shbBarY + e.clientY - shbDragStartY);
+    });
+    stitchHintBar.addEventListener('pointerup', e => {
+      if (!shbDragging) return;
+      e.stopPropagation();
+      shbDragging = false;
+      stitchHintBar.classList.remove('dragging');
+    });
+    stitchHintBar.addEventListener('pointercancel', () => {
+      shbDragging = false;
+      stitchHintBar.classList.remove('dragging');
+    });
+    stitchHintBar.addEventListener('click', e => e.stopPropagation());
+    stitchHintBar.addEventListener('touchstart', e => e.stopPropagation());
+  }
+
   if (stitchThicknessInput) {
     stitchThicknessInput.addEventListener('input', () => {
       stitchGuideThickness = parseInt(stitchThicknessInput.value);
@@ -4301,11 +4671,33 @@
   }
   applyStitchGuideColor(); // 初期値をCSS変数に反映（見た目の色を最初から統一させる）
 
+  // 表示トグルの状態に合わせて「縦線：◯本」ラベル・「線引」ボタン両方の見た目（opacity・タップ可否）を揃える。
+  // stitchVisibleToggleのchangeイベントだけでなく、画像を消す・読み込む処理などJSから
+  // 直接stitchGuideVisibleを変える場合もあるため、呼び出しを一本化して更新漏れを防ぐ
+  function updateStitchWidthLabelVisibility() {
+    if (stitchCountLabel) {
+      stitchCountLabel.style.opacity = stitchGuideVisible ? '1' : '0';
+      stitchCountLabel.style.pointerEvents = 'none'; // タップしても何も起きない、ただの本数表示
+    }
+    if (stitchEditBtn) {
+      stitchEditBtn.style.opacity = stitchGuideVisible ? '1' : '0';
+      stitchEditBtn.style.pointerEvents = stitchGuideVisible ? 'auto' : 'none';
+    }
+  }
   if (stitchVisibleToggle) {
     stitchVisibleToggle.addEventListener('change', () => {
-      stitchGuideVisible = stitchVisibleToggle.checked;
+      const isOn = stitchVisibleToggle.checked;
+      if (isOn && !img) {
+        stitchVisibleToggle.checked = false;
+        showModal('目数ガイドを使うためには\nメニューパネルから\n編み図を開いてください', 'OK', () => {}, false);
+        return;
+      }
+      stitchGuideVisible = isOn;
       // OFFにした時、線を操作するモード中だと見えないまま操作できてしまうので、モードごと終了する
       if (!stitchGuideVisible && stitchGuideMode) stopStitchGuideMode();
+      // 段数ガイドの「計測」ボタンと同じく、表示OFFの間は「線幅」ラベル・「線引」ボタンとも触れなくする
+      updateStitchWidthLabelVisibility();
+      updateGuideStatusText();
       drawImage();
     });
   }
@@ -4314,17 +4706,42 @@
   // 段数ガイドと同じ考え方で、トグル1つでモードのON/OFFを切り替える（確認モーダルは挟まない）。
   // トグル自体は#cp-stitch-rowに常設なので、モード中も#cp-stitch-rowだけは隠さない
   // （隠すと自分自身をOFFに戻せなくなるため）。段数ガイド行・カウント行はモード中だけ隠す。
+  // 目数ガイド編集モード中、定規は隠さず「薄く・掴めない」状態にする（2026年8月〜）
+  // 以前はdisplay:noneで完全に消していたが、目数ガイドをOFFにしないと定規に触れなくなり不便だったため変更。
+  // 帯（#ruler-handle）だけpointer-eventsをnoneにすればタップは画像側へ貫通する
+  // （#ruler-overlay自体は元々pointer-events:noneで、帯だけが個別にpointer-events:allになっている作りのため）
+  // 目数ガイド編集モードの「定規を薄く・掴めなくする」見た目と、ヒントバー・カラーパレットの表示を元に戻す。
+  // stitchGuideModeを直接falseにする箇所（画像読込・画像消去・タブ切替）でも、
+  // stopStitchGuideMode()を通さない場合はこれを呼んで見た目を必ず元に戻す
+  function resetStitchModeRulerLook() {
+    rulerOverlay.style.opacity = '';
+    rulerHandle.style.pointerEvents = 'all';
+    if (stitchHintBar) stitchHintBar.classList.remove('show');
+    if (stitchColorPresets) stitchColorPresets.classList.remove('show');
+    if (gpMeasureBtn) gpMeasureBtn.disabled = false;
+  }
+  const STITCH_MODE_RULER_OPACITY = '0.4';
   function startStitchGuideMode() {
     stitchGuideMode = true;
-    if (stitchModeToggle) stitchModeToggle.checked = true;
+    // フロートパネル側の「線引」ボタンはヒントバーの✕／完了と役目が重複するので、
+    // 編集中は押せなくする（段数ガイドの「計測」ボタンが計測中に押せなくなるのと同じ考え方。2026年8月〜）
+    if (stitchEditBtn) { stitchEditBtn.disabled = true; stitchEditBtn.classList.add('active'); }
+    // 段数ガイドの「計測」も同時には使わせない。行は隠さず、ボタンだけ押せなくする（逆方向も同じ考え方に揃える）
+    if (gpMeasureBtn) gpMeasureBtn.disabled = true;
     viewer.style.cursor = 'crosshair';
     selectedStitchLine = null;
     // 線を操作するモードなので、表示が隠れたままだと見えなくて困る→必ずONに戻す
     stitchGuideVisible = true;
     if (stitchVisibleToggle) stitchVisibleToggle.checked = true;
-    // 定規本体だけは操作の邪魔になるので隠すが、カウンター・段数ガイドはそのまま見えるようにしておく
+    updateStitchWidthLabelVisibility();
+    updateStitchLineCountLabel();
+    // 線引ボタンを押している間だけ、編み図の上にヒントバー・カラーパレットを出す
+    if (stitchHintBar) stitchHintBar.classList.add('show');
+    if (stitchColorPresets) stitchColorPresets.classList.add('show');
+    // 定規は見えたまま薄くし、帯をタップできなくする（誤操作防止はそのまま維持）
     if (currentRulerTab === 'band') {
-      rulerOverlay.style.display = 'none';
+      rulerOverlay.style.opacity = STITCH_MODE_RULER_OPACITY;
+      rulerHandle.style.pointerEvents = 'none';
     }
     positionStitchGuideBounds();
     positionStitchLineActions();
@@ -4332,27 +4749,33 @@
   }
   function stopStitchGuideMode() {
     stitchGuideMode = false;
-    if (stitchModeToggle) stitchModeToggle.checked = false;
+    if (stitchEditBtn) { stitchEditBtn.disabled = false; stitchEditBtn.classList.remove('active'); }
+    if (gpMeasureBtn) gpMeasureBtn.disabled = false;
     viewer.style.cursor = '';
     selectedStitchLine = null;
+    updateStitchLineCountLabel();
+    if (stitchHintBar) stitchHintBar.classList.remove('show');
+    if (stitchColorPresets) stitchColorPresets.classList.remove('show');
+    // 定規を元の濃さ・操作可能な状態に戻す
     if (currentRulerTab === 'band') {
-      rulerOverlay.style.display = 'block';
+      rulerOverlay.style.opacity = '';
+      rulerHandle.style.pointerEvents = 'all';
     }
     positionStitchGuideBounds();
     positionStitchLineActions();
     updateGuideStatusText();
   }
-  if (stitchModeToggle) {
-    stitchModeToggle.addEventListener('change', () => {
-      if (stitchModeToggle.checked) {
-        // 確定するまではOFFに戻しておき、「使う」が押されたら本当にONにする
-        stitchModeToggle.checked = false;
-        showModal('目数ガイドを使いますか？\n目と目の境をタップすると、\n縦線を引けます。', '使う', () => {
-          startStitchGuideMode();
-        });
-      } else {
-        stopStitchGuideMode();
+  // 「線引」ボタン：押すと編集モードを開始する。編集中はdisabledになるので、
+  // 押している間にもう一度押されることはない（終了はヒントバーの✕／完了が担当する）
+  if (stitchEditBtn) {
+    stitchEditBtn.addEventListener('click', () => {
+      if (!img) {
+        showModal('目数ガイドを使うためには\nメニューパネルから\n編み図を開いてください', 'OK', () => {}, false);
+        return;
       }
+      showModal('目数ガイドを使いますか？', '使う', () => {
+        startStitchGuideMode();
+      });
     });
   }
 
@@ -4374,6 +4797,8 @@
 
   let stitchTapActive = false, stitchTapStartX = 0, stitchTapStartY = 0, stitchTapStartTime = 0;
   viewer.addEventListener('pointerdown', e => {
+    // 「線引」ボタンで編集モードにしている間だけ、編み図上の線に反応する。
+    // 見るだけの状態では線に一切タッチできないようにして、誤って触って編集に入り込むのを防ぐ
     if (!stitchGuideMode || !img) return;
     if (e.target.closest('#float-panel') || e.target.closest('#counter-panel') || e.target.closest('#stitch-guide-bounds') || e.target.closest('#stitch-line-actions')) return;
     const rect = viewer.getBoundingClientRect();
@@ -4421,6 +4846,7 @@
         const imgX = (sx - offsetX) / scale;
         if (imgX >= 0 && imgX <= img.width) {
           stitchGuideLines.push(imgX);
+          updateStitchLineCountLabel();
           drawImage();
         }
       }
@@ -4438,6 +4864,7 @@
       newX = Math.max(0, Math.min(img.width, newX));
       stitchGuideLines.push(newX);
       selectedStitchLine = stitchGuideLines.length - 1;
+      updateStitchLineCountLabel();
       drawImage();
     });
   }
@@ -4447,7 +4874,22 @@
       if (selectedStitchLine === null) return;
       stitchGuideLines.splice(selectedStitchLine, 1);
       selectedStitchLine = null;
+      updateStitchLineCountLabel();
       drawImage();
+    });
+  }
+  // 全部消す：取り返しがつかない操作なので確認モーダルを挟む
+  if (stitchLineClearAllBtn) {
+    stitchLineClearAllBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (selectedStitchLine === null) return;
+      showModal('目数ガイドの縦線を\n全部消しますか？', '全部消す', () => {
+        stitchGuideLines = [];
+        selectedStitchLine = null;
+        updateStitchLineCountLabel();
+        positionStitchLineActions();
+        drawImage();
+      });
     });
   }
 
@@ -4757,8 +5199,9 @@
   counterPanel.addEventListener('pointerdown', e => {
     if (e.target.closest('.cp-btn')) return;
     if (e.target.closest('#gp-toggle-wrap')) return;
-    if (e.target.closest('#stitch-mode-toggle-wrap')) return;
+    if (e.target.closest('#stitch-visible-toggle-wrap')) return;
     if (e.target.closest('#gp-measure-btn')) return;
+    if (e.target.closest('#stitch-edit-btn')) return;
     // 未計測の時はタップしても何も起きないので、そこからパネルをドラッグできるようにする。
     // 計測値が出ている時（例：1段：66px）は、タップで調整カードを開く動作を優先し、ドラッグは始めない。
     if (e.target.closest('#gp-step-label') && gpStepLabel.textContent !== '未計測') return;
@@ -5035,16 +5478,34 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     filenameLabel.textContent = '';
     fileInput.value = '';
+
+    // 画像を消したら、段数ガイド（このタブ用）も自動でOFFに戻す
+    // （画像がないと使えない機能を、ONのまま残しておくと紛らわしいため）
+    let guideWasOn;
+    if (currentRulerTab === 'circle') guideWasOn = circleGuideOn;
+    else if (currentRulerTab === 'box') guideWasOn = boxGuideOn;
+    else guideWasOn = rulerGuideOn;
+    if (guideWasOn && gpToggleGuide.checked) {
+      gpToggleGuide.checked = false;
+      gpToggleGuide.dispatchEvent(new Event('change'));
+    }
+
     if (currentRulerTab === 'band') {
       stitchGuideLines = [];
       stitchGuideMode = false;
       selectedStitchLine = null;
       stitchGuideTopY = null;
       stitchGuideBottomY = null;
-      if (stitchModeToggle) stitchModeToggle.checked = false;
+      stitchGuideVisible = false;
+      if (stitchVisibleToggle) stitchVisibleToggle.checked = false;
+      if (typeof updateStitchWidthLabelVisibility === 'function') updateStitchWidthLabelVisibility();
+      if (typeof updateStitchLineCountLabel === 'function') updateStitchLineCountLabel();
+      if (stitchEditBtn) { stitchEditBtn.disabled = false; stitchEditBtn.classList.remove('active'); }
       viewer.style.cursor = '';
       rulerOverlay.style.display = 'block';
+      resetStitchModeRulerLook();
       positionStitchGuideBounds();
+      updateGuideStatusText();
     }
     updateUploadClearBtn();
     saveChartStateForTab(currentRulerTab);
@@ -5166,8 +5627,9 @@
     if (tab !== 'band') {
       stitchGuideMode = false;
       selectedStitchLine = null;
-      if (stitchModeToggle) stitchModeToggle.checked = false;
+      if (stitchEditBtn) { stitchEditBtn.disabled = false; stitchEditBtn.classList.remove('active'); }
       viewer.style.cursor = '';
+      resetStitchModeRulerLook();
     }
     positionStitchGuideBounds();
   };
@@ -7415,6 +7877,7 @@
       // 「計測前のサイズ」を覚えていた記憶が今の拡大中の状態で上書きされてしまうバグになるため。
       // 仕切り直したい時は、計測画面内の「やり直す」ボタンを使う）
       gpMeasureBtn.disabled = true;
+      gpMeasureBtn.classList.add('active');
       pt1 = null; pt2 = null;
       adjustDragTarget = null;
       ctx.clearRect(0, 0, cvs.width, cvs.height);
@@ -7434,9 +7897,10 @@
       // 拡大調整中は編み図側のピンチ/ホイール操作をそのまま通すため、overlay自体はクリックを拾わない。
       // バー（#measure-bar）にはpointer-events:allが個別指定済みなので、ボタン操作はできる。
       overlay.style.pointerEvents = 'none';
-      // 計測中は目数ガイドの操作と混ざらないよう、モードが動いていたら終了し、トグル行も隠す
+      // 計測中は目数ガイドの操作と混ざらないよう、モードが動いていたら終了する。
+      // 行自体は隠さず、代わりに「線引」ボタンだけ押せなくする（段数ガイド計測中でも目数ガイドの状態は見えたままにしたいため）
       if (stitchGuideMode) stopStitchGuideMode();
-      if (cpStitchRow) cpStitchRow.style.display = 'none';
+      if (stitchEditBtn) stitchEditBtn.disabled = true;
       // 計測中は編み図を隠さないよう、定規本体を一時的に隠す（「定規を動かす」操作が不要になる）
       if (currentRulerTab === 'band') rulerHandle.style.display = 'none';
       else if (currentRulerTab === 'circle') circleOverlay.style.display = 'none';
@@ -7453,6 +7917,7 @@
       gpStepLabel.style.cursor = '';
       stepAdjustLocked = false;
       gpMeasureBtn.disabled = false;
+      gpMeasureBtn.classList.remove('active');
       // 計測前の表示サイズ・位置に自動で戻す（編みやすい大きさのまま計測を終えられるように）
       if (preMeasureScale != null) {
         scale = preMeasureScale; offsetX = preMeasureOffsetX; offsetY = preMeasureOffsetY;
@@ -7489,8 +7954,8 @@
       if (currentRulerTab === 'band') rulerHandle.style.display = '';
       else if (currentRulerTab === 'circle') circleOverlay.style.display = 'block';
       else if (currentRulerTab === 'box') boxOverlay.style.display = 'block';
-      // 隠していた目数ガイドの行も、直線定規タブなら元に戻す
-      if (cpStitchRow && currentRulerTab === 'band') cpStitchRow.style.display = showCounter ? 'flex' : 'none';
+      // 計測中に押せなくしていた目数ガイドの「線引」ボタンを元に戻す
+      if (stitchEditBtn) stitchEditBtn.disabled = false;
       const tapHint = document.getElementById('tap-hint');
       if (tapHint) tapHint.style.display = '';
     }
