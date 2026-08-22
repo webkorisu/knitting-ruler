@@ -1326,6 +1326,7 @@
       transition: transform .25s ease;
       color: var(--text-sub);
       opacity: .6;
+      will-change: transform;
     }
     #cp-guide-toggle-arrow.open { transform: rotate(180deg); }
     #cp-guide-toggle-text b,
@@ -1476,10 +1477,9 @@
     #gp-step-label.unmeasured {
       cursor: default;
       background: transparent;
-      opacity: 0.45;
       font-weight: 500;
-      font-size: 11px;
-      color: #D98C8C;
+      font-size: 12px;
+      color: #C3676F;
     }
     #gp-step-label.unmeasured:hover,
     #gp-step-label.unmeasured:active {
@@ -2667,15 +2667,17 @@
           <span>目数ガイド</span>
           <span class="card-accordion-arrow">▼</span>
         </button>
-        <div class="card-accordion-body" style="padding:14px 12px 14px; gap:6px;">
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">段数カウンターの中の「目数ガイド」の「線を引く」ボタンを押すと使えます。編み図をタップした場所に、目安の縦線を置けます。</p>
+        <div class="card-accordion-body" style="padding:14px 12px 20px; gap:6px;">
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「目数ガイド」スイッチで、ON/OFFを切り替えます。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">「目数ガイド」の縦線が編み図に表示されます。</span>「線を引く」ボタンを押すと、タップした場所に目安の縦線を置けます。<br>
+          <strong style="font-weight:600; color:var(--text);">OFF</strong>：縦線が一時的に隠れます。線のデータは消えないので、再度ONにすると元通り表示されます。</p>
           <div class="ruler-control" style="gap:12px; margin-top:8px;">
             <label>カラー</label>
             <div>
               <div class="ruler-op-desc">「線を引く」を押すと表示されるパレットから選択</div>
             </div>
           </div>
-          <div class="ruler-control ruler-slider-row">
+          <div class="ruler-control ruler-slider-row" style="margin-top:10px;">
             <label for="stitch-thickness">太さ</label>
             <div style="display:flex; align-items:center; gap:10px; width:100%; max-width:203px;">
               <input type="range" id="stitch-thickness" min="2" max="8" value="5" step="1" style="width:116px; flex:none;">
@@ -3163,12 +3165,12 @@
     fileInput.value = ''; // 同じファイルを選び直しても反応できるようにリセット
 
     const doLoad = () => {
-      filenameLabel.textContent = file.name;
       const reader = new FileReader();
       reader.onload = ev => {
         const image = new Image();
         image.onload = () => {
           img = image;
+          filenameLabel.textContent = file.name;
           // 直線定規タブでの読み込みの時だけ、目数ガイドの線をリセットする
           // （四角/円定規タブでの画像入れ替えで、直線定規側の線を消してしまわないため）
           if (currentRulerTab === 'band') {
@@ -3195,7 +3197,7 @@
           switchRulerTab(currentRulerTab);
         };
         image.onerror = () => {
-          showModal('この画像は開けませんでした。\nお使いのブラウザがこのファイル形式に対応していない可能性があります（特にHEICはSafari以外では開けないことが多いです）。\n別の形式（JPG・PNGなど）でお試しください。', 'OK', () => {}, false);
+          showModal('この画像は開けません。\nお使いのブラウザがこのファイル形式に対応していない可能性があります。\n（特にHEICはSafari以外では開けないことが多いです）\n別の形式（JPG・PNGなど）でお試しください。', 'OK', () => {}, false);
         };
         image.src = ev.target.result;
       };
@@ -3485,9 +3487,26 @@
   // ガイド類（段数ガイド・目数ガイド）の開閉
   function updateGuideGroupUI() {
     if (!cpGuideGroupBody) return;
-    cpGuideGroupBody.classList.toggle('open', guideGroupOpen);
-    // 矢印はテキストの切り替えではなく、既存の.card-accordion-arrowと同じ「▼固定＋回転」方式に統一
-    if (cpGuideToggleArrow) cpGuideToggleArrow.classList.toggle('open', guideGroupOpen);
+    // 矢印の回転：classList.toggleに任せると、実機で「1回目は回るが2回目以降は
+    // 瞬時に切り替わる」ことがあった。ブラウザが「回転前」と「回転後」のスタイルを
+    // 1回のスタイル再計算にまとめてしまい、アニメーションを省略しているとみられるため、
+    // 開始角度を明示的に指定→強制リフローで確定→目標角度を指定、という手順に変更した（2026年8月〜）
+    if (cpGuideToggleArrow) {
+      cpGuideToggleArrow.classList.toggle('open', guideGroupOpen); // 状態管理用（見た目はこの後の指定が優先される）
+      const fromDeg = guideGroupOpen ? 0 : 180;
+      const toDeg   = guideGroupOpen ? 180 : 0;
+      cpGuideToggleArrow.style.transition = 'none';
+      cpGuideToggleArrow.style.transform = `rotate(${fromDeg}deg)`;
+      void cpGuideToggleArrow.offsetWidth; // 強制リフロー：ここまでのスタイルを確定させる
+      cpGuideToggleArrow.style.transition = 'transform .25s ease';
+      cpGuideToggleArrow.style.transform = `rotate(${toDeg}deg)`;
+    }
+    // 中身の開閉は、ガイド欄が一気に開いて高さが大きく変わる重い処理。
+    // 矢印の回転と同じ瞬間に行うと、その重い処理に押し出されて矢印の回転アニメーションの
+    // コマが飛ばされ、瞬時に切り替わって見えることがあったため、1フレームだけずらす（2026年8月〜）
+    requestAnimationFrame(() => {
+      cpGuideGroupBody.classList.toggle('open', guideGroupOpen);
+    });
   }
   window.toggleGuideGroup = function() {
     // ドラッグ済み（top/left指定に切り替わっている）の時だけ、高さの変化分を位置補正する。
@@ -3693,7 +3712,7 @@
     const isOn = this.checked;
     if (isOn && !img) {
       this.checked = false;
-      showModal('段数ガイドを使うためには\nメニューパネルから\n編み図を開いてください', 'OK', () => {}, false);
+      showModal('段数ガイドを使うためには\nメニューパネルから\n編み図を開いてください。', 'OK', () => {}, false);
       return;
     }
     gpStepLabel.style.opacity = isOn ? '1' : '0';
@@ -3751,7 +3770,7 @@
   let measureBtnTouched = false;
   function confirmStartMeasure() {
     if (!img) {
-      showModal('段数ガイドを使うためには\nメニューパネルから\n編み図を開いてください', 'OK', () => {}, false);
+      showModal('段数ガイドを使うためには\nメニューパネルから\n編み図を開いてください。', 'OK', () => {}, false);
       return;
     }
     showModal('1段の高さを計測しますか？', '計測する', () => {
@@ -4689,7 +4708,7 @@
       const isOn = stitchVisibleToggle.checked;
       if (isOn && !img) {
         stitchVisibleToggle.checked = false;
-        showModal('目数ガイドを使うためには\nメニューパネルから\n編み図を開いてください', 'OK', () => {}, false);
+        showModal('目数ガイドを使うためには\nメニューパネルから\n編み図を開いてください。', 'OK', () => {}, false);
         return;
       }
       stitchGuideVisible = isOn;
@@ -4770,7 +4789,7 @@
   if (stitchEditBtn) {
     stitchEditBtn.addEventListener('click', () => {
       if (!img) {
-        showModal('目数ガイドを使うためには\nメニューパネルから\n編み図を開いてください', 'OK', () => {}, false);
+        showModal('目数ガイドを使うためには\nメニューパネルから\n編み図を開いてください。', 'OK', () => {}, false);
         return;
       }
       showModal('目数ガイドを使いますか？', '使う', () => {
@@ -5569,13 +5588,26 @@
     }
   }
   window.switchRulerTab = function(tab) {
+    // 四角定規の「正方形/長方形になりました」トーストは、タブをまたいで残ってしまうと
+    // 別の定規の編み図の上に居座って見えるため、タブ切り替え時は問答無用で消す
+    if (typeof boxEdgeToastEl !== 'undefined' && boxEdgeToastEl) {
+      boxEdgeToastEl.classList.remove('show');
+      clearTimeout(boxEdgeToastTimer);
+    }
     if (currentRulerTab !== tab) {
       // 計測モード中にタブを切り替えた場合、計測パネルが残ってしまうため強制終了する
       if (window.stopMeasureIfActive) window.stopMeasureIfActive();
       saveChartStateForTab(currentRulerTab);
+      // 先にタブを切り替えてから復元・再描画する。
+      // 逆順（復元してからタブ変数を更新）だと、loadChartStateForTab内のdrawImage()が
+      // 古いタブの判定のまま再描画してしまい、目数ガイドの縦線が
+      // 切り替え先のタブに誤って描かれたり、直線定規に戻した時に消えて見えたりする
+      // 不具合があったため、2026年8月に順番を修正した。
+      currentRulerTab = tab;
       loadChartStateForTab(tab);
+    } else {
+      currentRulerTab = tab;
     }
-    currentRulerTab = tab;
     updateCurrentRulerBadge();
     document.getElementById('tab-band').classList.toggle('active',   tab === 'band');
     document.getElementById('tab-circle').classList.toggle('active', tab === 'circle');
