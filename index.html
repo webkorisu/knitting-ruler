@@ -1100,7 +1100,7 @@
          ラベル幅を78px→90pxに拡大（3桁px対応）、ボタン幅を78px固定にした分、
          一度280px→300pxに拡大したが、パネル自体は広げずに済むよう、行内の余白
          （padding・gap・ボタン幅など）を詰める方向に変更し、280pxへ戻した（2026年8月〜） */
-      width: 280px;
+      width: 289px;
     }
     #counter-panel:active { cursor: grabbing; }
     #counter-panel.dragging {
@@ -1379,12 +1379,12 @@
       pointer-events: none;
       margin-left: auto;
       margin-right: 8px;
-      width: 84px;
+      width: 89px;
       box-sizing: border-box;
       text-align: left;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding: 7px 2px 9px 6px;
+      padding: 7px 2px 9px 11px;
       border-radius: 15px;
       background: transparent;
       line-height: 1;
@@ -1453,12 +1453,12 @@
       cursor: pointer;
       margin-left: auto;
       margin-right: 8px;
-      width: 84px;
+      width: 89px;
       box-sizing: border-box;
       text-align: left;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding: 7px 2px 9px 6px;
+      padding: 7px 2px 9px 11px;
       border-radius: 15px;
       background: transparent;
       line-height: 1;
@@ -3079,6 +3079,10 @@
   // ===== 目数ガイド（直線定規のみ・構想段階の第1段：線を置く→画像に追従） =====
   let stitchGuideMode  = false; // 「線を引く」モードON/OFF
   let stitchGuideLines = [];    // 画像内のx座標（img等倍・offsetX/scale適用前の座標）を保持
+  // 直線定規タブで最後に読み込んだファイルの識別情報（名前＋サイズ＋更新日時）。
+  // 「本当に別の画像に変わったか」を判定し、同じファイルの再アップロード時は
+  // 目数ガイドの線を消さずに残すために使う（2026年8月〜）
+  let lastBandFileId = null;
   // 上端・下端（画像内のy座標。null＝未調整＝画像の一番上/一番下をそのまま使う。
   // 画像自体の余白量に合わせて、線ごとではなく画像全体で共通の値として持つ）
   let stitchGuideTopY    = null;
@@ -3106,7 +3110,11 @@
         width: rulerWidth, left: rulerLeft, top: rulerTop, step: rulerStep,
         baseStep: rulerBaseStep, guideOn: rulerGuideOn,
         showCounter, count: rowCount,
-        stitchColor: stitchGuideColor, stitchThickness: stitchGuideThickness
+        stitchColor: stitchGuideColor, stitchThickness: stitchGuideThickness,
+        // 目数ガイドの線そのものは以前は保存していなかったが、ブラウザを閉じると
+        // 編み図ごと消えてしまい、再開時に同じ編み図を選び直すことが多いため、
+        // 「同じファイルの再読み込みなら線を復元する」用に保存するようにした（2026年8月〜）
+        stitchLines: stitchGuideLines, stitchVisible: stitchGuideVisible, bandFileId: lastBandFileId
       }));
     } catch(e) {}
   }
@@ -3126,6 +3134,12 @@
       if (s.showCounter != null) showCounter = s.showCounter;
       if (s.stitchColor) stitchGuideColor = s.stitchColor;
       if (s.stitchThickness != null) stitchGuideThickness = s.stitchThickness;
+      // 目数ガイドの線データは、ここでは変数に読み込むだけに留める。
+      // 実際に画面へ反映する（トグルON・線を表示する）のは、image.onload側で
+      // 「保存時と同じファイルが読み込まれた」と確認できた時だけ（2026年8月〜）
+      if (Array.isArray(s.stitchLines)) stitchGuideLines = s.stitchLines;
+      if (s.stitchVisible != null) stitchGuideVisible = s.stitchVisible;
+      if (s.bandFileId) lastBandFileId = s.bandFileId;
       document.getElementById('ruler-step').value = rulerStep;
       document.getElementById('ruler-step-label').textContent = rulerStep + ' px';
       if (s.count  != null) rowCount = s.count;
@@ -3172,22 +3186,37 @@
           img = image;
           filenameLabel.textContent = file.name;
           // 直線定規タブでの読み込みの時だけ、目数ガイドの線をリセットする
-          // （四角/円定規タブでの画像入れ替えで、直線定規側の線を消してしまわないため）
+          // （四角/円定規タブでの画像入れ替えで、直線定規側の線を消してしまわないため）。
+          // ただし、ブラウザを閉じて編み図が消えた後に「同じファイルを選び直す」だけの
+          // 再読み込みも多いため、名前・サイズ・更新日時が全部一致する場合は
+          // 「実質同じ画像」とみなし、線を消さずに残すようにした（2026年8月〜）
+          const fileId = file.name + '|' + file.size + '|' + file.lastModified;
+          const isSameFileAsBefore = (fileId === lastBandFileId);
           if (currentRulerTab === 'band') {
-            stitchGuideLines = [];
-            stitchGuideMode = false;
-            selectedStitchLine = null;
-            stitchGuideTopY = null;
-            stitchGuideBottomY = null;
-            // 画像が変わればどのみち線は引き直しになるので、自動でONには戻さない。
-            // 毎回ユーザー自身が「トグルON→線引ボタン」の順で使い始める形に統一する
-            stitchGuideVisible = false;
-            if (stitchVisibleToggle) stitchVisibleToggle.checked = false;
-            if (typeof updateStitchWidthLabelVisibility === 'function') updateStitchWidthLabelVisibility();
-            if (typeof updateStitchLineCountLabel === 'function') updateStitchLineCountLabel();
-            if (stitchEditBtn) { stitchEditBtn.disabled = false; stitchEditBtn.classList.remove('active'); }
-            viewer.style.cursor = '';
-            resetStitchModeRulerLook();
+            if (!isSameFileAsBefore) {
+              stitchGuideLines = [];
+              stitchGuideMode = false;
+              selectedStitchLine = null;
+              stitchGuideTopY = null;
+              stitchGuideBottomY = null;
+              // 画像が変わればどのみち線は引き直しになるので、自動でONには戻さない。
+              // 毎回ユーザー自身が「トグルON→線引ボタン」の順で使い始める形に統一する
+              stitchGuideVisible = false;
+              if (stitchVisibleToggle) stitchVisibleToggle.checked = false;
+              if (typeof updateStitchWidthLabelVisibility === 'function') updateStitchWidthLabelVisibility();
+              if (typeof updateStitchLineCountLabel === 'function') updateStitchLineCountLabel();
+              if (stitchEditBtn) { stitchEditBtn.disabled = false; stitchEditBtn.classList.remove('active'); }
+              viewer.style.cursor = '';
+              resetStitchModeRulerLook();
+              lastBandFileId = fileId;
+              saveSettings(); // リセット後の状態（線なし・新しいファイルID）をすぐに保存しておく
+            } else {
+              // 同じファイル：loadSettings()で変数には復元済みなので、見た目（トグル・本数ラベル）に反映する
+              if (stitchVisibleToggle) stitchVisibleToggle.checked = stitchGuideVisible;
+              if (typeof updateStitchWidthLabelVisibility === 'function') updateStitchWidthLabelVisibility();
+              if (typeof updateStitchLineCountLabel === 'function') updateStitchLineCountLabel();
+              if (typeof updateGuideStatusText === 'function') updateGuideStatusText();
+            }
           }
           canvas.style.display = 'block';
           viewer.classList.add('has-image');
@@ -3501,31 +3530,31 @@
       cpGuideToggleArrow.style.transition = 'transform .25s ease';
       cpGuideToggleArrow.style.transform = `rotate(${toDeg}deg)`;
     }
-    // 中身の開閉は、ガイド欄が一気に開いて高さが大きく変わる重い処理。
-    // 矢印の回転と同じ瞬間に行うと、その重い処理に押し出されて矢印の回転アニメーションの
-    // コマが飛ばされ、瞬時に切り替わって見えることがあったため、1フレームだけずらす（2026年8月〜）
-    requestAnimationFrame(() => {
-      cpGuideGroupBody.classList.toggle('open', guideGroupOpen);
-    });
+    // 中身の開閉は同期的に行う（以前は1フレーム遅らせていたが、矢印は上の強制リフロー方式で
+    // 独立して保護できているので、ここを遅らせる必要はなくなった。むしろ遅らせると、
+    // 下端位置の補正処理が「実際に高さが変わるタイミング」を実機で正確に予測できず、
+    // ヘッダーの位置がずれて閉じることがあったため、同期処理に戻した（2026年8月〜）
+    cpGuideGroupBody.classList.toggle('open', guideGroupOpen);
+    // ガイド開閉のタップ自体もpointerdownを発生させるため、その時点（＝まだ高さが
+    // 切り替わる前）の高さで cpPanelH（ドラッグ用にキャッシュしている高さ）が
+    // 上書きされてしまい、位置を補正する際のsetCpPos()の画面端クランプ計算に
+    // 古い高さが使われて、ヘッダーの位置がズレる不具合があった。
+    // ここで高さが確定した直後にキャッシュも一緒に最新化しておく（2026年8月〜）
+    cpPanelH = counterPanel.offsetHeight;
   }
   window.toggleGuideGroup = function() {
     // ドラッグ済み（top/left指定に切り替わっている）の時だけ、高さの変化分を位置補正する。
     // 初期位置（CSSのbottom/right指定のまま）は、画面下端に自然と追従するので補正不要。
     const wasDragged = !!counterPanel.style.left;
-    const beforeH = wasDragged ? counterPanel.offsetHeight : 0;
+    // 下端の画面上の絶対位置を先に記録しておく（高さがどう変わっても、ここを基準に位置を計算し直す）
+    const bottomBefore = wasDragged ? counterPanel.getBoundingClientRect().bottom : 0;
     guideGroupOpen = !guideGroupOpen;
-    updateGuideGroupUI();
+    updateGuideGroupUI(); // ← 中身の開閉はここで同期的に完了している
     if (wasDragged) {
-      // 高さの再測定（offsetHeight）は次のフレームまで遅らせる。
-      // updateGuideGroupUI()の直後にoffsetHeightを読むとブラウザが強制的にレイアウトを
-      // 再計算してしまい、そのタイミングによっては矢印のtransform（回転）トランジションが
-      // 開始前に完了扱いにされてスキップされることがあったため（2026年8月〜）
-      requestAnimationFrame(() => {
-        const afterH = counterPanel.offsetHeight;
-        const delta = afterH - beforeH; // 開く時は正、閉じる時は負
-        const pos = getCpPos();
-        setCpPos(pos.x, pos.y - delta); // 下端（カウンター部分）の画面上の位置を変えないよう補正
-      });
+      // 記録しておいた下端の位置 − 今の高さ＝下端が動かないための正しい上端位置。
+      // updateGuideGroupUI()が同期処理になったので、直後に読むoffsetHeightは
+      // 既に新しい（変化後の）値になっている
+      setCpPos(getCpPos().x, bottomBefore - counterPanel.offsetHeight);
     }
     try { localStorage.setItem(GUIDE_GROUP_KEY, guideGroupOpen ? '1' : '0'); } catch(e) {}
   };
@@ -4718,6 +4747,7 @@
       updateStitchWidthLabelVisibility();
       updateGuideStatusText();
       drawImage();
+      saveSettings();
     });
   }
 
@@ -4867,6 +4897,7 @@
           stitchGuideLines.push(imgX);
           updateStitchLineCountLabel();
           drawImage();
+          saveSettings();
         }
       }
     }
@@ -4885,6 +4916,7 @@
       selectedStitchLine = stitchGuideLines.length - 1;
       updateStitchLineCountLabel();
       drawImage();
+      saveSettings();
     });
   }
   if (stitchLineDeleteBtn) {
@@ -4895,6 +4927,7 @@
       selectedStitchLine = null;
       updateStitchLineCountLabel();
       drawImage();
+      saveSettings();
     });
   }
   // 全部消す：取り返しがつかない操作なので確認モーダルを挟む
@@ -4908,6 +4941,7 @@
         updateStitchLineCountLabel();
         positionStitchLineActions();
         drawImage();
+        saveSettings();
       });
     });
   }
