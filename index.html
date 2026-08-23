@@ -1100,7 +1100,7 @@
          ラベル幅を78px→90pxに拡大（3桁px対応）、ボタン幅を78px固定にした分、
          一度280px→300pxに拡大したが、パネル自体は広げずに済むよう、行内の余白
          （padding・gap・ボタン幅など）を詰める方向に変更し、280pxへ戻した（2026年8月〜） */
-      width: 289px;
+      width: 265px;
     }
     #counter-panel:active { cursor: grabbing; }
     #counter-panel.dragging {
@@ -1158,8 +1158,23 @@
       position: fixed;
       z-index: 211;
       display: none;
+      width: 0; /* 幅0のアンカー。leftに線のx座標そのものが入る */
+      transform: translateY(-50%);
+      pointer-events: none; /* 中身のボタンだけタップできればよい */
+    }
+    #stitch-line-actions .stitch-actions-left {
+      position: absolute;
+      right: 6px; /* アンカー（線）から左に6px離す */
+      top: 0; /* 削除ボタンと同じ上端基準（.stitch-actions-rightと揃える） */
+      pointer-events: all;
+    }
+    #stitch-line-actions .stitch-actions-right {
+      position: absolute;
+      left: 6px; /* アンカー（線）から右に6px離す */
+      top: 0;
+      display: flex;
+      flex-direction: column;
       gap: 6px;
-      transform: translate(-50%, -50%);
       pointer-events: all;
     }
     #stitch-line-actions button {
@@ -1176,7 +1191,7 @@
       box-shadow: 0 4px 14px rgba(0,0,0,0.16);
       -webkit-tap-highlight-color: transparent;
     }
-    /* 「全部消す」だけは、他の線の色に関わらず常に警告色にして区別する
+    /* 「一括削除」だけは、他の線の色に関わらず常に警告色にして区別する
        （取り返しがつかない操作なので、複製・削除より一段強い注意を引く色にしている） */
     #stitch-line-clear-all-btn {
       color: #993C1D !important;
@@ -1379,15 +1394,16 @@
       pointer-events: none;
       margin-left: auto;
       margin-right: 8px;
-      width: 89px;
+      width: 66px;
+      min-height: 37px;
       box-sizing: border-box;
       text-align: left;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding: 7px 2px 9px 11px;
+      padding: 0px 3px 5px 6px;
       border-radius: 15px;
       background: transparent;
-      line-height: 1;
+      line-height: 1.15;
       transform: translateY(1px);
       transition: opacity .15s;
     }
@@ -1453,16 +1469,31 @@
       cursor: pointer;
       margin-left: auto;
       margin-right: 8px;
-      width: 89px;
+      width: 66px;
+      min-height: 37px;
       box-sizing: border-box;
       text-align: left;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding: 7px 2px 9px 11px;
+      padding: 0px 3px 5px 6px;
       border-radius: 15px;
       background: transparent;
-      line-height: 1;
+      line-height: 1.15;
       transition: opacity .15s, color .15s, background .15s, transform .1s, filter .15s;
+    }
+    /* 2行ミニカード表示：上段（小さく薄いラベル）・下段（太字の値） */
+    #gp-step-label .gp-val-label,
+    #stitch-count-label .gp-val-label {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-sub);
+      opacity: .85;
+    }
+    #gp-step-label .gp-val-num,
+    #stitch-count-label .gp-val-num {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
     }
     #gp-step-label:hover {
       filter: opacity(0.6);
@@ -1480,11 +1511,13 @@
       font-weight: 500;
       font-size: 12px;
       color: #C3676F;
+      line-height: 32px; /* 1行だけの文字を、2行分の高さの中で縦中央に見せるための調整 */
+      transform: translateY(2px); /* 気持ち下寄りに */
     }
     #gp-step-label.unmeasured:hover,
     #gp-step-label.unmeasured:active {
       background: transparent;
-      transform: none;
+      transform: translateY(2px);
     }
     /* 1段の高さ微調整カード（浮き出るカード） */
     #step-adjust-card {
@@ -2349,11 +2382,18 @@
   </div>
 </div>
 
-<!-- ===== 目数ガイド：選択した線の複製・削除 ===== -->
+<!-- ===== 目数ガイド：選択した線の複製・削除 =====
+     #stitch-line-actionsは幅0の「アンカー」（線のx座標そのもの）。
+     左側グループ（複製）は right:0 で自分をアンカーの左に、
+     右側グループ（削除・一括削除の縦並び）は left:0 で自分をアンカーの右に配置する（2026年8月〜） -->
 <div id="stitch-line-actions">
-  <button type="button" id="stitch-line-duplicate-btn">📋 複製</button>
-  <button type="button" id="stitch-line-delete-btn">🗑 削除</button>
-  <button type="button" id="stitch-line-clear-all-btn">🗑 全部消す</button>
+  <div class="stitch-actions-left">
+    <button type="button" id="stitch-line-duplicate-btn">📋 複製</button>
+  </div>
+  <div class="stitch-actions-right">
+    <button type="button" id="stitch-line-delete-btn">🗑 削除</button>
+    <button type="button" id="stitch-line-clear-all-btn">🗑 一括削除</button>
+  </div>
 </div>
 
 <!-- ===== 目数ガイド：線引ボタンを押している間だけ、編み図の上に浮かべるカラーパレット =====
@@ -2967,7 +3007,7 @@
           <span class="data-note-arrow">▼</span>
         </button>
         <div class="data-note-body">
-          <p>定規の設定（サイズ・カラー・濃さ・カウンター・段数ガイド）はこの端末のブラウザに保存されます。次回開いたときも同じ設定で使えます。スマホとPCなど、端末が異なると設定は共有されません。</p>
+          <p>定規の設定（サイズ・カラー・濃さ・位置）、段数ガイド・目数ガイドの記録、カウンターの段数は、<b>開いている編み図（写真）ごと</b>にこの端末のブラウザへ保存されます。同じ写真を選び直すと、前回の状態がそのまま復元されます。別の写真を開いた場合は、その写真専用の記録として新しく一から始まります。スマホとPCなど、端末が異なると記録は共有されません。</p>
           <p>読み込んだ編み図画像はブラウザに保存されません。ページを閉じると消えます。</p>
           <p>ブラウザの「履歴を消去」や「キャッシュ削除」を行うと、保存された設定が消える場合があります。お気に入り定規など大切な設定が消えてしまう可能性があることをご了承ください。</p>
           <p>外部サーバーへの通信は一切行っておらず、すべての処理はこの端末内で完結します。</p>
@@ -3071,6 +3111,8 @@
   let rulerColor  = '#b2aaaa';
   let rulerAlpha  = 0.80;
   let rulerWidth  = 80;
+  // 新規の編み図を開いた時、定規をこの初期状態にリセットするための一覧（2026年8月〜）
+  const DEFAULT_RULER = { color: '#b2aaaa', alpha: 0.80, height: 172, width: 80, left: 0, top: 200 };
   let showCounter = true;
   let rulerStep   = 40;  // 1段のスライド量（px）
   let rulerBaseStep = 0; // 実寸ステップ（scale補正用）
@@ -3079,10 +3121,15 @@
   // ===== 目数ガイド（直線定規のみ・構想段階の第1段：線を置く→画像に追従） =====
   let stitchGuideMode  = false; // 「線を引く」モードON/OFF
   let stitchGuideLines = [];    // 画像内のx座標（img等倍・offsetX/scale適用前の座標）を保持
-  // 直線定規タブで最後に読み込んだファイルの識別情報（名前＋サイズ＋更新日時）。
-  // 「本当に別の画像に変わったか」を判定し、同じファイルの再アップロード時は
-  // 目数ガイドの線を消さずに残すために使う（2026年8月〜）
-  let lastBandFileId = null;
+  // 直線定規タブで「今どのファイルを表示しているか」の識別情報（名前＋サイズ＋更新日時）。
+  // 目数ガイドの線をファイルごとに覚えておく（stitchByFile）際のキーとして使う（2026年8月〜）
+  let currentBandFileId = null;
+  // ファイルごとの目数ガイドデータ： { [ファイル識別子]: { lines: [...], visible: true/false } }
+  // A→B→A のように複数の編み図を行き来しても、それぞれの線を覚えておけるようにするため、
+  // 「直前の1ファイル分」ではなく辞書形式で保持する（2026年8月〜）
+  let stitchByFile = {};
+  // 際限なく増え続けないよう、最近使った順に最大この件数まで保持する（直線・円・四角の3定規で共通）
+  const FILE_DICT_MAX = 20;
   // 上端・下端（画像内のy座標。null＝未調整＝画像の一番上/一番下をそのまま使う。
   // 画像自体の余白量に合わせて、線ごとではなく画像全体で共通の値として持つ）
   let stitchGuideTopY    = null;
@@ -3105,18 +3152,44 @@
 
   function saveSettings() {
     try {
+      // 今表示中のファイルの分だけ、辞書の中身を最新化してから保存する。
+      // 目数ガイドの線に加えて、段数ガイドの「1段の高さ」もファイルごとに覚えておく（2026年8月〜）
+      if (currentBandFileId) {
+        stitchByFile[currentBandFileId] = {
+          lines: stitchGuideLines, visible: stitchGuideVisible,
+          step: rulerStep, baseStep: rulerBaseStep,
+          // 定規の色・大きさ・濃さ・位置・段数ガイドのON/OFFも、編み図ごとに覚えておく。
+          // 編み図の背景色によって見やすい定規の色は変わるため（2026年8月〜）
+          color: rulerColor, height: rulerHeight, width: rulerWidth,
+          left: rulerLeft, top: rulerTop, alpha: rulerAlpha, guideOn: rulerGuideOn,
+          // 段数カウンターの段数も、その編み図の進捗そのものなので一緒に覚えておく（2026年8月〜）
+          count: rowCount
+        };
+      }
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         color: rulerColor, alpha: rulerAlpha, height: rulerHeight,
         width: rulerWidth, left: rulerLeft, top: rulerTop, step: rulerStep,
         baseStep: rulerBaseStep, guideOn: rulerGuideOn,
         showCounter, count: rowCount,
         stitchColor: stitchGuideColor, stitchThickness: stitchGuideThickness,
-        // 目数ガイドの線そのものは以前は保存していなかったが、ブラウザを閉じると
-        // 編み図ごと消えてしまい、再開時に同じ編み図を選び直すことが多いため、
-        // 「同じファイルの再読み込みなら線を復元する」用に保存するようにした（2026年8月〜）
-        stitchLines: stitchGuideLines, stitchVisible: stitchGuideVisible, bandFileId: lastBandFileId
+        // 目数ガイドの線・段数ガイドの高さは、ファイルごとの辞書（stitchByFile）で保存する。
+        // A→B→Aのように複数の編み図を行き来しても、それぞれを覚えておけるようにするため（2026年8月〜）
+        stitchByFile: pruneFileDict(stitchByFile, currentBandFileId)
       }));
     } catch(e) {}
+  }
+
+  // 最近使ったファイルを優先して残しつつ、辞書が際限なく大きくならないよう上限件数まで間引く
+  // （直線・円・四角の3つの定規で共通して使う汎用関数。2026年8月〜）
+  function pruneFileDict(dict, mostRecentId) {
+    const keys = Object.keys(dict);
+    if (keys.length <= FILE_DICT_MAX) return dict;
+    // 今表示中のファイルだけは必ず残るよう、末尾に回してから間引く
+    const ordered = keys.filter(k => k !== mostRecentId).concat(mostRecentId ? [mostRecentId] : []);
+    const keep = ordered.slice(-FILE_DICT_MAX);
+    const pruned = {};
+    keep.forEach(k => { pruned[k] = dict[k]; });
+    return pruned;
   }
 
   function loadSettings() {
@@ -3134,12 +3207,16 @@
       if (s.showCounter != null) showCounter = s.showCounter;
       if (s.stitchColor) stitchGuideColor = s.stitchColor;
       if (s.stitchThickness != null) stitchGuideThickness = s.stitchThickness;
-      // 目数ガイドの線データは、ここでは変数に読み込むだけに留める。
+      // 目数ガイドの線データ（ファイルごとの辞書）は、ここでは変数に読み込むだけに留める。
       // 実際に画面へ反映する（トグルON・線を表示する）のは、image.onload側で
-      // 「保存時と同じファイルが読み込まれた」と確認できた時だけ（2026年8月〜）
-      if (Array.isArray(s.stitchLines)) stitchGuideLines = s.stitchLines;
-      if (s.stitchVisible != null) stitchGuideVisible = s.stitchVisible;
-      if (s.bandFileId) lastBandFileId = s.bandFileId;
+      // 「今開いたファイルが辞書の中にある」と確認できた時だけ（2026年8月〜）
+      if (s.stitchByFile && typeof s.stitchByFile === 'object') {
+        stitchByFile = s.stitchByFile;
+      } else if (Array.isArray(s.stitchLines) && s.bandFileId) {
+        // 旧形式（直前の1ファイル分だけを保存していた版）のデータが残っていた場合、
+        // 辞書形式に変換して引き継ぐ（2026年8月〜より前に保存されたデータの互換用）
+        stitchByFile = { [s.bandFileId]: { lines: s.stitchLines, visible: !!s.stitchVisible } };
+      }
       document.getElementById('ruler-step').value = rulerStep;
       document.getElementById('ruler-step-label').textContent = rulerStep + ' px';
       if (s.count  != null) rowCount = s.count;
@@ -3185,37 +3262,174 @@
         image.onload = () => {
           img = image;
           filenameLabel.textContent = file.name;
-          // 直線定規タブでの読み込みの時だけ、目数ガイドの線をリセットする
+          // 直線定規タブでの読み込みの時だけ、目数ガイドの線を扱う
           // （四角/円定規タブでの画像入れ替えで、直線定規側の線を消してしまわないため）。
-          // ただし、ブラウザを閉じて編み図が消えた後に「同じファイルを選び直す」だけの
-          // 再読み込みも多いため、名前・サイズ・更新日時が全部一致する場合は
-          // 「実質同じ画像」とみなし、線を消さずに残すようにした（2026年8月〜）
+          // ファイルごとの辞書（stitchByFile）に「今開いたファイルの線」が記録されていれば、
+          // A→B→Aのように別の編み図を挟んでいても復元する。記録がなければ、初めて開く
+          // ファイルとみなして空の状態から始める（2026年8月〜）
           const fileId = file.name + '|' + file.size + '|' + file.lastModified;
-          const isSameFileAsBefore = (fileId === lastBandFileId);
           if (currentRulerTab === 'band') {
-            if (!isSameFileAsBefore) {
-              stitchGuideLines = [];
-              stitchGuideMode = false;
-              selectedStitchLine = null;
-              stitchGuideTopY = null;
-              stitchGuideBottomY = null;
-              // 画像が変わればどのみち線は引き直しになるので、自動でONには戻さない。
-              // 毎回ユーザー自身が「トグルON→線引ボタン」の順で使い始める形に統一する
-              stitchGuideVisible = false;
-              if (stitchVisibleToggle) stitchVisibleToggle.checked = false;
-              if (typeof updateStitchWidthLabelVisibility === 'function') updateStitchWidthLabelVisibility();
-              if (typeof updateStitchLineCountLabel === 'function') updateStitchLineCountLabel();
-              if (stitchEditBtn) { stitchEditBtn.disabled = false; stitchEditBtn.classList.remove('active'); }
-              viewer.style.cursor = '';
-              resetStitchModeRulerLook();
-              lastBandFileId = fileId;
-              saveSettings(); // リセット後の状態（線なし・新しいファイルID）をすぐに保存しておく
+            // 「✕」で画像を消した後の再選択など、メモリ上の辞書が古い可能性があるため、
+            // その場でlocalStorageから読み直してから探す
+            try {
+              const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+              if (saved && saved.stitchByFile && typeof saved.stitchByFile === 'object') {
+                stitchByFile = saved.stitchByFile;
+              }
+            } catch(err) {}
+            const remembered = stitchByFile[fileId];
+            let rulerLookChanged = false;
+            if (remembered) {
+              stitchGuideLines = Array.isArray(remembered.lines) ? remembered.lines.slice() : [];
+              stitchGuideVisible = !!remembered.visible;
+              // 段数ガイドの「1段の高さ」も、目数ガイドの線と同じくファイルごとに覚えておく（2026年8月〜）
+              if (remembered.step != null) rulerStep = remembered.step;
+              if (remembered.baseStep != null) rulerBaseStep = remembered.baseStep;
+              // 定規の色・大きさ・濃さ・位置・段数ガイドのON/OFF・段数カウントも、記録があれば復元する。
+              // 編み図の背景色によって見やすい定規の色は変わるため（2026年8月〜）。
+              // ただし「記録はあるが、この項目だけ記録されていない」場合（この機能を追加する前に
+              // 保存された古いデータなど）は、勝手に初期値へリセットせず、今の値をそのまま残す
+              if (remembered.color  != null) { rulerColor  = remembered.color;  rulerLookChanged = true; }
+              if (remembered.height != null) { rulerHeight = remembered.height; rulerLookChanged = true; }
+              if (remembered.width  != null) { rulerWidth  = remembered.width;  rulerLookChanged = true; }
+              if (remembered.left   != null) { rulerLeft   = remembered.left;   rulerLookChanged = true; }
+              if (remembered.top    != null) { rulerTop    = remembered.top;    rulerLookChanged = true; }
+              if (remembered.alpha  != null) { rulerAlpha  = remembered.alpha;  rulerLookChanged = true; }
+              if (remembered.guideOn != null) rulerGuideOn = remembered.guideOn;
+              // 段数カウンターの段数（rowCount）も、進捗そのものなので編み図ごとに復元する（2026年8月〜）
+              if (remembered.count != null) rowCount = remembered.count;
             } else {
-              // 同じファイル：loadSettings()で変数には復元済みなので、見た目（トグル・本数ラベル）に反映する
-              if (stitchVisibleToggle) stitchVisibleToggle.checked = stitchGuideVisible;
-              if (typeof updateStitchWidthLabelVisibility === 'function') updateStitchWidthLabelVisibility();
-              if (typeof updateStitchLineCountLabel === 'function') updateStitchLineCountLabel();
-              if (typeof updateGuideStatusText === 'function') updateGuideStatusText();
+              // 初めて開く編み図は、線・測定値だけでなく、定規の見た目・位置・
+              // 段数ガイドのON/OFF・段数カウントも、まっさらな初期状態から始める。
+              // 「使い慣れた定規」を使い回したい場合はお気に入り定規機能を使う想定（2026年8月〜）
+              stitchGuideLines = [];
+              stitchGuideVisible = false;
+              rulerStep = 0;
+              rulerBaseStep = 0;
+              rulerColor = DEFAULT_RULER.color;
+              rulerHeight = DEFAULT_RULER.height;
+              rulerWidth  = DEFAULT_RULER.width;
+              rulerLeft   = DEFAULT_RULER.left;
+              rulerTop    = DEFAULT_RULER.top;
+              rulerAlpha  = DEFAULT_RULER.alpha;
+              rulerGuideOn = false;
+              rulerLookChanged = true;
+              rowCount = 0;
+            }
+            if (rulerLookChanged) {
+              // 色・大きさ・濃さ・位置の変更を、操作パネルの表示にも反映する
+              rulerColorInput.value = rulerColor;
+              document.querySelectorAll('.color-dot').forEach(d => {
+                d.classList.toggle('active', d.dataset.color === rulerColor);
+              });
+              rulerAlpha100 = Math.round(rulerAlpha * 100);
+              rulerOpacityInput.value = rulerAlpha100;
+              rulerOpacityLabel.textContent = rulerAlpha100 + '%';
+              if (rulerSizeInput)  rulerSizeInput.value  = rulerHeight;
+              if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
+              if (rulerWidthInput) rulerWidthInput.value = rulerWidth;
+              if (rulerWidthLabel) rulerWidthLabel.textContent = rulerWidth + '%';
+              applyRulerPos(); // 位置・大きさ・見た目（色/濃さ）をまとめて反映
+            }
+            cpNum.textContent = rowCount; // 段数カウンターの表示を更新
+            const stepEl = document.getElementById('ruler-step');
+            const stepLabelEl = document.getElementById('ruler-step-label');
+            if (stepEl) stepEl.value = rulerStep;
+            if (stepLabelEl) stepLabelEl.textContent = rulerStep + ' px';
+            stitchGuideMode = false;
+            selectedStitchLine = null;
+            stitchGuideTopY = null;
+            stitchGuideBottomY = null;
+            if (stitchVisibleToggle) stitchVisibleToggle.checked = stitchGuideVisible;
+            if (typeof updateStitchWidthLabelVisibility === 'function') updateStitchWidthLabelVisibility();
+            if (typeof updateStitchLineCountLabel === 'function') updateStitchLineCountLabel();
+            if (stitchEditBtn) { stitchEditBtn.disabled = false; stitchEditBtn.classList.remove('active'); }
+            viewer.style.cursor = '';
+            resetStitchModeRulerLook();
+            if (typeof updateGuideStatusText === 'function') updateGuideStatusText();
+            if (typeof syncGuideRowUI === 'function') syncGuideRowUI('band'); // 段数ガイドのON/OFF表示を反映
+            currentBandFileId = fileId;
+            if (!remembered) saveSettings(); // 初めて開くファイルの分を、空の状態ですぐ辞書に登録しておく
+          } else if (currentRulerTab === 'circle') {
+            // 円定規タブでの読み込み。直線定規と同じ考え方で、ファイルごとに
+            // 色・大きさ・位置・段数ガイド・段数カウントを覚えておく（2026年8月〜）
+            try {
+              const saved = JSON.parse(localStorage.getItem(CIRCLE_KEY));
+              if (saved && saved.circleByFile && typeof saved.circleByFile === 'object') {
+                circleByFile = saved.circleByFile;
+              }
+            } catch(err) {}
+            const remembered = circleByFile[fileId];
+            currentCircleFileId = fileId; // 先に更新（この後の保存処理で正しいファイルIDに紐付くように）
+            if (remembered) {
+              if (remembered.cX != null) cX = remembered.cX;
+              if (remembered.cY != null) cY = remembered.cY;
+              if (remembered.cR != null) cR = remembered.cR;
+              if (remembered.cColor != null) cColor = remembered.cColor;
+              if (remembered.cAlpha != null) cAlpha = remembered.cAlpha;
+              if (remembered.circleStep != null) circleStep = remembered.circleStep;
+              if (remembered.circleStepBase != null) circleStepBase = remembered.circleStepBase;
+              if (remembered.guideOn != null) circleGuideOn = remembered.guideOn;
+              if (remembered.circleCount != null) circleCount = remembered.circleCount;
+              const maxR = Math.min(window.innerWidth, window.innerHeight) * 0.45;
+              cR = Math.min(cR, maxR);
+              clampCircleCenter();
+              syncCircleUI();
+              syncGuideRowUI('circle');
+              applyCircle();
+            } else {
+              // 初めて開く編み図はまっさらな初期状態から（既存のリセット処理を再利用）。
+              // resetCircleDefault()自体は見た目（色・大きさ・位置）しかリセットしない作りなので、
+              // 計測値・段数ガイドのON/OFF・段数カウントは先にここで明示的にリセットしておく（2026年8月〜）
+              circleStep = 0;
+              circleStepBase = 0;
+              circleGuideOn = false;
+              circleCount = 0;
+              resetCircleDefault();
+            }
+          } else if (currentRulerTab === 'box') {
+            // 四角定規タブでの読み込み。円定規と同じ考え方（2026年8月〜）
+            try {
+              const saved = JSON.parse(localStorage.getItem(BOX_KEY));
+              if (saved && saved.boxByFile && typeof saved.boxByFile === 'object') {
+                boxByFile = saved.boxByFile;
+              }
+            } catch(err) {}
+            const remembered = boxByFile[fileId];
+            currentBoxFileId = fileId;
+            if (remembered) {
+              if (remembered.sqX != null) bxX = remembered.sqX;
+              if (remembered.sqY != null) bxY = remembered.sqY;
+              if (remembered.sqHalfW != null) bxHalfW = remembered.sqHalfW;
+              if (remembered.sqHalfH != null) bxHalfH = remembered.sqHalfH;
+              if (remembered.sqColor != null) bxColor = remembered.sqColor;
+              if (remembered.sqAlpha != null) bxAlpha = remembered.sqAlpha;
+              if (remembered.squareStep != null) boxStep = remembered.squareStep;
+              if (remembered.squareStepBase != null) boxStepBase = remembered.squareStepBase;
+              if (remembered.squareCount != null) boxCount = remembered.squareCount;
+              if (remembered.guideOn != null) boxGuideOn = remembered.guideOn;
+              if (remembered.sqRectHalfW !== undefined) bxRectHalfW = remembered.sqRectHalfW;
+              if (remembered.sqRectHalfH !== undefined) bxRectHalfH = remembered.sqRectHalfH;
+              if (remembered.sqSquareSide !== undefined) bxSquareSide = remembered.sqSquareSide;
+              if (remembered.sqSquareColor !== undefined) bxSquareColor = remembered.sqSquareColor;
+              if (remembered.sqSquareAlpha !== undefined) bxSquareAlpha = remembered.sqSquareAlpha;
+              if (remembered.sqRectColor !== undefined) bxRectColor = remembered.sqRectColor;
+              if (remembered.sqRectAlpha !== undefined) bxRectAlpha = remembered.sqRectAlpha;
+              if (remembered.sqIsSquareMode != null) bxIsSquareMode = remembered.sqIsSquareMode;
+              const maxHalf = Math.min(window.innerWidth, window.innerHeight) * 0.45;
+              bxHalfW = Math.min(bxHalfW, maxHalf);
+              bxHalfH = Math.min(bxHalfH, maxHalf);
+              syncBoxUI();
+              syncGuideRowUI('box');
+              applyBox();
+            } else {
+              // resetBoxDefault()自体は見た目（色・大きさ・位置）しかリセットしない作りなので、
+              // 計測値・段数ガイドのON/OFF・段数カウントは先にここで明示的にリセットしておく（2026年8月〜）
+              boxStep = 0;
+              boxStepBase = 0;
+              boxGuideOn = false;
+              boxCount = 0;
+              resetBoxDefault();
             }
           }
           canvas.style.display = 'block';
@@ -3271,9 +3485,8 @@
     const bottom = offsetY + bottomImgY * scale;
     ctx.save();
     stitchGuideLines.forEach((x, i) => {
-      const isSelected = (i === selectedStitchLine);
       ctx.strokeStyle = stitchGuideColor;
-      ctx.lineWidth = isSelected ? stitchGuideThickness + 3 : stitchGuideThickness;
+      ctx.lineWidth = stitchGuideThickness;
       const sx = offsetX + x * scale;
       ctx.beginPath();
       ctx.moveTo(sx, top);
@@ -3289,7 +3502,7 @@
     // 見るだけモードでは線に触れられない＝選択も起こらないので、編集モード中に限定する
     const shouldShow = stitchGuideMode && stitchGuideVisible && currentRulerTab === 'band' && img
       && selectedStitchLine !== null && stitchGuideLines[selectedStitchLine] !== undefined;
-    stitchLineActionsWrap.style.display = shouldShow ? 'flex' : 'none';
+    stitchLineActionsWrap.style.display = shouldShow ? 'block' : 'none';
     if (!shouldShow) return;
     const x = stitchGuideLines[selectedStitchLine];
     const sx = offsetX + x * scale;
@@ -3511,6 +3724,11 @@
   new MutationObserver(refreshGpStepLabelLook).observe(gpStepLabel, { characterData: true, childList: true, subtree: true });
   refreshGpStepLabelLook();
 
+  // 「1段」ラベル（小さく薄い文字）＋計測値（太字）を2行で表示する（2026年8月〜）
+  function setGpStepValue(px) {
+    gpStepLabel.innerHTML = '<span class="gp-val-label">1段</span><br><span class="gp-val-num">' + px + 'px</span>';
+  }
+
   // 「1段：66px」をタップした時、微調整カードの表示を切り替える（未計測の時は開かない）
   let stepAdjustLocked = false; // 計測中はtrue（微調整カードを開けなくする）
   // ガイド類（段数ガイド・目数ガイド）の開閉
@@ -3620,7 +3838,7 @@
      線が1本もない間は「目の境目をタップ」＋✕（それ自体が「やめる」の意味を兼ねる）。
      1本以上引いたら「引き終わったら『完了』をタップ」＋戻る（直前の1本を取り消す）＋完了に切り替える */
   function updateStitchLineCountLabel() {
-    if (stitchCountLabel) stitchCountLabel.textContent = '縦線：' + stitchGuideLines.length + '本';
+    if (stitchCountLabel) stitchCountLabel.innerHTML = '<span class="gp-val-label">縦線</span><br><span class="gp-val-num">' + stitchGuideLines.length + '本</span>';
     const hasLines = stitchGuideLines.length > 0;
     if (stitchHintText) stitchHintText.textContent = hasLines ? '引き終わったら「完了」をタップ' : '目の境目をタップ';
     if (stitchHintUndoBtn) stitchHintUndoBtn.style.display = hasLines ? 'flex' : 'none';
@@ -3716,7 +3934,7 @@
     gpMeasureBtn.style.pointerEvents = isOn ? 'auto' : 'none';
     if (baseStep > 0) {
       // ONなら現在有効なステップ、OFFでも常に現在のズーム倍率に合わせた値を表示する
-      gpStepLabel.textContent = '1段：' + (isOn ? effStep : scaledBase) + ' px';
+      setGpStepValue(isOn ? effStep : scaledBase);
     } else {
       gpStepLabel.textContent = '未計測';
     }
@@ -3753,7 +3971,7 @@
       if (isOn) {
         if (circleStepBase > 0) {
           circleStep = Math.max(1, Math.round(circleStepBase * scale));
-          gpStepLabel.textContent = '1段：' + circleStep + ' px';
+          setGpStepValue(circleStep);
         } else {
           circleStep = 0;
           gpStepLabel.textContent = '未計測';
@@ -3767,7 +3985,7 @@
       if (isOn) {
         if (boxStepBase > 0) {
           boxStep = Math.max(1, Math.round(boxStepBase * scale));
-          gpStepLabel.textContent = '1段：' + boxStep + ' px';
+          setGpStepValue(boxStep);
         } else {
           boxStep = 0;
           gpStepLabel.textContent = '未計測';
@@ -3782,7 +4000,7 @@
       if (isOn) {
         if (rulerBaseStep > 0) {
           rulerStep = Math.max(1, Math.round(rulerBaseStep * scale));
-          gpStepLabel.textContent = '1段：' + rulerStep + ' px';
+          setGpStepValue(rulerStep);
         } else {
           rulerStep = 0;
           gpStepLabel.textContent = '未計測';
@@ -4426,28 +4644,28 @@
         rulerStep = scaledStep;
         if (stepEl) stepEl.value = rulerStep;
         if (stepLabelEl) stepLabelEl.textContent = rulerStep + ' px';
-        if (gpStep) gpStep.textContent = '1段：' + rulerStep + ' px';
+        setGpStepValue(rulerStep);
       } else if (gpStep) {
         // OFF中もカウンター表示は現在のズームに合わせた値を見せる（実際のステップ移動には使わない）
-        gpStep.textContent = '1段：' + scaledStep + ' px';
+        setGpStepValue(scaledStep);
       }
     } else if (currentRulerTab === 'circle' && circleStepBase > 0) {
       const scaledStep = Math.min(999, Math.max(1, Math.round(circleStepBase * scale)));
       const gpStep = document.getElementById('gp-step-label');
       if (circleStep > 0) {
         circleStep = scaledStep;
-        if (gpStep) gpStep.textContent = '1段：' + circleStep + ' px';
+        setGpStepValue(circleStep);
       } else if (gpStep) {
-        gpStep.textContent = '1段：' + scaledStep + ' px';
+        setGpStepValue(scaledStep);
       }
     } else if (currentRulerTab === 'box' && boxStepBase > 0) {
       const scaledStep = Math.min(999, Math.max(1, Math.round(boxStepBase * scale)));
       const gpStep = document.getElementById('gp-step-label');
       if (boxStep > 0) {
         boxStep = scaledStep;
-        if (gpStep) gpStep.textContent = '1段：' + boxStep + ' px';
+        setGpStepValue(boxStep);
       } else if (gpStep) {
-        gpStep.textContent = '1段：' + scaledStep + ' px';
+        setGpStepValue(scaledStep);
       }
     }
     clampOffset();
@@ -4935,7 +5153,7 @@
     stitchLineClearAllBtn.addEventListener('click', e => {
       e.stopPropagation();
       if (selectedStitchLine === null) return;
-      showModal('目数ガイドの縦線を\n全部消しますか？', '全部消す', () => {
+      showModal('目数ガイドの縦線を\n一括削除しますか？', '一括削除する', () => {
         stitchGuideLines = [];
         selectedStitchLine = null;
         updateStitchLineCountLabel();
@@ -5709,6 +5927,7 @@
   function setCircleDragging(on) {
     circleCanvas.classList.toggle('dragging', on);
     circle3dLayer.classList.toggle('dragging', on);
+    circleCanvas.style.cursor = on ? 'grabbing' : 'grab'; // 直線定規と同じく、掴んでいる間は指を閉じた手のマークにする（2026年8月〜）
   }
   const CIRCLE_KEY     = 'yucchi_ruler_circle';
 
@@ -5721,6 +5940,9 @@
   let circleGuideOn = false; // 円定規の段数ガイドON/OFF状態（タブ切替時もこの値が真実の源）
   let circleCount = 0;
   let showCircleCounter = true;
+  // 円定規タブで「今どのファイルを表示しているか」の識別情報と、ファイルごとの設定辞書（2026年8月〜）
+  let currentCircleFileId = null;
+  let circleByFile = {};
   // カウンター・リサイズ・ピンチ共通の最小半径(px)。四角定規の正方形モードと同じ実寸30×30pxに揃えている（2026年8月〜）
   const CIRCLE_MIN_R = 15;
   // 中心(cX,cY)から画面の最も遠い角までの距離。これを半径の上限にすれば、画面の四隅まで円で埋め尽くせる
@@ -5822,7 +6044,11 @@
   }
 
   function saveCircleSettings() {
-    try { localStorage.setItem(CIRCLE_KEY, JSON.stringify({ cX, cY, cR, cColor, cAlpha, circleStep, circleStepBase, circleCount, showCircleCounter, guideOn: circleGuideOn })); } catch(e) {}
+    // 今表示中のファイルの分だけ、辞書の中身を最新化してから保存する（2026年8月〜）
+    if (currentCircleFileId) {
+      circleByFile[currentCircleFileId] = { cX, cY, cR, cColor, cAlpha, circleStep, circleStepBase, circleCount, guideOn: circleGuideOn };
+    }
+    try { localStorage.setItem(CIRCLE_KEY, JSON.stringify({ cX, cY, cR, cColor, cAlpha, circleStep, circleStepBase, circleCount, showCircleCounter, guideOn: circleGuideOn, circleByFile: pruneFileDict(circleByFile, currentCircleFileId) })); } catch(e) {}
   }
   function loadCircleSettings() {
     try {
@@ -5845,6 +6071,8 @@
       if (!circleGuideOn) circleStep = 0;
       if (s.circleCount != null) circleCount = s.circleCount;
       if (s.showCircleCounter != null) showCircleCounter = s.showCircleCounter;
+      // ファイルごとの辞書は変数に読み込むだけに留める（実際の反映はimage.onload側で行う）（2026年8月〜）
+      if (s.circleByFile && typeof s.circleByFile === 'object') circleByFile = s.circleByFile;
       return true;
     } catch(e) { return false; }
   }
@@ -6301,8 +6529,12 @@
   function setBoxDragging(on) {
     boxCanvas.classList.toggle('dragging', on);
     box3dLayer.classList.toggle('dragging', on);
+    boxCanvas.style.cursor = on ? 'grabbing' : 'grab'; // 直線定規と同じく、掴んでいる間は指を閉じた手のマークにする（2026年8月〜）
   }
   const BOX_KEY     = 'yucchi_ruler_square';
+  // 四角定規タブで「今どのファイルを表示しているか」の識別情報と、ファイルごとの設定辞書（2026年8月〜）
+  let currentBoxFileId = null;
+  let boxByFile = {};
 
   let bxX = 0, bxY = 0;          // 中心座標
   let bxHalfW = 50, bxHalfH = 50; // 中心から辺までの距離（半幅・半高）
@@ -6520,13 +6752,21 @@
 
   function saveBoxSettings() {
     // 注意：JSONのキー名は今までの保存データ（sqX, squareStep 等）と互換性を保つため、あえて変更していません。
-    try { localStorage.setItem(BOX_KEY, JSON.stringify({
+    const snapshot = {
       sqX: bxX, sqY: bxY, sqHalfW: bxHalfW, sqHalfH: bxHalfH, sqColor: bxColor, sqAlpha: bxAlpha,
       squareStep: boxStep, squareStepBase: boxStepBase, squareCount: boxCount, showSquareCounter: showBoxCounter,
       sqRectHalfW: bxRectHalfW, sqRectHalfH: bxRectHalfH, sqSquareSide: bxSquareSide,
       sqSquareColor: bxSquareColor, sqSquareAlpha: bxSquareAlpha, sqRectColor: bxRectColor, sqRectAlpha: bxRectAlpha,
       sqIsSquareMode: bxIsSquareMode, guideOn: boxGuideOn
-    })); } catch(e) {}
+    };
+    // 今表示中のファイルの分だけ、辞書の中身を最新化してから保存する（2026年8月〜）。
+    // トップレベルの保存と全く同じsnapshotを使い回すことで、キー名のズレを防いでいる
+    if (currentBoxFileId) {
+      boxByFile[currentBoxFileId] = snapshot;
+    }
+    try { localStorage.setItem(BOX_KEY, JSON.stringify(Object.assign({}, snapshot, {
+      boxByFile: pruneFileDict(boxByFile, currentBoxFileId)
+    }))); } catch(e) {}
   }
   function loadBoxSettings() {
     // 注意：s.sqX 等は今までの保存データのキー名のまま読み込む（後方互換のため）
@@ -6565,6 +6805,8 @@
       if (s.sqRectAlpha != null) bxRectAlpha = s.sqRectAlpha;
       // 寸法が一致していれば常に正方形モードとして扱う（保存されたモードのフラグが古い/ズレていても、実際の寸法を優先する）
       bxIsSquareMode = (bxHalfW === bxHalfH) ? true : !!s.sqIsSquareMode;
+      // ファイルごとの辞書は変数に読み込むだけに留める（実際の反映はimage.onload側で行う）（2026年8月〜）
+      if (s.boxByFile && typeof s.boxByFile === 'object') boxByFile = s.boxByFile;
       return true;
     } catch(e) { return false; }
   }
@@ -7729,7 +7971,7 @@
       ctx.clearRect(0, 0, cvs.width, cvs.height);
       if (!pt1) return;
 
-      const color = '#2D4A43'; // カウンター数字（--text）と同じ色に統一。編み図と重なった時の視認性を上げるため
+      const color = '#B8434F'; // 段数ガイド・目数ガイドの「ON」と同じ色に統一。黒い糸など暗い色の編み図と重なっても見やすいように（2026年8月〜）
       const isDiagonal = (currentRulerTab === 'circle');
       const isHorizontal = (currentRulerTab === 'box' && measureAxis === 'h');
 
