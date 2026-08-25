@@ -1338,7 +1338,7 @@
       font-size: 9px;
       display: inline-block;
       flex-shrink: 0;
-      transition: transform .25s ease;
+      transition: transform .32s cubic-bezier(.34,1.56,.64,1);
       color: var(--text-sub);
       opacity: .6;
       will-change: transform;
@@ -3745,7 +3745,7 @@
       cpGuideToggleArrow.style.transition = 'none';
       cpGuideToggleArrow.style.transform = `rotate(${fromDeg}deg)`;
       void cpGuideToggleArrow.offsetWidth; // 強制リフロー：ここまでのスタイルを確定させる
-      cpGuideToggleArrow.style.transition = 'transform .25s ease';
+      cpGuideToggleArrow.style.transition = 'transform .32s cubic-bezier(.34,1.56,.64,1)';
       cpGuideToggleArrow.style.transform = `rotate(${toDeg}deg)`;
     }
     // 中身の開閉は同期的に行う（以前は1フレーム遅らせていたが、矢印は上の強制リフロー方式で
@@ -4182,6 +4182,10 @@
 
   /* ========== 定規端リサイズ＋移動（統合） ========== */
   const EDGE_HIT = 40;
+  // 辺・角の掴み判定に「遊び」を持たせるための最小移動距離（px）。
+  // これより小さい動きでは反応させず、クリックしただけ／軽く触れただけで
+  // 定規が伸び縮みしてしまう誤操作を防ぐ（2026年8月〜）
+  const RULER_DRAG_DEADZONE = 4;
   let rulerDragging = false, rulerDragStartX = 0, rulerDragStartY = 0;
   let rulerDragStartTop = 0, rulerDragStartLeft = 0;
   let resizeDragging = false, resizeSide = '', resizeDragStartX = 0, resizeDragStartY = 0;
@@ -4211,6 +4215,8 @@
       if (!edgeDragging) return;
       const dx = e.clientX - edgeStartX;
       const dy = e.clientY - edgeStartY;
+      // 誤操作防止：しっかり動かすまでは反応させない（クリックしただけで伸びる不具合の対策）
+      if (Math.abs(dx) < RULER_DRAG_DEADZONE && Math.abs(dy) < RULER_DRAG_DEADZONE) return;
       const dxPct = (dx / window.innerWidth) * 100;
       const marginPct10px = (10 / window.innerWidth) * 100;
       // 縦：現在位置で最低44px見えるための最小高さ
@@ -4287,6 +4293,8 @@
       if (!cornerDragging || corner.dataset.corner !== cornerSide) return;
       const dx = e.clientX - cornerStartX;
       const dy = e.clientY - cornerStartY;
+      // 誤操作防止：しっかり動かすまでは反応させない（クリックしただけで伸びる不具合の対策）
+      if (Math.abs(dx) < RULER_DRAG_DEADZONE && Math.abs(dy) < RULER_DRAG_DEADZONE) return;
       const dxPct = (dx / window.innerWidth) * 100;
       const sw = window.innerWidth;
       // 縦：現在位置で最低44px見えるための最小高さ
