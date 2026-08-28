@@ -1338,7 +1338,7 @@
       font-size: 9px;
       display: inline-block;
       flex-shrink: 0;
-      transition: transform .32s cubic-bezier(.34,1.56,.64,1);
+      transition: transform .25s ease;
       color: var(--text-sub);
       opacity: .6;
       will-change: transform;
@@ -3745,7 +3745,7 @@
       cpGuideToggleArrow.style.transition = 'none';
       cpGuideToggleArrow.style.transform = `rotate(${fromDeg}deg)`;
       void cpGuideToggleArrow.offsetWidth; // 強制リフロー：ここまでのスタイルを確定させる
-      cpGuideToggleArrow.style.transition = 'transform .32s cubic-bezier(.34,1.56,.64,1)';
+      cpGuideToggleArrow.style.transition = 'transform .25s ease';
       cpGuideToggleArrow.style.transform = `rotate(${toDeg}deg)`;
     }
     // 中身の開閉は同期的に行う（以前は1フレーム遅らせていたが、矢印は上の強制リフロー方式で
@@ -5662,7 +5662,20 @@
 
   /* ========== アコーディオン ========== */
   function toggleNote(id) {
-    document.getElementById(id).classList.toggle('open');
+    const el = document.getElementById(id);
+    const willOpen = !el.classList.contains('open');
+    // card-accordionの矢印と同じ理由・同じ方式で、毎回確実に回転アニメーションさせる（2026年8月〜）
+    const arrow = el.querySelector('.data-note-arrow');
+    if (arrow) {
+      const fromDeg = willOpen ? 0 : 180;
+      const toDeg   = willOpen ? 180 : 0;
+      arrow.style.transition = 'none';
+      arrow.style.transform  = `rotate(${fromDeg}deg)`;
+      void arrow.offsetWidth; // 強制リフロー：ここまでのスタイルを確定させる
+      arrow.style.transition = 'transform .25s ease';
+      arrow.style.transform  = `rotate(${toDeg}deg)`;
+    }
+    el.classList.toggle('open', willOpen);
   }
 
   /* ホーム画面追加時のキャッシュ対策：クエリを変えて強制的に新規取得させる（localStorageには触れない） */
@@ -5675,6 +5688,11 @@
     const note = document.getElementById('howtoNote');
     if (!note) return;
     note.classList.add('open');
+    // toggleNoteを経由しない開き方なので、矢印の向きもここで合わせて確定させておく
+    // （直前にtoggleNoteで閉じた時のインラインstyleが残っていると、classだけでは
+    //   矢印が回らないまま「開」表示になってしまうため）
+    const arrow = note.querySelector('.data-note-arrow');
+    if (arrow) { arrow.style.transition = 'transform .25s ease'; arrow.style.transform = 'rotate(180deg)'; }
     note.scrollIntoView({ behavior: 'smooth', block: 'start' });
     note.classList.remove('howto-flash');
     // reflow を挟んでアニメーションを再トリガー
@@ -5700,8 +5718,24 @@
   }
   window.toggleCardAcc = function(id) {
     const el = document.getElementById(id);
-    el.classList.toggle('open');
-    saveCardAccState(id, el.classList.contains('open'));
+    const willOpen = !el.classList.contains('open');
+    // 矢印の回転：classList.toggleだけに任せると、実機で「1回目は回るが2回目以降は
+    // 瞬時に切り替わる」ことがあった（ブラウザが回転前後のスタイルを1回の再計算に
+    // まとめてしまい、アニメーションを省略してしまうため）。段数ガイドの矢印と同じく、
+    // 開始角度を明示→強制リフローで確定→目標角度、という手順で毎回確実に回すようにした
+    // （2026年8月〜）
+    const arrow = el.querySelector('.card-accordion-arrow');
+    if (arrow) {
+      const fromDeg = willOpen ? 0 : 180;
+      const toDeg   = willOpen ? 180 : 0;
+      arrow.style.transition = 'none';
+      arrow.style.transform  = `rotate(${fromDeg}deg)`;
+      void arrow.offsetWidth; // 強制リフロー：ここまでのスタイルを確定させる
+      arrow.style.transition = 'transform .25s ease';
+      arrow.style.transform  = `rotate(${toDeg}deg)`;
+    }
+    el.classList.toggle('open', willOpen);
+    saveCardAccState(id, willOpen);
   };
   // ページ読み込み時：前回の開閉状態があれば復元する（初回訪問時は何も保存されていないので、HTML側の初期状態＝全部閉じたまま）
   (function restoreCardAccStates() {
