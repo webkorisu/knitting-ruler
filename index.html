@@ -6706,12 +6706,16 @@
     layer.style.boxShadow = 'none';
     layer.innerHTML  = svg;
     syncBoxShapeToggleBtn();
-    // 正方形⇔長方形、見た目が切り替わった瞬間（ボタン操作・リサイズ・お気に入り適用どれでも共通）を検知して知らせる
+    // 正方形⇔長方形、見た目が切り替わった瞬間（ボタン操作・リサイズ・お気に入り適用どれでも共通）を検知して知らせる。
+    // 「今まさに四角定規タブを見ている時だけ」に限定する（他タブを見ている時にお知らせが出ても
+    // 意味がなく混乱のもとになるため。2026年8月〜、二重の安全策として追加）
     const isSquareNow2 = (bxHalfW === bxHalfH);
-    if (bxPrevWasSquare === false && isSquareNow2) {
-      showBoxToSquareToast();
-    } else if (bxPrevWasSquare === true && !isSquareNow2) {
-      showBoxToRectToast();
+    if (currentRulerTab === 'box') {
+      if (bxPrevWasSquare === false && isSquareNow2) {
+        showBoxToSquareToast();
+      } else if (bxPrevWasSquare === true && !isSquareNow2) {
+        showBoxToRectToast();
+      }
     }
     bxPrevWasSquare = isSquareNow2;
   }
@@ -7551,6 +7555,12 @@
   loadCirclePresets();
   resizeBoxCanvas();
   loadBoxSettings();
+  // 起動直後、保存設定を読み込む前の「仮の形」を基準にしたままだと、スマホでアドレスバーの
+  // 表示が動くなどして起動直後に自動でリサイズ処理が走った時、「本来の（保存されていた）形」との
+  // 差を“今、形が変わった”と誤検知してしまい、何も触っていないのに「長方形/正方形になりました」の
+  // お知らせがタブに関係なく出てしまうことがあった。設定を読み込んだ直後に基準を
+  // 今の（本来の）形へ合わせ直しておくことで防ぐ（2026年8月〜）
+  bxPrevWasSquare = (bxHalfW === bxHalfH);
   syncBoxUI();
   loadBoxPresets();
 
