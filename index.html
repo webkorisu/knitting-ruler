@@ -1079,7 +1079,7 @@
       right: 20px;
       background: #FFFFFF;
       border: 1.5px solid var(--border);
-      border-radius: 26px;
+      border-radius: 22px;
       box-shadow: 0 8px 28px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.08);
       user-select: none;
       touch-action: none;
@@ -1100,7 +1100,7 @@
          ラベル幅を78px→90pxに拡大（3桁px対応）、ボタン幅を78px固定にした分、
          一度280px→300pxに拡大したが、パネル自体は広げずに済むよう、行内の余白
          （padding・gap・ボタン幅など）を詰める方向に変更し、280pxへ戻した（2026年8月〜） */
-      width: 285px;
+      width: 230px;
     }
     #counter-panel:active { cursor: grabbing; }
     #counter-panel.dragging {
@@ -1294,13 +1294,15 @@
       border: 1.5px solid var(--border); /* 四辺すべてに枠線。上辺は非アクティブなタブの下で見える必要があるため消さない。
                                               アクティブなタブの真下だけは、タブ側のborder-bottom（同色）が上から
                                               重なって隠す仕組み（.cp-gtab.active の margin-bottom:-2px を参照） */
-      border-radius: 8px;
+      border-left: none;  /* 左右はパネル自体の外枠と近い位置に重なって二重線に見えるため無し（2026年8月〜） */
+      border-right: none;
+      border-radius: 8px 8px 0 0;
       background: #EEF6F3;
     }
     #cp-mejirushi-row #mejirushi-toggle-wrap {
       flex-shrink: 0;
       pointer-events: all;
-      transform: scale(1.05);
+      transform: scale(0.92);
     }
 
     /* マークのボタン（浮かぶパレット・編集ポップアップの両方で共通のスタイルを使い回す）
@@ -1395,8 +1397,6 @@
     }
     #mejirushi-pin-hit {
       position: relative;
-      min-width: 44px;
-      min-height: 44px;
       display: flex;
       align-items: flex-end;   /* アイコンの下端を、この当たり判定の下端（＝ターゲット座標）にきっちり合わせる */
       justify-content: center; /* アイコンの中心を、この当たり判定の中心（＝ターゲット座標）にきっちり合わせる */
@@ -1405,7 +1405,18 @@
       pointer-events: all;
       -webkit-tap-highlight-color: transparent;
     }
+    /* 当たり判定そのもの（#mejirushi-pin-hit）はアイコンの実寸ぴったりに保つ（アンカー精度のため）。
+       掴みやすさは、レイアウトに影響しない疑似要素で上下左右に均等な「見えない拡張範囲」を
+       足すことで確保する（2026年8月〜。以前はmin-width/heightで直接広げていたが、それだと
+       アイコンの上側にだけ余白が付き、下側＝実際タップしたくなる場所には余白が無く、
+       クリックが少しでも外れると編み図のパンに巻き込まれて「マークが逃げる」原因になっていた） */
+    #mejirushi-pin-hit::before {
+      content: '';
+      position: absolute;
+      inset: -20px;
+    }
     #mejirushi-pin-hit.dragging { cursor: grabbing; }
+    #mejirushi-pin-hit.locked { cursor: default; }
     /* アイコンの実サイズ（width/height）はJS側で編み図の拡大率(scale)に応じて毎回セットする。
        ここでは形の見た目だけ指定する（2026年8月〜：固定28pxから拡縮連動に変更。
        編み図を縮小してもマークだけ画面上で一定サイズのままだと、「置いた場所」と「見た目の中心」の
@@ -1463,6 +1474,7 @@
       color: var(--text);
     }
     #mejirushi-note::placeholder { color: var(--text-sub); opacity: .65; }
+    #mejirushi-lock-btn,
     #mejirushi-trash-btn {
       width: 26px;
       height: 26px;
@@ -1477,8 +1489,13 @@
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
+    #mejirushi-lock-btn svg,
     #mejirushi-trash-btn svg { width: 15px; height: 15px; fill: none; stroke: var(--text-sub); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     #mejirushi-trash-btn:hover { background: #FBEAEA; border-color: #C97A7A; }
+    #mejirushi-lock-btn:hover { background: #F4F9F7; border-color: #93B8AC; }
+    /* ロック中は強調表示にして、今その状態であることが一目で分かるようにする */
+    #mejirushi-lock-btn.active { background: #F9E4E4; border-color: #B8434F; }
+    #mejirushi-lock-btn.active svg { stroke: #B8434F; }
     #mejirushi-trash-btn:hover svg { stroke: #993C1D; }
     #mejirushi-edit-done-btn {
       width: 100%;
@@ -1535,56 +1552,74 @@
       position: relative;
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 7px;
+      justify-content: space-between;
+      gap: 8px;
       width: 100%;
       margin: 0;
-      padding: 8px 14px;
+      padding: 9px 14px;
       box-sizing: border-box;
       background: #cce8e2;
       border: none;
       border-bottom: 1px solid var(--border);
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 600;
       color: var(--text-sub);
       letter-spacing: .04em;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       pointer-events: all;
+      transition: background .15s;
+    }
+    /* ホバー・タップ時に色を変えて「押せる」ことを伝える。
+       ホバーはマウスのある機種だけ（タッチ画面で色が貼り付いたままになるのを防ぐため）。
+       タップ時の一瞬の色変化（:active）はタッチでも効くので全機種共通 */
+    #cp-guide-toggle:active { background: #bfe0d8; }
+    @media (hover: hover) {
+      #cp-guide-toggle:hover { background: #bfe0d8; }
+    }
+    /* 定規名バッジ：メニューパネルの#panel-current-ruler-badgeと同じ見た目（白っぽいピル）。
+       タブを切り替えて複数の作品を編んでいる時も、カウンターを見るだけで
+       「今どの定規のカウンターを見ているか」が一目で分かるようにするため（2026年8月〜）。
+       「段数カウンター」の文言は無くした（2026年8月〜）：下の −／0／＋／段 の見た目自体が
+       カウンターであることを十分に語っていて、アコーディオンが閉じてる時もそこは常に見えているため、
+       あえて文字で説明しなくても伝わると判断した */
+    #cp-ruler-badge {
+      display: inline-block;
+      flex-shrink: 0;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--text);
+      background: rgba(255,255,255,0.55);
+      padding: 4px 8px;
+      border-radius: 10px;
+      letter-spacing: .04em;
+      white-space: nowrap;
     }
     #cp-guide-toggle-arrow {
       font-size: 9px;
-      display: inline-block;
       flex-shrink: 0;
-      transition: transform .25s ease;
       color: var(--text-sub);
       opacity: .6;
+      transition: transform .25s ease;
       will-change: transform;
     }
     #cp-guide-toggle-arrow.open { transform: rotate(180deg); }
-    #cp-guide-toggle-text b,
-    #cp-guide-toggle-text .off {
-      display: inline-block;
-      min-width: 24px;
-      text-align: left;
-    }
-    #cp-guide-toggle-text b { color: #B8434F; font-weight: 700; }
-    #cp-guide-toggle-text .off { color: var(--text-sub); font-weight: 700; }
     #cp-guide-group-body {
       display: none;
-      background: #FCF9F2; /* メニューパネルのpanel-bodyと同じクリーム地。タブの周り・カードの余白、両方これで統一 */
-      padding: 8px 4px 8px; /* 左右はカード側の余白（4px）。タブはここに自分の分を追加で足す */
-      border-bottom: 1px solid var(--border); /* カウンター行との境界線。ヘッダー（#cp-guide-toggle）下の線と同じ太さ・色で揃える */
+      background: #FCF9F2; /* タブの背景はメニューパネルと同じクリーム色に（2026年8月〜） */
+      padding: 8px 0 0; /* 左右・下の余白は無し。カード自体がすでに枠線を持っているので、
+                            カウンター行との境目にわざわざ隙間や線を足す必要は無かった */
     }
     #cp-guide-group-body.open { display: block; }
     #cp-guide-tabbar {
       display: none;
       gap: 4px;
-      padding: 0 4px; /* カード側の余白(4px)にさらに4px追加＝タブはカードより左右4pxずつ内側に入る。
-                          この「段差」があることで、角丸カーブと直線がぴったり揃わず、
-                          タブとカードの境目に自然な小さな欠け（コンケイブ）が生まれる
-                          （メニューパネルの定規タブと同じ仕組み。2026年8月〜） */
+      padding: 0 4px; /* タブはカード（左右0inset）より4pxだけ内側に入る。この「段差」があることで、
+                          角丸カーブと直線がぴったり揃わず、タブとカードの境目に自然な小さな欠け
+                          （コンケイブ）が生まれる（メニューパネルの定規タブと同じ仕組み。2026年8月〜） */
       position: relative;
       z-index: 2;
     }
@@ -1599,7 +1634,7 @@
       align-items: center;
       justify-content: center;
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
       color: var(--text-sub);
       line-height: 1.3;
@@ -1626,7 +1661,9 @@
       min-height: 28px;
       box-sizing: content-box;
       border: 1.5px solid var(--border);
-      border-radius: 8px;
+      border-left: none;
+      border-right: none;
+      border-radius: 8px 8px 0 0;
       background: #EEF6F3;
       flex-wrap: wrap;
       row-gap: 6px;
@@ -1642,17 +1679,19 @@
       min-height: 28px;
       box-sizing: content-box;
       border: 1.5px solid var(--border);
-      border-radius: 8px;
+      border-left: none;
+      border-right: none;
+      border-radius: 8px 8px 0 0;
       background: #EEF6F3;
     }
     #cp-stitch-row #stitch-visible-toggle-wrap {
       flex-shrink: 0;
       pointer-events: all;
-      transform: scale(1.05);
+      transform: scale(0.92);
     }
     #stitch-count-label {
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--text);
       white-space: nowrap;
@@ -1668,10 +1707,10 @@
     #stitch-edit-btn {
       background: #FFFFFF;
       border: 1.5px solid var(--border);
-      border-radius: 15px;
-      padding: 7px 13px;
+      border-radius: 14px;
+      padding: 6px 11px;
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       color: var(--text);
       cursor: pointer;
@@ -1720,11 +1759,11 @@
     #gp-toggle-wrap {
       flex-shrink: 0;
       pointer-events: all;
-      transform: scale(1.05);
+      transform: scale(0.92);
     }
     #gp-step-label {
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--text);
       white-space: nowrap;
@@ -1890,10 +1929,10 @@
     #mejirushi-place-btn {
       background: #FFFFFF;
       border: 1.5px solid var(--border);
-      border-radius: 15px;
-      padding: 7px 13px;
+      border-radius: 14px;
+      padding: 6px 11px;
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       color: var(--text);
       cursor: pointer;
@@ -2050,22 +2089,22 @@
     /* カウンターの数字が「何を数えているか」を示す、数字の右横に添えるごく小さな単位ラベル */
     #cp-unit {
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--text-sub);
       opacity: 0.75;
       align-self: flex-end;
       margin-left: -15px;
-      margin-bottom: 12px;
+      margin-bottom: 11px;
       pointer-events: none;
     }
     .cp-btn {
       background: none;
       border: none;
-      width: 62px;
-      height: 62px;
+      width: 54px;
+      height: 54px;
       font-family: Arial, Helvetica, sans-serif;
-      font-size: 34px;
+      font-size: 29px;
       font-weight: 700;
       color: var(--text);
       cursor: pointer;
@@ -2083,13 +2122,13 @@
     .cp-btn:disabled:active { transform: none; }
     #cp-plus:active  { color: #D992A8; }
     #cp-minus:active { color: #8CB8DC; }
-    .cp-btn.reset  { font-size: 18px; color: var(--text-sub); width: 44px; }
+    .cp-btn.reset  { font-size: 16px; color: var(--text-sub); width: 40px; }
     #cp-num {
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 34px;
+      font-size: 29px;
       font-weight: 700;
       color: var(--text);
-      width: 82px;
+      width: 70px;
       box-sizing: border-box;
       text-align: center;
       overflow: hidden;
@@ -2689,6 +2728,9 @@
     <div id="mejirushi-edit-icons"></div>
     <div class="mej-edit-row">
       <input type="text" id="mejirushi-note" maxlength="30" placeholder="ひとことメモ" aria-label="めじるしのメモ" autocomplete="off">
+      <button type="button" id="mejirushi-lock-btn" aria-label="めじるしの位置をロック">
+        <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      </button>
       <button type="button" id="mejirushi-trash-btn" aria-label="めじるしを削除">
         <svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
       </button>
@@ -2775,7 +2817,8 @@
 <div id="counter-panel">
   <!-- ガイド類の開閉ヘッダー -->
   <button type="button" id="cp-guide-toggle">
-    <span id="cp-guide-toggle-text">ガイド</span><span id="cp-guide-toggle-arrow">▼</span>
+    <span id="cp-ruler-badge">直線定規</span>
+    <span id="cp-guide-toggle-arrow">▼</span>
   </button>
   <div id="cp-guide-group-body">
   <!-- 3行を切り替えるボタン（帯定規のときのみ表示。円定規・四角定規は段数ガイドしか無いため出さない） -->
@@ -3408,6 +3451,7 @@
   const mejirushiNoteInput = document.getElementById('mejirushi-note');
   const mejirushiTrashBtn = document.getElementById('mejirushi-trash-btn');
   const mejirushiEditDoneBtn = document.getElementById('mejirushi-edit-done-btn');
+  const mejirushiLockBtn = document.getElementById('mejirushi-lock-btn');
   const rulerOverlay = document.getElementById('ruler-overlay');
   const rulerHandle  = document.getElementById('ruler-handle');
   const rulerSizeInput    = document.getElementById('ruler-size');
@@ -3424,7 +3468,6 @@
   const cpGuideRow = document.getElementById('cp-guide-row');
   const cpGuideGroupBody = document.getElementById('cp-guide-group-body');
   const cpGuideToggleArrow = document.getElementById('cp-guide-toggle-arrow');
-  const cpGuideToggleText = document.getElementById('cp-guide-toggle-text');
   // ===== 段数ガイド／目数ガイド／めじるし：3行をボタンで切り替える（各行のデザインは変更しない） =====
   const cpGuideTabbar = document.getElementById('cp-guide-tabbar');
   let cpGuideActiveSection = 'row'; // 'row' | 'stitch' | 'mej'（帯定規のときだけ意味を持つ）
@@ -3518,12 +3561,14 @@
   let mejirushiPlaceStep = 'icon';
   const MEJIRUSHI_HIT_DEADZONE = 6;  // ピンを「掴んだ」と判定するための遊び（px）。近づいただけでは反応しない
   // マークのアイコンサイズ（見た目）：編み図の拡大率(scale)に連動させる。
-  // scale=1（画像の等倍表示）の時に見た目MEJ_ICON_BASEpxになる計算で、小さすぎ・大きすぎを防ぐため上下限も設ける
-  const MEJ_ICON_BASE = 26; // scale=1のときの基準サイズ(px)
+  // scale=1（画像の等倍表示）の時に見た目MEJ_ICON_BASEpxになる計算。
+  // 下限だけ設けて、思い切り縮小した時にマークが消えて見えなくなることだけは防ぐ。
+  // 上限は設けない：マス目自体がどこまでも拡大できる以上、マークだけ頭打ちになると
+  // 「マス目は大きいのにマークだけ小さいまま」になり、目印としての意味が薄れるため（2026年8月〜）
+  const MEJ_ICON_BASE = 34; // scale=1のときの基準サイズ(px)。26pxから引き上げ（2026年8月〜）
   const MEJ_ICON_MIN  = 14; // どれだけ縮小してもこれより小さくしない
-  const MEJ_ICON_MAX  = 60; // どれだけ拡大してもこれより大きくしない
   function mejIconSizePx() {
-    return Math.max(MEJ_ICON_MIN, Math.min(MEJ_ICON_MAX, MEJ_ICON_BASE * scale));
+    return Math.max(MEJ_ICON_MIN, MEJ_ICON_BASE * scale);
   }
   // 6種類のマーク。シンプルな図形の組み合わせで自作（特定のアイコン素材を使わず著作権フリー方針を維持）
   const MEJIRUSHI_ICON_SVG = {
@@ -3536,6 +3581,9 @@
   };
   const MEJIRUSHI_ICON_LABEL = { pin:'マップピン', flag:'フラッグ', bookmark:'しおり', star:'星', heart:'ハート', diamond:'ダイヤ' };
   const MEJIRUSHI_ICON_ORDER = ['pin', 'flag', 'bookmark', 'star', 'heart', 'diamond'];
+  // ロック中／解除中の鍵アイコン（線画）。ボタンの見た目切り替えに使う
+  const MEJ_LOCK_SVG_CLOSED = '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+  const MEJ_LOCK_SVG_OPEN   = '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>';
 
   let rowCount    = 0;
   let rulerAlpha100 = 80;
@@ -3990,6 +4038,14 @@
     if (mejirushiNoteInput && document.activeElement !== mejirushiNoteInput) {
       mejirushiNoteInput.value = mejirushiPin.note || '';
     }
+    // ロック状態を、ピン本体（掴めるかどうか・バッジ）とポップアップ内のボタン見た目に反映する
+    const locked = !!mejirushiPin.locked;
+    if (mejirushiPinHit) mejirushiPinHit.classList.toggle('locked', locked);
+    if (mejirushiLockBtn) {
+      mejirushiLockBtn.classList.toggle('active', locked);
+      mejirushiLockBtn.innerHTML = locked ? MEJ_LOCK_SVG_CLOSED : MEJ_LOCK_SVG_OPEN;
+      mejirushiLockBtn.setAttribute('aria-label', locked ? 'めじるしの位置ロックを解除' : 'めじるしの位置をロック');
+    }
   }
 
   // 「めじるしをおく」ボタン→2ステップの配置フロー（段数ガイド「計測する」・目数ガイド「線を引く」と
@@ -4029,7 +4085,8 @@
   // 編み図をタップした場所（画像等倍のpx座標）にピンを置く／動かす。常に1個だけなので、置き直し＝移動として扱う
   function placeMejirushiPin(imgX, imgY) {
     const note = mejirushiPin ? mejirushiPin.note : '';
-    mejirushiPin = { x: imgX, y: imgY, icon: mejirushiIconSelected, note: note || '' };
+    const locked = mejirushiPin ? !!mejirushiPin.locked : false;
+    mejirushiPin = { x: imgX, y: imgY, icon: mejirushiIconSelected, note: note || '', locked };
     if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
     positionMejirushiPin();
     saveSettings();
@@ -4089,6 +4146,16 @@
       deleteMejirushiPin();
     });
   }
+  // ロックボタン：ONの間はドラッグで動かせなくなる（誤って編み図をパンした時などに巻き込まれて動くのを防ぐ）
+  if (mejirushiLockBtn) {
+    mejirushiLockBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (!mejirushiPin) return;
+      mejirushiPin.locked = !mejirushiPin.locked;
+      positionMejirushiPin();
+      saveSettings();
+    });
+  }
   // 完了ボタン：メモの入力を確定してポップアップを閉じる
   if (mejirushiEditDoneBtn) {
     mejirushiEditDoneBtn.addEventListener('click', e => {
@@ -4122,7 +4189,11 @@
       if (!mejDragging || !mejirushiPin) return;
       const dx = e.clientX - mejStartX, dy = e.clientY - mejStartY;
       if (Math.abs(dx) > MEJIRUSHI_HIT_DEADZONE || Math.abs(dy) > MEJIRUSHI_HIT_DEADZONE) {
+        // ロック中でも「動かそうとした」こと自体はここでmejMovedにする。
+        // こうしないと、ロック中にドラッグを試みて指を離した時、動かなかった＝タップと
+        // 誤認識されてポップアップが開閉してしまう（意図しない開閉の原因になる）
         mejMoved = true;
+        if (mejirushiPin.locked) return; // ロック中は検知だけして、実際の移動はしない
         mejirushiPinHit.classList.add('dragging');
         const rect = viewer.getBoundingClientRect();
         let imgX = (e.clientX - rect.left - offsetX) / scale;
@@ -4600,19 +4671,11 @@
   }
 
   // 折りたたみヘッダーに、今の各ガイドのON/OFF状態を表示する
-  function updateGuideStatusText() {
-    if (!cpGuideToggleText) return;
-    let isOn;
-    if (currentRulerTab === 'circle') isOn = circleGuideOn;
-    else if (currentRulerTab === 'box') isOn = boxGuideOn;
-    else isOn = rulerGuideOn;
-    let html = '段数：' + (isOn ? '<b>ON</b>' : '<span class="off">OFF</span>');
-    if (currentRulerTab === 'band') {
-      html += '　目数：' + (stitchGuideVisible ? '<b>ON</b>' : '<span class="off">OFF</span>');
-      html += '　めじるし：' + (mejirushiEnabled ? '<b>ON</b>' : '<span class="off">OFF</span>');
-    }
-    cpGuideToggleText.innerHTML = html;
-  }
+  // ヘッダーからON/OFF表示を廃止した（2026年8月〜。定規名バッジ＋「段数カウンター」の
+  // 固定ラベルに変更したため）。呼び出し箇所が多く残っているので、関数自体はそのまま
+  // 何もしない形で残してある（呼び出し側を1つずつ消して回るより安全なため）
+  function updateGuideStatusText() {}
+
 
   gpToggleGuide.addEventListener('change', function() {
     const isOn = this.checked;
@@ -6553,6 +6616,9 @@
         subEl.classList.remove('show');
       }
     }
+    // カウンターパネルのヘッダーにも同じ定規名バッジを表示する（2026年8月〜）
+    const cpBadge = document.getElementById('cp-ruler-badge');
+    if (cpBadge) cpBadge.textContent = labels[currentRulerTab] || '直線定規';
   }
   window.switchRulerTab = function(tab) {
     // 四角定規の「正方形/長方形になりました」トーストは、タブをまたいで残ってしまうと
