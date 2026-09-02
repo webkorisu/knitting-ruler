@@ -1290,9 +1290,9 @@
       display: none;
       align-items: center;
       gap: 4px;
-      padding: 10px 5px;
-      min-height: 46px; /* 段数ガイド・目数ガイド行と同じ値。2026年9月〜、1段/縦線ラベルが
-                           2行のミニカード表示になったのに合わせて28px→32pxに再調整（3行とも高さを揃えるため） */
+      padding: 8px 5px;
+      min-height: 42px; /* 段数ガイド・目数ガイド行と同じ値。2026年9月〜、上下パディングを2pxずつ詰めたのに合わせて
+                           46px→42pxに再調整（3行とも高さを揃えるため） */
       box-sizing: content-box;
       border: 1.5px solid var(--border); /* 四辺すべてに枠線。上辺は非アクティブなタブの下で見える必要があるため消さない。
                                               アクティブなタブの真下だけは、タブ側のborder-bottom（同色）が上から
@@ -1446,7 +1446,7 @@
        編み図を縮小してもマークだけ画面上で一定サイズのままだと、「置いた場所」と「見た目の中心」の
        ズレ量（固定px）がマス目1個の大きさに対して相対的に変わってしまい、
        別のマス目に置いたように見えてしまう不具合があったため、マス目と一緒に拡縮する仕様に変更） */
-    .mej-pin-icon svg { display: block; fill: none; stroke: #B8434F; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
+    .mej-pin-icon svg { display: block; fill: none; stroke: #B8434F; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); transition: width .18s ease, height .18s ease; }
     .mej-tip {
       position: absolute;
       left: 50%;
@@ -1467,6 +1467,9 @@
     @media (hover: hover) {
       .mej-pin:has(.mej-pin-hit:hover) .mej-tip { opacity: .95; }
     }
+    /* スマホ（ホバーが無い機種）向け：タップした瞬間、吹き出しをJS側で一時的に表示する。
+       :hoverではなくクラスで制御するので、hoverの有無に関わらずどの機種でも使える（2026年9月〜） */
+    .mej-pin.tip-flash .mej-tip { opacity: .95; }
     #mejirushi-edit-pop {
       position: fixed;
       z-index: 213; /* 定規・パネルより上。ピン本体(z-index:40)とは別に、編集中だけは
@@ -1694,8 +1697,8 @@
       display: none;
       align-items: center;
       gap: 4px;
-      padding: 10px 5px;
-      min-height: 46px;
+      padding: 8px 5px;
+      min-height: 42px;
       box-sizing: content-box;
       border: 1.5px solid var(--border);
       border-left: none;
@@ -1712,8 +1715,8 @@
       display: none;
       align-items: center;
       gap: 4px;
-      padding: 10px 5px;
-      min-height: 46px;
+      padding: 8px 5px;
+      min-height: 42px;
       box-sizing: content-box;
       border: 1.5px solid var(--border);
       border-left: none;
@@ -1847,14 +1850,20 @@
       transform: scale(0.94);
     }
     /* 未計測の間は、押せそうに見えないようにする（実際タップしても何も起きないため）。
-       文字も薄く・細くして「今は何も情報が無い」ことが伝わるようにする。
-       縦位置はスロット（.gp-slot）のalign-items:centerに任せるので、ここでは色・太さだけ調整 */
+       「1段の高さ」ラベル自体は他の状態と同じ見た目のまま、値の部分（未計測の文字）だけ
+       薄く・細くして「今は何も情報が無い」ことが伝わるようにする（2026年9月〜） */
+    /* 未計測でも見た目（色・大きさ）は計測済みの値と完全に同じにする（2026年9月〜。
+       色や大きさで差をつけようと何度か試したが、かえって不自然に見えたため撤廃した）。
+       タップしても何も起きない、という機能面の違いだけをcursorで表現する */
     #gp-step-label.unmeasured {
       cursor: default;
       background: transparent;
-      font-weight: 500;
+    }
+    /* 「未計測」の3文字は、同じ16pxでも数字＋pxの並びより大きく見えるため、
+       色・太さは値と揃えたまま、サイズだけ少し控えめにする（2026年9月〜） */
+    #gp-step-label.unmeasured .gp-val-num {
       font-size: 12px;
-      color: #8C8279;
+      transform: translateX(-1px);
     }
     #gp-step-label.unmeasured:hover,
     #gp-step-label.unmeasured:active {
@@ -2906,7 +2915,7 @@
       <button id="gp-measure-btn" style="opacity:0; pointer-events:none;"><span id="gp-measure-btn-text">計測する</span></button>
     </span>
     <span class="gp-slot">
-      <span id="gp-step-label" style="opacity:0; pointer-events:none;" onclick="toggleStepAdjust(event)">未計測</span>
+      <span id="gp-step-label" class="unmeasured" style="opacity:0; pointer-events:none;" onclick="toggleStepAdjust(event)"><span class="gp-val-label">1段の高さ</span><span class="gp-val-num">未計測</span></span>
     </span>
   </div>
   <!-- 中段：目数ガイド行（直線定規のみ・段数ガイド行と全く同じ構成にして一貫性を出す：
@@ -3638,6 +3647,9 @@
   let mejirushiPlaceMode = false;
   let mejirushiPlaceStep = 'icon';
   const MEJIRUSHI_HIT_DEADZONE = 6;  // ピンを「掴んだ」と判定するための遊び（px）。近づいただけでは反応しない
+  const MEJIRUSHI_LONG_PRESS_MS = 550; // 長押しでサイズ切り替えと判定するまでの時間
+  const MEJIRUSHI_BIG_SCALE = 3;       // 長押しで拡大した時の倍率（編み図によっては通常サイズだと
+                                        // 小さすぎてめじるしの役目を果たさないための対策。2026年9月〜）
   // マークのアイコンサイズ（見た目）：編み図の拡大率(scale)に連動させる。
   // scale=1（画像の等倍表示）の時に見た目MEJ_ICON_BASEpxになる計算。
   // 下限だけ設けて、思い切り縮小した時にマークが消えて見えなくなることだけは防ぐ。
@@ -4181,8 +4193,11 @@
           iconEl.innerHTML = MEJIRUSHI_ICON_SVG[pin.icon] || MEJIRUSHI_ICON_SVG.pin;
           iconEl.dataset.icon = pin.icon;
         }
+        // 長押しで3倍/1倍を切り替えられる（pin.big）。編み図によっては通常サイズだと
+        // 小さすぎてめじるしの役目を果たさないことがあるための対策（2026年9月〜）
+        const thisIconPx = iconPx * (pin.big ? MEJIRUSHI_BIG_SCALE : 1);
         const svgEl = iconEl.querySelector('svg');
-        if (svgEl) { svgEl.style.width = iconPx + 'px'; svgEl.style.height = iconPx + 'px'; }
+        if (svgEl) { svgEl.style.width = thisIconPx + 'px'; svgEl.style.height = thisIconPx + 'px'; }
       }
       const tipEl = el.querySelector('.mej-tip');
       if (tipEl) tipEl.textContent = (pin.note && pin.note.length) ? pin.note : '（メモなし）';
@@ -4217,6 +4232,7 @@
     } else if (mejirushiEditPop) {
       mejirushiEditPop.classList.remove('show');
     }
+    refreshCounterPanelAvoidance();
   }
 
   // 「めじるしをおく」ボタン→2ステップの配置フロー（段数ガイド「計測する」・目数ガイド「線を引く」と
@@ -4232,6 +4248,7 @@
     // 配置中・既存マークの編集中は、表示トグル自体を押せなくする（オフにするとモードごと
     // 中断されてしまうため、それを誤操作で起きないようにする。2026年9月〜）
     if (mejirushiToggle) mejirushiToggle.disabled = mejirushiPlaceMode || selectedMejirushiIndex !== null;
+    refreshCounterPanelAvoidance();
     if (!show) return;
     if (mejirushiPaletteHint) {
       mejirushiPaletteHint.textContent = (mejirushiPlaceStep === 'icon')
@@ -4405,6 +4422,20 @@
   // 近づいただけ・タップしただけでは動かない（掴んだ判定の遊び＝MEJIRUSHI_HIT_DEADZONE）。
   // 動かさずに指を離したら「タップ」とみなし、そのピンの選択・編集ポップアップの開閉を行う
   let mejDragging = false, mejMoved = false, mejStartX = 0, mejStartY = 0, mejDragIndex = null;
+  let mejLongPressTimer = null, mejLongPressFired = false;
+  // タップした瞬間、その場で吹き出し（メモ）を一時的に表示する（スマホはホバーが無いため）。
+  // 前回のタイマーが残っていたら消して、常に1個だけ表示されるようにする（2026年9月〜）
+  let mejTipFlashTimer = null;
+  function flashMejirushiTip(idx) {
+    clearTimeout(mejTipFlashTimer);
+    if (mejirushiPinsWrap) {
+      mejirushiPinsWrap.querySelectorAll('.mej-pin.tip-flash').forEach(el => el.classList.remove('tip-flash'));
+    }
+    const pinEl = mejirushiPinsWrap ? mejirushiPinsWrap.children[idx] : null;
+    if (!pinEl) return;
+    pinEl.classList.add('tip-flash');
+    mejTipFlashTimer = setTimeout(() => { pinEl.classList.remove('tip-flash'); }, 1400);
+  }
   if (mejirushiPinsWrap) {
     mejirushiPinsWrap.addEventListener('pointerdown', e => {
       const hitEl = e.target.closest('.mej-pin-hit');
@@ -4415,8 +4446,21 @@
       e.stopPropagation();
       mejDragIndex = idx;
       mejDragging = true; mejMoved = false;
+      mejLongPressFired = false;
       mejStartX = e.clientX; mejStartY = e.clientY;
       try { hitEl.setPointerCapture(e.pointerId); } catch(err) {}
+      // 長押しでサイズ（1倍⇔3倍）を切り替える。動かさずに押し続けた時だけ発火する
+      clearTimeout(mejLongPressTimer);
+      mejLongPressTimer = setTimeout(() => {
+        if (!mejDragging || mejMoved || mejDragIndex !== idx) return; // 途中で動いた・指を離した場合は発火しない
+        const pin = mejirushiPins[idx];
+        if (!pin || pin.locked) return; // ロック中はサイズも変えない
+        mejLongPressFired = true;
+        pin.big = !pin.big;
+        positionMejirushiPin();
+        saveSettings();
+        if (navigator.vibrate) navigator.vibrate(15); // 対応端末なら軽い振動でフィードバック
+      }, MEJIRUSHI_LONG_PRESS_MS);
     });
     mejirushiPinsWrap.addEventListener('pointermove', e => {
       if (!mejDragging || mejDragIndex === null) return;
@@ -4428,6 +4472,7 @@
         // こうしないと、ロック中にドラッグを試みて指を離した時、動かなかった＝タップと
         // 誤認識されてポップアップが開閉してしまう（意図しない開閉の原因になる）
         mejMoved = true;
+        clearTimeout(mejLongPressTimer); // 動いたら長押し（サイズ切り替え）は不成立にする
         if (pin.locked) return; // ロック中は検知だけして、実際の移動はしない
         const pinEl = mejirushiPinsWrap.children[mejDragIndex];
         const hitEl = pinEl ? pinEl.querySelector('.mej-pin-hit') : null;
@@ -4445,12 +4490,18 @@
       }
     });
     mejirushiPinsWrap.addEventListener('pointerup', () => {
+      clearTimeout(mejLongPressTimer);
       if (!mejDragging || mejDragIndex === null) { mejDragging = false; mejDragIndex = null; return; }
       const idx = mejDragIndex;
       const pinEl = mejirushiPinsWrap.children[idx];
       const hitEl = pinEl ? pinEl.querySelector('.mej-pin-hit') : null;
       if (hitEl) hitEl.classList.remove('dragging');
       mejDragging = false;
+      if (mejLongPressFired) {
+        // 長押しでサイズを切り替えた時は、そのままタップ（選択）扱いにはしない
+        mejDragIndex = null;
+        return;
+      }
       if (mejMoved) {
         // 選択中だったピンを動かした場合は、閉じたポップアップの状態と選択状態を揃えておく
         if (idx === selectedMejirushiIndex) selectedMejirushiIndex = null;
@@ -4461,8 +4512,18 @@
       // 動かさなかった＝タップ：もう一度同じピンをタップしたら選択解除、違うピンなら選択を切り替える
       selectedMejirushiIndex = (selectedMejirushiIndex === idx) ? null : idx;
       if (mejirushiEditPop) mejirushiEditPop.classList.toggle('show', selectedMejirushiIndex !== null);
+      flashMejirushiTip(idx); // タップした場所のメモを、その場でも一瞬見えるようにする（スマホ向け）
       mejDragIndex = null;
       positionMejirushiPin();
+    });
+    // ブラウザ都合でジェスチャーが途中終了した時も、長押しタイマー・ドラッグ状態を必ず解除しておく
+    mejirushiPinsWrap.addEventListener('pointercancel', () => {
+      clearTimeout(mejLongPressTimer);
+      const pinEl = mejDragIndex !== null ? mejirushiPinsWrap.children[mejDragIndex] : null;
+      const hitEl = pinEl ? pinEl.querySelector('.mej-pin-hit') : null;
+      if (hitEl) hitEl.classList.remove('dragging');
+      mejDragging = false;
+      mejDragIndex = null;
     });
   }
 
@@ -4699,16 +4760,16 @@
   const gpStepLabel   = document.getElementById('gp-step-label');
   const gpMeasureBtn  = document.getElementById('gp-measure-btn');
 
-  // gpStepLabelの文字が変わるたびに、「未計測」かどうかで見た目（タップできそうな見た目かどうか）を自動的に切り替える
-  function refreshGpStepLabelLook() {
-    gpStepLabel.classList.toggle('unmeasured', gpStepLabel.textContent === '未計測');
-  }
-  new MutationObserver(refreshGpStepLabelLook).observe(gpStepLabel, { characterData: true, childList: true, subtree: true });
-  refreshGpStepLabelLook();
-
-  // 「1段」ラベル（小さく薄い文字）＋計測値（太字で大きめ）を2行で表示する
+  // 「1段の高さ」ラベル（小さく薄い文字）＋計測値（太字で大きめ）を2行で表示する
   function setGpStepValue(px) {
     gpStepLabel.innerHTML = '<span class="gp-val-label">1段の高さ</span><span class="gp-val-num">' + px + '<span class="gp-val-unit">px</span></span>';
+    gpStepLabel.classList.remove('unmeasured');
+  }
+  // 未計測の時も、他のタブ（縦線／めじるし）と見た目を揃えて「1段の高さ」＋「未計測」の2行表示にする。
+  // 値の部分だけ薄い色・細めの文字にして「まだ何も無い」感を出す（2026年9月〜）
+  function setGpStepUnmeasured() {
+    gpStepLabel.innerHTML = '<span class="gp-val-label">1段の高さ</span><span class="gp-val-num">未計測</span>';
+    gpStepLabel.classList.add('unmeasured');
   }
 
   // 「1段：66px」をタップした時、微調整カードの表示を切り替える（未計測の時は開かない）
@@ -4762,7 +4823,7 @@
   function toggleStepAdjust(e) {
     if (e) e.stopPropagation();
     if (stepAdjustLocked) return;
-    if (gpStepLabel.textContent === '未計測') return;
+    if (gpStepLabel.classList.contains('unmeasured')) return;
     const card = document.getElementById('step-adjust-card');
     if (!card) return;
     if (card.classList.contains('show')) {
@@ -4918,7 +4979,7 @@
       // ONなら現在有効なステップ、OFFでも常に現在のズーム倍率に合わせた値を表示する
       setGpStepValue(isOn ? effStep : scaledBase);
     } else {
-      gpStepLabel.textContent = '未計測';
+      setGpStepUnmeasured();
     }
     updateGuideStatusText();
   }
@@ -4949,7 +5010,7 @@
           setGpStepValue(circleStep);
         } else {
           circleStep = 0;
-          gpStepLabel.textContent = '未計測';
+          setGpStepUnmeasured();
         }
       } else {
         circleStep = 0;
@@ -4963,7 +5024,7 @@
           setGpStepValue(boxStep);
         } else {
           boxStep = 0;
-          gpStepLabel.textContent = '未計測';
+          setGpStepUnmeasured();
         }
       } else {
         boxStep = 0;
@@ -4978,7 +5039,7 @@
           setGpStepValue(rulerStep);
         } else {
           rulerStep = 0;
-          gpStepLabel.textContent = '未計測';
+          setGpStepUnmeasured();
         }
       } else {
         rulerStep = 0;
@@ -5000,6 +5061,7 @@
     });
   }
   function triggerMeasure(e) {
+    if (gpMeasureBtn.disabled) return;
     e.stopPropagation();
     if (e.type === 'touchend') {
       measureBtnTouched = true;
@@ -5973,6 +6035,7 @@
     if (stitchVisibleToggle) stitchVisibleToggle.disabled = false;
     setMejirushiPinsLocked(false);
     setGuideTabsLocked(false);
+    refreshCounterPanelAvoidance();
   }
   const STITCH_MODE_RULER_OPACITY = '0.4';
   function startStitchGuideMode() {
@@ -6010,6 +6073,7 @@
     positionStitchGuideBounds();
     positionStitchLineActions();
     updateGuideStatusText();
+    refreshCounterPanelAvoidance();
   }
   function stopStitchGuideMode() {
     stitchGuideMode = false;
@@ -6032,11 +6096,13 @@
     positionStitchGuideBounds();
     positionStitchLineActions();
     updateGuideStatusText();
+    refreshCounterPanelAvoidance();
   }
   // 「線引」ボタン：押すと編集モードを開始する。編集中はdisabledになるので、
   // 押している間にもう一度押されることはない（終了はヒントバーの✕／完了が担当する）
   if (stitchEditBtn) {
     stitchEditBtn.addEventListener('click', () => {
+      if (stitchEditBtn.disabled) return;
       if (!img) {
         showModal('目数ガイドを使うためには\nメニューパネルから\n編み図を開いてください。', 'OK', () => {}, false);
         return;
@@ -6457,6 +6523,47 @@
     const r = counterPanel.getBoundingClientRect();
     return { x: r.left, y: r.top };
   }
+  // ===== カウンターパネルを、編集中に出るアシストカードから自動でよける（2026年9月〜） =====
+  // 段数ガイド計測中の計測バー、目数ガイド編集中のヒントバー・カラーパレット、
+  // めじるしの配置バー・編集ポップアップ――これらのどれかとカウンターパネルが重なっていたら、
+  // パネルをその下へ一時的にずらして避ける。スマホは画面が狭く、パネルをドラッグで
+  // 動かしていない時は特に重なりやすいため。よける前の位置を覚えておき、
+  // 重なりが無くなったら自動でそこへ戻す
+  let cpAutoAvoidOriginalPos = null;
+  function refreshCounterPanelAvoidance() {
+    if (!counterPanel || getComputedStyle(counterPanel).display === 'none') return;
+    const candidates = [
+      document.getElementById('stitch-hint-bar'),
+      document.getElementById('stitch-color-float'),
+      document.getElementById('mejirushi-palette-float'),
+      document.getElementById('mejirushi-edit-pop'),
+      // 「1段の高さ」微調整カード（#step-adjust-card）は含めない：
+      // positionStepAdjustCard()でカウンターパネルの真上に追従して出る設計のため、
+      // そもそも重ならない（重なる場合、よけようとしてパネルを動かす→カードも追従して動く、
+      // という無意味なループになりかねない）
+    ];
+    if (window.isMeasuringActive && window.isMeasuringActive()) {
+      candidates.push(document.getElementById('measure-bar'));
+    }
+    const cpRect = counterPanel.getBoundingClientRect();
+    let blocker = null;
+    for (const el of candidates) {
+      if (!el) continue;
+      if (!el.classList.contains('show') && !(window.isMeasuringActive && window.isMeasuringActive() && el.id === 'measure-bar')) continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) continue;
+      const overlap = !(cpRect.right < rect.left || cpRect.left > rect.right || cpRect.bottom < rect.top || cpRect.top > rect.bottom);
+      if (overlap) { blocker = rect; break; }
+    }
+    if (blocker) {
+      if (cpAutoAvoidOriginalPos === null) cpAutoAvoidOriginalPos = getCpPos(); // よける前の位置を最初の1回だけ記録
+      setCpPos(cpRect.left, blocker.bottom + 10);
+    } else if (cpAutoAvoidOriginalPos !== null) {
+      setCpPos(cpAutoAvoidOriginalPos.x, cpAutoAvoidOriginalPos.y);
+      cpAutoAvoidOriginalPos = null;
+    }
+  }
+  window.refreshCounterPanelAvoidance = refreshCounterPanelAvoidance;
   function setCpPos(x, y) {
     const pw = cpPanelW || counterPanel.offsetWidth;
     const ph = cpPanelH || counterPanel.offsetHeight;
@@ -6487,7 +6594,7 @@
     if (e.target.closest('#mejirushi-place-btn')) return;
     // 未計測の時はタップしても何も起きないので、そこからパネルをドラッグできるようにする。
     // 計測値が出ている時（例：1段：66px）は、タップで調整カードを開く動作を優先し、ドラッグは始めない。
-    if (e.target.closest('#gp-step-label') && gpStepLabel.textContent !== '未計測') return;
+    if (e.target.closest('#gp-step-label') && !gpStepLabel.classList.contains('unmeasured')) return;
     if (e.target.closest('#step-adjust-card')) return;
     cpDragging = true;
     cpDragMoved = false;
@@ -8939,6 +9046,7 @@
       }
       bar.style.left = barLeft + 'px';
       bar.style.top  = barTop + 'px';
+      if (window.refreshCounterPanelAvoidance) window.refreshCounterPanelAvoidance();
     }
 
     // 計測線（の外接矩形）を避けて、線の右→左→上→下の順で置ける場所を探す。
@@ -8987,6 +9095,7 @@
       }
       bar.style.left = barLeft + 'px';
       bar.style.top  = barTop + 'px';
+      if (window.refreshCounterPanelAvoidance) window.refreshCounterPanelAvoidance();
     }
 
     // 計測線の種類に応じて、px表示と重ならない位置にバーを配置する
@@ -9026,6 +9135,7 @@
       bar.style.transform = 'none';
       bar.style.left = left + 'px';
       bar.style.top  = top + 'px';
+      if (window.refreshCounterPanelAvoidance) window.refreshCounterPanelAvoidance();
     }
 
     function resizeCvs() {
@@ -9356,6 +9466,7 @@
       if (typeof setMejirushiPinsLocked === 'function') setMejirushiPinsLocked(false);
       // 計測中ロックしていたタブも、切り替えられるように戻す（2026年9月〜）
       if (typeof setGuideTabsLocked === 'function') setGuideTabsLocked(false);
+      if (window.refreshCounterPanelAvoidance) window.refreshCounterPanelAvoidance();
       const tapHint = document.getElementById('tap-hint');
       if (tapHint) tapHint.style.display = '';
     }
