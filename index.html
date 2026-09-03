@@ -1346,17 +1346,25 @@
       background: #FFFFFF;
       border: 1.5px solid var(--border);
       border-radius: 20px;
-      padding: 8px 10px;
+      padding: 14px 10px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.12);
       pointer-events: all;
       width: max-content;
       max-width: calc(100vw - 24px);
+      cursor: grab;
+      touch-action: none;
     }
     #mejirushi-palette-float.show { display: flex; }
+    #mejirushi-palette-float.dragging {
+      cursor: grabbing;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.24), 0 3px 10px rgba(0,0,0,0.12);
+      opacity: 0.96;
+    }
     #mejirushi-palette-top-row {
       display: flex;
       align-items: center;
       gap: 10px;
+      padding-right: 18px; /* 角に固定された✕ボタン（絶対配置）とテキストが被らないよう避けておく */
     }
     #mejirushi-palette-hint {
       font-family: 'Zen Maru Gothic', sans-serif;
@@ -1370,25 +1378,42 @@
       line-height: 1.3;
     }
     #mejirushi-palette-close {
-      position: relative;
-      width: 26px;
-      height: 26px;
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 15px;
+      height: 15px;
       border-radius: 50%;
-      background: #f8fdfc;
-      border: 1.5px solid var(--border);
-      color: var(--text-sub);
-      font-size: 12px;
+      background: #EDEAEA;
+      border: 1.5px solid #C9C4C4;
+      color: #7A7575;
+      font-size: 7px;
+      opacity: 0.9;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      margin-left: auto;
+      padding: 0;
       -webkit-tap-highlight-color: transparent;
     }
+    #mejirushi-palette-close:active { opacity: 1; transform: scale(.92); }
     #mejirushi-palette-icons { display: flex; gap: 6px; flex-wrap: wrap; max-width: 210px; justify-content: center; }
     /* ②の「場所をタップ」ステップ中はマーク選択を隠す（JSが#mejirushi-palette-floatに付け外しするクラス） */
     #mejirushi-palette-float.step-point #mejirushi-palette-icons { display: none; }
+    /* めじるしの色（全マーク共通の一括変更）。目数ガイドのカラーパレットと同じ並び方（2026年9月〜） */
+    #mejirushi-color-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      max-width: 210px;
+      justify-content: center;
+      padding-top: 8px;
+      border-top: 1px solid rgba(107,82,88,0.12);
+    }
+    #mejirushi-palette-float.step-point #mejirushi-color-row { padding-top: 0; border-top: none; }
+    /* ②の段階に進んでも色選びの行自体は隠さない（以前は隠していたが、マークを選んだ瞬間に
+       色を選ぶ間もなく②へ進んでしまい、色を選べないという声があったため。2026年9月〜） */
 
     /* ピン本体：幅0のアンカー（画像内座標そのもの）。中の要素だけがタップ・ドラッグできればよい。
        z-indexは編み図に「貼り付いてる」体を保つため、定規（#ruler-overlay:100）や
@@ -1446,7 +1471,7 @@
        編み図を縮小してもマークだけ画面上で一定サイズのままだと、「置いた場所」と「見た目の中心」の
        ズレ量（固定px）がマス目1個の大きさに対して相対的に変わってしまい、
        別のマス目に置いたように見えてしまう不具合があったため、マス目と一緒に拡縮する仕様に変更） */
-    .mej-pin-icon svg { display: block; fill: none; stroke: #B8434F; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); transition: width .18s ease, height .18s ease; }
+    .mej-pin-icon svg { display: block; fill: none; stroke: var(--mejirushi-color, #B8434F); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); transition: width .18s ease, height .18s ease; }
     .mej-tip {
       position: absolute;
       left: 50%;
@@ -1490,7 +1515,8 @@
     #mejirushi-edit-icons { display: flex; gap: 5px; justify-content: center; }
     .mej-edit-row { display: flex; gap: 6px; align-items: center; }
     #mejirushi-note {
-      width: 110px;
+      width: 100%;
+      box-sizing: border-box;
       font-family: 'Zen Maru Gothic', sans-serif;
       font-size: 11px;
       padding: 6px 8px;
@@ -1528,7 +1554,7 @@
     #mejirushi-trash-btn:hover svg { stroke: #993C1D; }
     #mejirushi-trash-btn:disabled { opacity: .4; cursor: default; pointer-events: none; }
     #mejirushi-edit-done-btn {
-      width: 100%;
+      flex: 1;
       background: var(--primary);
       border: none;
       border-radius: 10px;
@@ -1654,7 +1680,10 @@
       z-index: 2;
     }
     .cp-gtab {
-      flex: 1;
+      /* 幅を伸縮させず、常に「3タブ分」の幅で固定する。以前はflex:1だったため、
+         四角・円定規で目数ガイドタブが隠れると、残り2つが幅50%ずつに間延びして
+         直線定規と見た目の大きさが変わってしまっていた（2026年9月〜に固定幅へ変更） */
+      flex: 0 0 calc((100% - 8px) / 3); /* 8px = タブ間の余白4px × 2箇所ぶん */
       padding: 9px 3px 10px;
       border: none;
       background: rgba(0,0,0,0.06);
@@ -1742,7 +1771,16 @@
       transition: opacity .15s;
     }
     #mejirushi-count-label {
-      text-align: center; /* お試し中：中央寄せ比較用（2026年9月）。他は#stitch-count-labelと共通の.gp-slotに任せている */
+      font-family: 'Zen Maru Gothic', sans-serif;
+      color: var(--text);
+      white-space: nowrap;
+      pointer-events: none;
+      box-sizing: border-box;
+      text-align: center;
+      padding: 6px 8px;
+      border-radius: 15px;
+      background: transparent;
+      transition: opacity .15s;
     }
     #stitch-edit-btn {
       background: #FFFFFF;
@@ -1863,6 +1901,9 @@
        色・太さは値と揃えたまま、サイズだけ少し控えめにする（2026年9月〜） */
     #gp-step-label.unmeasured .gp-val-num {
       font-size: 12px;
+      line-height: 18px; /* 文字は小さくても、行の"箱"の高さは計測済み（16px×1.15）と揃えておく。
+                             ここを比率(1.15)のままにすると文字が小さい分だけ箱も低くなり、
+                             タブ切り替え時にパネルの高さがガクッと変わって見えてしまうため（2026年9月〜） */
       transform: translateX(-1px);
     }
     #gp-step-label.unmeasured:hover,
@@ -2778,13 +2819,25 @@
 <!-- ===== めじるし：「めじるしをおく」ボタンを押した時だけ現れる、2ステップの配置フローバー
      （2026年8月〜。以前はトグルONの間ずっと出しっぱなしだったが、段数ガイド「計測する」・
      目数ガイド「線を引く」と同じテンポ感（ボタン→案内カード→タップ）に統一） =====
-     ①「お好きなめじるしをタップ」でマークを選ぶ→②「めじるしを付けたい場所をタップ」で編み図をタップ -->
+     ①「めじるしにしたいマークをタップ」でマークを選ぶ→②「めじるしを付けたい場所をタップ」で編み図をタップ -->
 <div id="mejirushi-palette-float">
   <div id="mejirushi-palette-top-row">
-    <span id="mejirushi-palette-hint">お好きなめじるしをタップ</span>
+    <span id="mejirushi-palette-hint">めじるしにしたいマークをタップ</span>
     <button type="button" id="mejirushi-palette-close" title="やめる" aria-label="めじるしの配置をやめる">✕</button>
   </div>
   <div id="mejirushi-palette-icons"></div>
+  <!-- めじるしの色（全マーク共通の一括変更。目数ガイドの縦線カラーと全く同じ仕組み。2026年9月〜） -->
+  <div id="mejirushi-color-row">
+    <button class="color-dot" data-color="#B8434F" style="background:#B8434F;" title="赤"></button>
+    <button class="color-dot" data-color="#C07A2E" style="background:#C07A2E;" title="橙"></button>
+    <button class="color-dot" data-color="#A88816" style="background:#A88816;" title="黄"></button>
+    <button class="color-dot" data-color="#357A62" style="background:#357A62;" title="緑"></button>
+    <button class="color-dot" data-color="#3A5FA0" style="background:#3A5FA0;" title="青"></button>
+    <button class="color-dot" data-color="#544FA0" style="background:#544FA0;" title="藍"></button>
+    <button class="color-dot" data-color="#8A4FA0" style="background:#8A4FA0;" title="紫"></button>
+    <input type="color" id="mejirushi-color" value="#B8434F" style="width:0;height:0;border:none;padding:0;opacity:0;position:absolute;">
+    <label for="mejirushi-color" class="color-custom-label" title="カラーを選ぶ"></label>
+  </div>
 </div>
 
 <!-- ===== めじるし：編み図に置かれたピン本体（最大20個・2026年9月〜複数対応）=====
@@ -2801,8 +2854,9 @@
      画面座標に合わせて毎回セットする（positionMejirushiPin()を参照） -->
 <div id="mejirushi-edit-pop">
   <div id="mejirushi-edit-icons"></div>
+  <input type="text" id="mejirushi-note" maxlength="30" placeholder="ひとことメモ" aria-label="めじるしのメモ" autocomplete="off">
   <div class="mej-edit-row">
-    <input type="text" id="mejirushi-note" maxlength="30" placeholder="ひとことメモ" aria-label="めじるしのメモ" autocomplete="off">
+    <button type="button" id="mejirushi-edit-done-btn">完了</button>
     <button type="button" id="mejirushi-lock-btn" aria-label="めじるしの位置をロック">
       <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
     </button>
@@ -2810,7 +2864,6 @@
       <svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
     </button>
   </div>
-  <button type="button" id="mejirushi-edit-done-btn">完了</button>
 </div>
 
 
@@ -3519,6 +3572,8 @@
   const mejirushiPaletteHint = document.getElementById('mejirushi-palette-hint');
   const mejirushiPaletteClose = document.getElementById('mejirushi-palette-close');
   const mejirushiPaletteIcons = document.getElementById('mejirushi-palette-icons');
+  const mejirushiColorRow = document.getElementById('mejirushi-color-row');
+  const mejirushiColorInput = document.getElementById('mejirushi-color');
   const mejirushiPinsWrap = document.getElementById('mejirushi-pins-wrap');
   const mejirushiCountLabel = document.getElementById('mejirushi-count-label');
   const mejirushiEditPop = document.getElementById('mejirushi-edit-pop');
@@ -3556,17 +3611,25 @@
   function applyGuideTabFilter() {
     if (!cpGuideTabbar) return;
     const isBand = (currentRulerTab === 'band');
-    // 段数ガイド行のキャプションは、タブ（見出し）がある帯定規の時は二重表示になるので隠す。
-    // 四角・円定規はタブが無く、この行が唯一の目印なので表示したまま
+    // タブバーは全定規で表示する（2026年9月〜：四角・円定規にもめじるしを追加したため）。
+    // 目数ガイドタブは直線定規専用の機能なので、それ以外の定規の時はタブ自体を隠す
+    const stitchTabBtn = cpGuideTabbar.querySelector('.cp-gtab[data-target="stitch"]');
+    if (stitchTabBtn) stitchTabBtn.style.display = isBand ? '' : 'none';
+    // タブバーが常にラベルの役目を果たすようになったので、行キャプションはもう不要
     const gpCaption = cpGuideRow.querySelector('.gp-caption');
-    if (gpCaption) gpCaption.style.display = isBand ? 'none' : '';
-    if (!isBand || !showCounter) {
+    if (gpCaption) gpCaption.style.display = 'none';
+    const showCounterForTab = isBand ? showCounter : (currentRulerTab === 'circle' ? showCircleCounter : showBoxCounter);
+    if (!showCounterForTab) {
       cpGuideTabbar.style.display = 'none';
       return;
     }
+    // 目数ガイドタブを選んだ状態のまま直線定規以外に切り替えた場合、そのタブ自体が
+    // 存在しなくなるため、段数ガイドタブへ戻しておく（2026年9月〜）
+    if (!isBand && cpGuideActiveSection === 'stitch') cpGuideActiveSection = 'row';
     cpGuideTabbar.style.display = 'flex';
+    cpGuideTabbar.querySelectorAll('.cp-gtab').forEach(b => b.classList.toggle('active', b.dataset.target === cpGuideActiveSection));
     cpGuideRow.style.display = (cpGuideActiveSection === 'row') ? 'flex' : 'none';
-    if (cpStitchRow)    cpStitchRow.style.display    = (cpGuideActiveSection === 'stitch') ? 'flex' : 'none';
+    if (cpStitchRow)    cpStitchRow.style.display    = (isBand && cpGuideActiveSection === 'stitch') ? 'flex' : 'none';
     if (cpMejirushiRow) cpMejirushiRow.style.display = (cpGuideActiveSection === 'mej')    ? 'flex' : 'none';
   }
   if (cpGuideTabbar) {
@@ -3632,21 +3695,70 @@
                                          //   どのみち引き直しになるので、毎回ユーザー自身が
                                          //   「トグルON→線引ボタン」の順で使い始める形に統一する）
 
-  // ===== めじるし（直線定規のみ・最大20個まで：紙の蛍光ペンの代わりに、編み図の複数箇所へ印を置く） =====
-  // 目数ガイドと同じ「ファイルごとの辞書（stitchByFile）」に相乗りする形で保存する（新しい辞書は作らない）。
+  // ===== めじるし（直線・四角・円の全定規対応・最大20個まで：紙の蛍光ペンの代わりに、
+  //       編み図の複数箇所へ印を置く。2026年8月〜構想、2026年9月〜複数対応、四角・円定規にも展開） =====
+  // 目数ガイドと同じ「ファイルごとの辞書」に相乗りする形で保存する（新しい辞書は作らない）。
   // トグルON/OFFは「表示するかどうか」だけのスイッチで、ピンのデータそのものは消さない。
+  //
+  // 定規タブごとに別々の編み図を開く作りのアプリなので、めじるしのデータも定規タブごとに
+  // 完全に別々（band用・box用・circle用）に持つ。mejirushiPins等の「無印」の変数は、
+  // 「今アクティブな定規のめじるしデータ」を指す作業用の変数として使う（rulerStep/circleStep/boxStepが
+  // 別々の変数になっているのと同じ考え方）。定規タブを切り替える瞬間だけ、
+  // syncMejirushiActiveRulerVars()で退避・入れ替えを行う（switchRulerTab()から呼ばれる）
   let mejirushiEnabled = false;      // トグルON/OFF（表示のON/OFF。データは保持されたまま）
-  let mejirushiPins = [];            // [{ x, y, icon, note, locked }, ...]（x/yは画像等倍のpx座標。目数ガイドの線と同じ考え方）
-                                      // 2026年9月〜：1個だけの単一オブジェクトから配列に変更し、複数個置けるようにした
+  let mejirushiPins = [];            // [{ x, y, icon, note, locked, big }, ...]（x/yは画像等倍のpx座標）
   let selectedMejirushiIndex = null; // 今選択中（編集ポップアップ表示中）のインデックス。null＝未選択
+  let mejirushiColor = '#B8434F';    // 全マーク共通の色（一括変更。目数ガイドの縦線カラーと同じ考え方）
+
+  let mejirushiEnabledBand = false, mejirushiPinsBand = [], mejirushiColorBand = '#B8434F';
+  let mejirushiEnabledBox  = false, mejirushiPinsBox  = [], mejirushiColorBox  = '#B8434F';
+  let mejirushiEnabledCircle = false, mejirushiPinsCircle = [], mejirushiColorCircle = '#B8434F';
+
+  // 今の「無印」の状態（アクティブな定規のもの）を、その定規専用の変数へ退避する
+  function stashMejirushiActiveRulerVars(tab) {
+    if (tab === 'circle') { mejirushiEnabledCircle = mejirushiEnabled; mejirushiPinsCircle = mejirushiPins; mejirushiColorCircle = mejirushiColor; }
+    else if (tab === 'box') { mejirushiEnabledBox = mejirushiEnabled; mejirushiPinsBox = mejirushiPins; mejirushiColorBox = mejirushiColor; }
+    else { mejirushiEnabledBand = mejirushiEnabled; mejirushiPinsBand = mejirushiPins; mejirushiColorBand = mejirushiColor; }
+  }
+  // 切り替え先の定規専用の変数を、「無印」の作業用変数へ読み込む
+  function loadMejirushiActiveRulerVars(tab) {
+    if (tab === 'circle') { mejirushiEnabled = mejirushiEnabledCircle; mejirushiPins = mejirushiPinsCircle; mejirushiColor = mejirushiColorCircle; }
+    else if (tab === 'box') { mejirushiEnabled = mejirushiEnabledBox; mejirushiPins = mejirushiPinsBox; mejirushiColor = mejirushiColorBox; }
+    else { mejirushiEnabled = mejirushiEnabledBand; mejirushiPins = mejirushiPinsBand; mejirushiColor = mejirushiColorBand; }
+    selectedMejirushiIndex = null; // 定規を切り替えたら、選択中・編集ポップアップの状態は必ずリセットする
+    // トグル・ボタン・色ピッカーなど、UI側の見た目も切り替え先の定規のデータに合わせて更新する（2026年9月〜）
+    if (mejirushiToggle) mejirushiToggle.checked = mejirushiEnabled;
+    if (mejirushiPlaceBtn) {
+      mejirushiPlaceBtn.style.opacity = mejirushiEnabled ? '1' : '0';
+      mejirushiPlaceBtn.style.pointerEvents = mejirushiEnabled ? 'auto' : 'none';
+    }
+    if (mejirushiCountLabel) mejirushiCountLabel.style.opacity = mejirushiEnabled ? '1' : '0';
+    if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
+    if (mejirushiColorInput) mejirushiColorInput.value = mejirushiColor;
+    if (mejirushiColorRow) {
+      mejirushiColorRow.querySelectorAll('.color-dot').forEach(d => {
+        d.classList.toggle('active', d.dataset.color === mejirushiColor);
+      });
+    }
+    if (typeof applyMejirushiColor === 'function') applyMejirushiColor();
+    if (typeof cancelMejirushiPlace === 'function') cancelMejirushiPlace(); // 配置フロー中に定規を切り替えることは無い想定だが、念のため必ず閉じる
+    if (typeof positionMejirushiPin === 'function') positionMejirushiPin();
+  }
   const MEJIRUSHI_MAX = 20;          // 置ける上限個数（目数ガイドの縦線は99本だが、
                                       // めじるしはアイコンが大きく編み図を覆ってしまうため、少なめに設定）
-  let mejirushiIconSelected = 'pin'; // パレットで今選んでいる（次に置く）マークの種類
+  let mejirushiIconSelected = 'pin'; // パレットで今選んでいる（次に置く）マークの種類。これは定規に関わらず共通でよい
   // 「めじるしをおく」ボタンを押してから配置が終わるまでの2ステップフロー（2026年8月〜）
   // 'icon' ＝マークを選ぶ段階、'point' ＝編み図をタップして置く段階
   let mejirushiPlaceMode = false;
   let mejirushiPlaceStep = 'icon';
   const MEJIRUSHI_HIT_DEADZONE = 6;  // ピンを「掴んだ」と判定するための遊び（px）。近づいただけでは反応しない
+  // めじるしの保存は、今アクティブな定規の保存関数に振り分ける（band/box/circleでそれぞれ
+  // 別々の保存先・辞書を持つため。2026年9月〜：四角・円定規にもめじるしを展開したのに合わせて追加）
+  function saveMejirushiSettings() {
+    if (currentRulerTab === 'circle') { if (typeof saveCircleSettings === 'function') saveCircleSettings(); }
+    else if (currentRulerTab === 'box') { if (typeof saveBoxSettings === 'function') saveBoxSettings(); }
+    else { saveSettings(); }
+  }
   const MEJIRUSHI_LONG_PRESS_MS = 550; // 長押しでサイズ切り替えと判定するまでの時間
   const MEJIRUSHI_BIG_SCALE = 3;       // 長押しで拡大した時の倍率（編み図によっては通常サイズだと
                                         // 小さすぎてめじるしの役目を果たさないための対策。2026年9月〜）
@@ -3696,8 +3808,9 @@
           left: rulerLeft, top: rulerTop, alpha: rulerAlpha, guideOn: rulerGuideOn,
           // 段数カウンターの段数も、その編み図の進捗そのものなので一緒に覚えておく（2026年8月〜）
           count: rowCount,
-          // めじるし（表示ON/OFFと、複数個のピンの位置・マーク・メモ）も編み図ごとに覚えておく（最大20個）
-          mejirushiOn: mejirushiEnabled, mejirushiPins: mejirushiPins,
+          // めじるし（表示ON/OFFと、複数個のピンの位置・マーク・メモ、全マーク共通の色）も
+          // 編み図ごとに覚えておく（最大20個）
+          mejirushiOn: mejirushiEnabled, mejirushiPins: mejirushiPins, mejirushiColor: mejirushiColor,
           // 目数ガイドの色・太さ・上端下端の調整も、編み図ごとに覚えておく（2026年8月〜）。
           // 以前はここに含めておらず、共通の変数のままだったため、別の編み図を開くと
           // 色が引き継がれてしまい、上端・下端の調整はどこにも保存されず毎回消えていた
@@ -3711,6 +3824,7 @@
         baseStep: rulerBaseStep, guideOn: rulerGuideOn,
         showCounter, count: rowCount,
         stitchColor: stitchGuideColor, stitchThickness: stitchGuideThickness,
+        mejirushiColor: mejirushiColor,
         // 目数ガイドの線・段数ガイドの高さは、ファイルごとの辞書（stitchByFile）で保存する。
         // A→B→Aのように複数の編み図を行き来しても、それぞれを覚えておけるようにするため（2026年8月〜）
         stitchByFile: pruneFileDict(stitchByFile, currentBandFileId)
@@ -3745,6 +3859,7 @@
       if (s.baseStep != null) rulerBaseStep = s.baseStep;
       if (s.showCounter != null) showCounter = s.showCounter;
       if (s.stitchColor) stitchGuideColor = s.stitchColor;
+      if (s.mejirushiColor) mejirushiColor = s.mejirushiColor;
       if (s.stitchThickness != null) stitchGuideThickness = s.stitchThickness;
       // 目数ガイドの線データ（ファイルごとの辞書）は、ここでは変数に読み込むだけに留める。
       // 実際に画面へ反映する（トグルON・線を表示する）のは、image.onload側で
@@ -3763,6 +3878,13 @@
       if (stitchColorInput) stitchColorInput.value = stitchGuideColor;
       if (stitchThicknessInput) { stitchThicknessInput.value = stitchGuideThickness; stitchThicknessLabel.textContent = stitchGuideThickness + 'px'; }
       if (typeof applyStitchGuideColor === 'function') applyStitchGuideColor();
+      if (mejirushiColorInput) mejirushiColorInput.value = mejirushiColor;
+      if (mejirushiColorRow) {
+        mejirushiColorRow.querySelectorAll('.color-dot').forEach(d => {
+          d.classList.toggle('active', d.dataset.color === mejirushiColor);
+        });
+      }
+      if (typeof applyMejirushiColor === 'function') applyMejirushiColor();
       rulerAlpha100 = Math.round(rulerAlpha * 100);
       rulerOpacityInput.value  = rulerAlpha100;
       rulerOpacityLabel.textContent = rulerAlpha100 + '%';
@@ -3855,6 +3977,7 @@
               if (remembered.stitchThickness != null) stitchGuideThickness = remembered.stitchThickness;
               stitchGuideTopY    = (remembered.stitchTopY    !== undefined) ? remembered.stitchTopY    : null;
               stitchGuideBottomY = (remembered.stitchBottomY !== undefined) ? remembered.stitchBottomY : null;
+              if (remembered.mejirushiColor != null) mejirushiColor = remembered.mejirushiColor;
             } else {
               // 初めて開く編み図は、線・測定値だけでなく、定規の見た目・位置・
               // 段数ガイドのON/OFF・段数カウントも、まっさらな初期状態から始める。
@@ -3875,6 +3998,7 @@
               mejirushiEnabled = false;
               mejirushiPins = [];
               selectedMejirushiIndex = null;
+              mejirushiColor = '#B8434F';
               // 目数ガイドの色・太さ・上端下端も、初めて開く編み図ではまっさらな初期状態にする
               stitchGuideColor = '#2D4A43';
               stitchGuideThickness = 5;
@@ -3914,6 +4038,14 @@
             }
             if (stitchThicknessInput) { stitchThicknessInput.value = stitchGuideThickness; if (stitchThicknessLabel) stitchThicknessLabel.textContent = stitchGuideThickness + 'px'; }
             if (typeof applyStitchGuideColor === 'function') applyStitchGuideColor();
+            // めじるしの色もパネルの表示に反映する（2026年9月〜）
+            if (mejirushiColorInput) mejirushiColorInput.value = mejirushiColor;
+            if (mejirushiColorRow) {
+              mejirushiColorRow.querySelectorAll('.color-dot').forEach(d => {
+                d.classList.toggle('active', d.dataset.color === mejirushiColor);
+              });
+            }
+            if (typeof applyMejirushiColor === 'function') applyMejirushiColor();
             if (stitchVisibleToggle) stitchVisibleToggle.checked = stitchGuideVisible;
             if (typeof updateStitchWidthLabelVisibility === 'function') updateStitchWidthLabelVisibility();
             if (typeof updateStitchLineCountLabel === 'function') updateStitchLineCountLabel();
@@ -3959,6 +4091,14 @@
               syncCircleUI();
               syncGuideRowUI('circle');
               applyCircle();
+              // めじるしも同じ編み図なら復元する（最大20個）
+              mejirushiEnabledCircle = !!remembered.mejirushiOn;
+              if (Array.isArray(remembered.mejirushiPins)) {
+                mejirushiPinsCircle = remembered.mejirushiPins.slice();
+              } else {
+                mejirushiPinsCircle = [];
+              }
+              if (remembered.mejirushiColor != null) mejirushiColorCircle = remembered.mejirushiColor;
             } else {
               // 初めて開く編み図はまっさらな初期状態から（既存のリセット処理を再利用）。
               // resetCircleDefault()自体は見た目（色・大きさ・位置）しかリセットしない作りなので、
@@ -3968,7 +4108,14 @@
               circleGuideOn = false;
               circleCount = 0;
               resetCircleDefault();
+              mejirushiEnabledCircle = false;
+              mejirushiPinsCircle = [];
+              mejirushiColorCircle = '#B8434F';
             }
+            // 定規タブの切り替えを経ずに同じタブで画像だけ差し替えた場合にも、
+            // 今読み込んだファイルのめじるしデータを「無印」の作業用変数へすぐ反映する
+            loadMejirushiActiveRulerVars('circle');
+            if (typeof positionMejirushiPin === 'function') positionMejirushiPin();
           } else if (currentRulerTab === 'box') {
             // 四角定規タブでの読み込み。円定規と同じ考え方（2026年8月〜）
             try {
@@ -4004,6 +4151,14 @@
               syncBoxUI();
               syncGuideRowUI('box');
               applyBox();
+              // めじるしも同じ編み図なら復元する（最大20個）
+              mejirushiEnabledBox = !!remembered.mejirushiOn;
+              if (Array.isArray(remembered.mejirushiPins)) {
+                mejirushiPinsBox = remembered.mejirushiPins.slice();
+              } else {
+                mejirushiPinsBox = [];
+              }
+              if (remembered.mejirushiColor != null) mejirushiColorBox = remembered.mejirushiColor;
             } else {
               // resetBoxDefault()自体は見た目（色・大きさ・位置）しかリセットしない作りなので、
               // 計測値・段数ガイドのON/OFF・段数カウントは先にここで明示的にリセットしておく（2026年8月〜）
@@ -4012,7 +4167,14 @@
               boxGuideOn = false;
               boxCount = 0;
               resetBoxDefault();
+              mejirushiEnabledBox = false;
+              mejirushiPinsBox = [];
+              mejirushiColorBox = '#B8434F';
             }
+            // 定規タブの切り替えを経ずに同じタブで画像だけ差し替えた場合にも、
+            // 今読み込んだファイルのめじるしデータを「無印」の作業用変数へすぐ反映する
+            loadMejirushiActiveRulerVars('box');
+            if (typeof positionMejirushiPin === 'function') positionMejirushiPin();
           }
           canvas.style.display = 'block';
           viewer.classList.add('has-image');
@@ -4136,9 +4298,35 @@
     if (!pin || pin.locked) return; // ロック中はマーク変更も止める
     pin.icon = key;
     positionMejirushiPin();
-    saveSettings();
+    saveMejirushiSettings();
   });
   syncMejirushiIconActive(mejirushiPaletteIcons, mejirushiIconSelected);
+
+  // めじるしの色（全マーク共通の一括変更）。目数ガイドのapplyStitchGuideColor()と全く同じ考え方
+  function applyMejirushiColor() {
+    document.documentElement.style.setProperty('--mejirushi-color', mejirushiColor);
+  }
+  if (mejirushiColorInput) {
+    mejirushiColorInput.addEventListener('input', () => {
+      mejirushiColor = mejirushiColorInput.value;
+      if (mejirushiColorRow) mejirushiColorRow.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+      applyMejirushiColor();
+      saveMejirushiSettings();
+    });
+  }
+  if (mejirushiColorRow) {
+    mejirushiColorRow.addEventListener('click', e => {
+      const dot = e.target.closest('.color-dot');
+      if (!dot) return;
+      mejirushiColor = dot.dataset.color;
+      if (mejirushiColorInput) mejirushiColorInput.value = mejirushiColor;
+      mejirushiColorRow.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+      dot.classList.add('active');
+      applyMejirushiColor();
+      saveMejirushiSettings();
+    });
+  }
+  applyMejirushiColor(); // 初期値をCSS変数に反映（見た目の色を最初から統一させる）
 
   // ピンのDOM要素（.mej-pin）を、mejirushiPins配列の数だけ作り直す。
   // 個数が変わった時（置いた／消した）だけ呼ぶ重い処理で、位置の更新（毎フレーム相当）とは分けてある
@@ -4168,7 +4356,7 @@
   function positionMejirushiPin() {
     updateMejirushiPlaceUI(); // 配置フローのバー表示は別関数で管理
     if (mejirushiCountLabel) mejirushiCountLabel.innerHTML = '<span class="gp-val-label">めじるし</span><span class="gp-val-num">' + mejirushiPins.length + '<span class="gp-val-unit">個</span></span>';
-    const shouldShow = mejirushiEnabled && currentRulerTab === 'band' && !!img && mejirushiPins.length > 0;
+    const shouldShow = mejirushiEnabled && !!img && mejirushiPins.length > 0;
     if (!mejirushiPinsWrap) return;
     if (!shouldShow) {
       mejirushiPinsWrap.style.display = 'none';
@@ -4211,8 +4399,12 @@
       const sx = offsetX + pin.x * scale;
       const sy = offsetY + pin.y * scale;
       if (mejirushiEditPop) {
+        // アイコンの実サイズ（3倍の時はその分大きい）の半分ぶん下にずらしてから、
+        // 少し余白を足す。固定10pxのままだと、3倍サイズの時にアイコンとポップアップが
+        // 重なってしまっていたため、サイズに応じて動的に計算するよう修正した（2026年9月〜）
+        const selIconPx = iconPx * (pin.big ? MEJIRUSHI_BIG_SCALE : 1);
         mejirushiEditPop.style.left = sx + 'px';
-        mejirushiEditPop.style.top  = (sy + 10) + 'px';
+        mejirushiEditPop.style.top  = (sy + selIconPx / 2 + 10) + 'px';
       }
       syncMejirushiIconActive(mejirushiEditIcons, pin.icon);
       if (mejirushiNoteInput && document.activeElement !== mejirushiNoteInput) {
@@ -4238,7 +4430,7 @@
   // 「めじるしをおく」ボタン→2ステップの配置フロー（段数ガイド「計測する」・目数ガイド「線を引く」と
   // 同じテンポ感：ボタンを押す→案内バーが出る→タップで進む、の流れに統一。2026年8月〜）
   function updateMejirushiPlaceUI() {
-    const show = mejirushiPlaceMode && mejirushiEnabled && currentRulerTab === 'band' && !!img;
+    const show = mejirushiPlaceMode && mejirushiEnabled && !!img;
     if (!show && mejirushiPlaceMode) { mejirushiPlaceMode = false; mejirushiPlaceStep = 'icon'; }
     if (mejirushiPaletteFloat) {
       mejirushiPaletteFloat.classList.toggle('show', show);
@@ -4252,7 +4444,7 @@
     if (!show) return;
     if (mejirushiPaletteHint) {
       mejirushiPaletteHint.textContent = (mejirushiPlaceStep === 'icon')
-        ? 'お好きなめじるしをタップ'
+        ? 'めじるしにしたいマークをタップ'
         : 'めじるしを付けたい場所をタップ';
     }
   }
@@ -4271,8 +4463,12 @@
     selectedMejirushiIndex = null;
     if (mejirushiEditPop) mejirushiEditPop.classList.remove('show'); // 編集ポップアップが開いていたら閉じる
     // 定規ハンドルが編み図の上に重なっていて、タップを奪ってしまうので一時的に隠す
-    // （段数ガイドの「計測する」フローと同じ対処。めじるしは帯定規専用なのでband固定でよい）
-    rulerHandle.style.display = 'none';
+    // （段数ガイドの「計測する」フローと同じ対処。今アクティブな定規に応じて隠す対象を切り替える。
+    // 以前はband固定だったため、四角・円定規ではめじるし配置中も定規本体が編み図の上に
+    // 残ったままタップを奪い、十字カーソルも定規側に上書きされて出ない不具合があった。2026年9月〜修正）
+    if (currentRulerTab === 'band') rulerHandle.style.display = 'none';
+    else if (currentRulerTab === 'circle') circleOverlay.style.display = 'none';
+    else if (currentRulerTab === 'box') boxOverlay.style.display = 'none';
     // カーソルを十字に変える（目数ガイドの線引きと同じ考え方。「編み図をつかむ手」の
     // カーソルのままだと、絵柄と実際のクリック判定点がズレて見え、狙った場所の上目で
     // タップしたような感覚になってしまうため。2026年9月〜）
@@ -4289,7 +4485,10 @@
   function cancelMejirushiPlace() {
     mejirushiPlaceMode = false;
     mejirushiPlaceStep = 'icon';
-    rulerHandle.style.display = '';
+    // 隠していた定規本体を元に戻す（今アクティブな定規に応じて対象を切り替える。2026年9月〜）
+    if (currentRulerTab === 'band') rulerHandle.style.display = '';
+    else if (currentRulerTab === 'circle') circleOverlay.style.display = 'block';
+    else if (currentRulerTab === 'box') boxOverlay.style.display = 'block';
     viewer.style.cursor = '';
     if (gpMeasureBtn) gpMeasureBtn.disabled = false;
     if (stitchEditBtn) stitchEditBtn.disabled = false;
@@ -4308,7 +4507,7 @@
     selectedMejirushiIndex = null; // 置いた直後は編集ポップアップを開かない（既存の挙動を踏襲）
     if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
     positionMejirushiPin();
-    saveSettings();
+    saveMejirushiSettings();
   }
   // 選択中の1個だけを削除する
   function deleteMejirushiPin() {
@@ -4317,7 +4516,7 @@
     selectedMejirushiIndex = null;
     if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
     positionMejirushiPin();
-    saveSettings();
+    saveMejirushiSettings();
   }
   function syncMejirushiEditPop() {
     if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
@@ -4346,7 +4545,7 @@
       if (mejirushiCountLabel) mejirushiCountLabel.style.opacity = isOn ? '1' : '0';
       positionMejirushiPin();
       updateGuideStatusText();
-      saveSettings();
+      saveMejirushiSettings();
     });
   }
   // 「めじるしをおく」ボタン：配置フローを開始する
@@ -4385,14 +4584,14 @@
       if (!pin) return;
       pin.locked = !pin.locked;
       positionMejirushiPin();
-      saveSettings();
+      saveMejirushiSettings();
     });
   }
   // 完了ボタン：メモの入力を確定してポップアップを閉じる
   if (mejirushiEditDoneBtn) {
     mejirushiEditDoneBtn.addEventListener('click', e => {
       e.stopPropagation();
-      saveSettings();
+      saveMejirushiSettings();
       selectedMejirushiIndex = null;
       if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
       positionMejirushiPin(); // 選択中ハイライトの解除・表示トグルのロック解除もあわせて反映する
@@ -4413,7 +4612,7 @@
       const tipEl = pinEl ? pinEl.querySelector('.mej-tip') : null;
       if (tipEl) tipEl.textContent = pin.note.length ? pin.note : '（メモなし）';
     });
-    mejirushiNoteInput.addEventListener('blur', () => { saveSettings(); });
+    mejirushiNoteInput.addEventListener('blur', () => { saveMejirushiSettings(); });
   }
 
   // ピン本体（.mej-pin-hit）を掴んだ時だけ移動できるようにする。
@@ -4458,7 +4657,7 @@
         mejLongPressFired = true;
         pin.big = !pin.big;
         positionMejirushiPin();
-        saveSettings();
+        saveMejirushiSettings();
         if (navigator.vibrate) navigator.vibrate(15); // 対応端末なら軽い振動でフィードバック
       }, MEJIRUSHI_LONG_PRESS_MS);
     });
@@ -4506,7 +4705,7 @@
         // 選択中だったピンを動かした場合は、閉じたポップアップの状態と選択状態を揃えておく
         if (idx === selectedMejirushiIndex) selectedMejirushiIndex = null;
         mejDragIndex = null;
-        saveSettings();
+        saveMejirushiSettings();
         return;
       }
       // 動かさなかった＝タップ：もう一度同じピンをタップしたら選択解除、違うピンなら選択を切り替える
@@ -4532,7 +4731,7 @@
   // 段数ガイド・目数ガイドと同じ「ボタン→案内→タップ」のテンポ感に統一したため、フロー外のタップでは置かない）
   let mejTapActive = false, mejTapStartX = 0, mejTapStartY = 0;
   viewer.addEventListener('pointerdown', e => {
-    if (!mejirushiPlaceMode || mejirushiPlaceStep !== 'point' || !img || currentRulerTab !== 'band') return;
+    if (!mejirushiPlaceMode || mejirushiPlaceStep !== 'point' || !img) return;
     if (e.target.closest('#mejirushi-palette-float') || e.target.closest('.mej-pin')) return;
     if (e.target.closest('#float-panel') || e.target.closest('#counter-panel')) return;
     mejTapActive = true;
@@ -4541,7 +4740,7 @@
   viewer.addEventListener('pointerup', e => {
     if (!mejTapActive) return;
     mejTapActive = false;
-    if (!mejirushiPlaceMode || mejirushiPlaceStep !== 'point' || !img || currentRulerTab !== 'band') return;
+    if (!mejirushiPlaceMode || mejirushiPlaceStep !== 'point' || !img) return;
     if (e.target.closest('#mejirushi-palette-float') || e.target.closest('.mej-pin')) return;
     const dx = e.clientX - mejTapStartX, dy = e.clientY - mejTapStartY;
     const dist = Math.sqrt(dx * dx + dy * dy);
@@ -5972,6 +6171,58 @@
     stitchHintBar.addEventListener('touchstart', e => e.stopPropagation());
   }
 
+  // めじるしパレット（マーク選択＋色選び）のドラッグ（自由に位置を動かせるように。ヒントバーと同じ考え方。2026年9月〜）
+  if (mejirushiPaletteFloat) {
+    let mpfDragging = false, mpfDragStartX = 0, mpfDragStartY = 0, mpfBarX = 0, mpfBarY = 0;
+    function getMpfPos() {
+      const r = mejirushiPaletteFloat.getBoundingClientRect();
+      return { x: r.left, y: r.top };
+    }
+    function setMpfPos(x, y) {
+      const bw = mejirushiPaletteFloat.offsetWidth;
+      const bh = mejirushiPaletteFloat.offsetHeight;
+      const cx = Math.max(8, Math.min(window.innerWidth  - bw - 8, x));
+      const cy = Math.max(8, Math.min(window.innerHeight - bh - 8, y));
+      mejirushiPaletteFloat.style.transform = 'none';
+      mejirushiPaletteFloat.style.left = cx + 'px';
+      mejirushiPaletteFloat.style.top  = cy + 'px';
+    }
+    // ✕ボタン・マーク選択・色選びの上ではドラッグを開始しない
+    function isMpfDragExcluded(target) {
+      return !!(target.closest('#mejirushi-palette-close')
+        || target.closest('#mejirushi-palette-icons')
+        || target.closest('#mejirushi-color-row'));
+    }
+    mejirushiPaletteFloat.addEventListener('pointerdown', e => {
+      if (isMpfDragExcluded(e.target)) return;
+      e.stopPropagation();
+      e.preventDefault();
+      mpfDragging = true;
+      const pos = getMpfPos();
+      mpfDragStartX = e.clientX; mpfDragStartY = e.clientY;
+      mpfBarX = pos.x; mpfBarY = pos.y;
+      mejirushiPaletteFloat.setPointerCapture(e.pointerId);
+      mejirushiPaletteFloat.classList.add('dragging');
+    });
+    mejirushiPaletteFloat.addEventListener('pointermove', e => {
+      if (!mpfDragging) return;
+      e.stopPropagation();
+      setMpfPos(mpfBarX + e.clientX - mpfDragStartX, mpfBarY + e.clientY - mpfDragStartY);
+    });
+    mejirushiPaletteFloat.addEventListener('pointerup', e => {
+      if (!mpfDragging) return;
+      e.stopPropagation();
+      mpfDragging = false;
+      mejirushiPaletteFloat.classList.remove('dragging');
+    });
+    mejirushiPaletteFloat.addEventListener('pointercancel', () => {
+      mpfDragging = false;
+      mejirushiPaletteFloat.classList.remove('dragging');
+    });
+    mejirushiPaletteFloat.addEventListener('click', e => e.stopPropagation());
+    mejirushiPaletteFloat.addEventListener('touchstart', e => e.stopPropagation());
+  }
+
   if (stitchThicknessInput) {
     stitchThicknessInput.addEventListener('input', () => {
       stitchGuideThickness = parseInt(stitchThicknessInput.value);
@@ -6930,20 +7181,22 @@
       resetStitchModeRulerLook();
       positionStitchGuideBounds();
       updateGuideStatusText();
-      // 画像を消したら、めじるしも自動でOFF・データなしに戻す
-      mejirushiEnabled = false;
-      mejirushiPins = [];
-      selectedMejirushiIndex = null;
-      if (mejirushiToggle) mejirushiToggle.checked = false;
-      if (mejirushiPlaceBtn) {
-        mejirushiPlaceBtn.style.opacity = '0';
-        mejirushiPlaceBtn.style.pointerEvents = 'none';
-      }
-      if (mejirushiCountLabel) mejirushiCountLabel.style.opacity = '0';
-      cancelMejirushiPlace();
-      if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
-      positionMejirushiPin();
     }
+    // 画像を消したら、めじるし（このタブ用）も自動でOFF・データなしに戻す
+    // （目数ガイドと違って直線定規専用ではなくなったので、全定規共通の処理にした。2026年9月〜）
+    mejirushiEnabled = false;
+    mejirushiPins = [];
+    selectedMejirushiIndex = null;
+    if (mejirushiToggle) mejirushiToggle.checked = false;
+    if (mejirushiPlaceBtn) {
+      mejirushiPlaceBtn.style.opacity = '0';
+      mejirushiPlaceBtn.style.pointerEvents = 'none';
+    }
+    if (mejirushiCountLabel) mejirushiCountLabel.style.opacity = '0';
+    cancelMejirushiPlace();
+    if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
+    positionMejirushiPin();
+    stashMejirushiActiveRulerVars(currentRulerTab); // リセットした内容を、このタブ専用の保持変数にも反映する
     updateUploadClearBtn();
     saveChartStateForTab(currentRulerTab);
   };
@@ -7019,12 +7272,15 @@
       // 計測モード中にタブを切り替えた場合、計測パネルが残ってしまうため強制終了する
       if (window.stopMeasureIfActive) window.stopMeasureIfActive();
       saveChartStateForTab(currentRulerTab);
+      // めじるしも定規タブごとに別々のデータなので、切り替え前に今の定規の分を退避しておく（2026年9月〜）
+      stashMejirushiActiveRulerVars(currentRulerTab);
       // 先にタブを切り替えてから復元・再描画する。
       // 逆順（復元してからタブ変数を更新）だと、loadChartStateForTab内のdrawImage()が
       // 古いタブの判定のまま再描画してしまい、目数ガイドの縦線が
       // 切り替え先のタブに誤って描かれたり、直線定規に戻した時に消えて見えたりする
       // 不具合があったため、2026年8月に順番を修正した。
       currentRulerTab = tab;
+      loadMejirushiActiveRulerVars(tab); // 切り替え先の定規のめじるしデータを読み込む
       loadChartStateForTab(tab);
     } else {
       currentRulerTab = tab;
@@ -7036,31 +7292,21 @@
     document.getElementById('ruler-card').style.display    = tab === 'band'   ? '' : 'none';
     document.getElementById('circle-card').style.display   = tab === 'circle' ? '' : 'none';
     document.getElementById('box-card').style.display   = tab === 'box' ? '' : 'none';
-    // カウンターエリアをタブに合わせて切り替え
+    // カウンターエリアをタブに合わせて切り替え。行（段数ガイド／目数ガイド／めじるし）自体の
+    // 表示・非表示は、この直後に呼ぶapplyGuideTabFilter()が全定規まとめて面倒を見るので、
+    // ここではカウンターパネル自体の開閉と、段数表示の中身だけ扱う（2026年9月〜に整理）
     const counterWrap = document.getElementById('counter-panel');
     if (tab === 'band') {
       counterWrap.style.display = showCounter ? 'flex' : 'none';
-      cpGuideRow.style.display = showCounter ? 'flex' : 'none';
-      if (cpStitchRow) cpStitchRow.style.display = showCounter ? 'flex' : 'none';
-      if (cpMejirushiRow) cpMejirushiRow.style.display = showCounter ? 'flex' : 'none';
       cpNum.textContent = rowCount;
     } else if (tab === 'circle') {
       counterWrap.style.display = showCircleCounter ? 'flex' : 'none';
-      cpGuideRow.style.display = showCircleCounter ? 'flex' : 'none';
-      if (cpStitchRow) cpStitchRow.style.display = 'none';
-      if (cpMejirushiRow) cpMejirushiRow.style.display = 'none';
       cpNum.textContent = circleCount;
     } else if (tab === 'box') {
       counterWrap.style.display = showBoxCounter ? 'flex' : 'none';
-      cpGuideRow.style.display = showBoxCounter ? 'flex' : 'none';
-      if (cpStitchRow) cpStitchRow.style.display = 'none';
-      if (cpMejirushiRow) cpMejirushiRow.style.display = 'none';
       cpNum.textContent = boxCount;
     } else {
       counterWrap.style.display = 'none';
-      cpGuideRow.style.display = 'none';
-      if (cpStitchRow) cpStitchRow.style.display = 'none';
-      if (cpMejirushiRow) cpMejirushiRow.style.display = 'none';
     }
     applyGuideTabFilter();
     syncGuideRowUI(tab);
@@ -7222,9 +7468,13 @@
   function saveCircleSettings() {
     // 今表示中のファイルの分だけ、辞書の中身を最新化してから保存する（2026年8月〜）
     if (currentCircleFileId) {
-      circleByFile[currentCircleFileId] = { cX, cY, cR, cColor, cAlpha, circleStep, circleStepBase, circleCount, guideOn: circleGuideOn };
+      circleByFile[currentCircleFileId] = {
+        cX, cY, cR, cColor, cAlpha, circleStep, circleStepBase, circleCount, guideOn: circleGuideOn,
+        // めじるし（表示ON/OFFと、複数個のピンの位置・マーク・メモ、全マーク共通の色）も編み図ごとに覚えておく（2026年9月〜）
+        mejirushiOn: mejirushiEnabled, mejirushiPins: mejirushiPins, mejirushiColor: mejirushiColor
+      };
     }
-    try { localStorage.setItem(CIRCLE_KEY, JSON.stringify({ cX, cY, cR, cColor, cAlpha, circleStep, circleStepBase, circleCount, showCircleCounter, guideOn: circleGuideOn, circleByFile: pruneFileDict(circleByFile, currentCircleFileId) })); } catch(e) {}
+    try { localStorage.setItem(CIRCLE_KEY, JSON.stringify({ cX, cY, cR, cColor, cAlpha, circleStep, circleStepBase, circleCount, showCircleCounter, guideOn: circleGuideOn, mejirushiColor: mejirushiColor, circleByFile: pruneFileDict(circleByFile, currentCircleFileId) })); } catch(e) {}
   }
   function loadCircleSettings() {
     try {
@@ -7247,6 +7497,7 @@
       if (!circleGuideOn) circleStep = 0;
       if (s.circleCount != null) circleCount = s.circleCount;
       if (s.showCircleCounter != null) showCircleCounter = s.showCircleCounter;
+      if (s.mejirushiColor) mejirushiColorCircle = s.mejirushiColor;
       // ファイルごとの辞書は変数に読み込むだけに留める（実際の反映はimage.onload側で行う）（2026年8月〜）
       if (s.circleByFile && typeof s.circleByFile === 'object') circleByFile = s.circleByFile;
       return true;
@@ -7937,12 +8188,17 @@
       squareStep: boxStep, squareStepBase: boxStepBase, squareCount: boxCount, showSquareCounter: showBoxCounter,
       sqRectHalfW: bxRectHalfW, sqRectHalfH: bxRectHalfH, sqSquareSide: bxSquareSide,
       sqSquareColor: bxSquareColor, sqSquareAlpha: bxSquareAlpha, sqRectColor: bxRectColor, sqRectAlpha: bxRectAlpha,
-      sqIsSquareMode: bxIsSquareMode, guideOn: boxGuideOn
+      sqIsSquareMode: bxIsSquareMode, guideOn: boxGuideOn,
+      mejirushiColor: mejirushiColor // 色は全マーク共通の一括設定なので、グローバル・ファイルごとの両方に持たせる
     };
     // 今表示中のファイルの分だけ、辞書の中身を最新化してから保存する（2026年8月〜）。
-    // トップレベルの保存と全く同じsnapshotを使い回すことで、キー名のズレを防いでいる
+    // トップレベルの保存と全く同じsnapshotを使い回すことで、キー名のズレを防いでいる。
+    // めじるしのON/OFF・ピンの中身（位置・マーク・メモ）は、そのファイル特有のデータなので、
+    // ファイルごとの辞書エントリだけに追加する（グローバル側には含めない。2026年9月〜）
     if (currentBoxFileId) {
-      boxByFile[currentBoxFileId] = snapshot;
+      boxByFile[currentBoxFileId] = Object.assign({}, snapshot, {
+        mejirushiOn: mejirushiEnabled, mejirushiPins: mejirushiPins
+      });
     }
     try { localStorage.setItem(BOX_KEY, JSON.stringify(Object.assign({}, snapshot, {
       boxByFile: pruneFileDict(boxByFile, currentBoxFileId)
@@ -7976,6 +8232,7 @@
       if (!boxGuideOn) boxStep = 0;
       if (s.squareCount != null) boxCount = s.squareCount;
       if (s.showSquareCounter != null) showBoxCounter = s.showSquareCounter;
+      if (s.mejirushiColor) mejirushiColorBox = s.mejirushiColor;
       if (s.sqRectHalfW != null) bxRectHalfW = s.sqRectHalfW;
       if (s.sqRectHalfH != null) bxRectHalfH = s.sqRectHalfH;
       if (s.sqSquareSide != null) bxSquareSide = s.sqSquareSide;
