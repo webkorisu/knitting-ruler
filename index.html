@@ -915,11 +915,17 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      margin: 14px 0 8px;
+      margin: -3px 0 2px; /* 親要素(.ruler-card)がgap:14pxを持っているため、それも計算に入れて
+                              上だけマイナスmarginで打ち消し、実際の隙間が約8pxになるよう調整（2026年9月〜）。
+                              これは直前が「ヒントボックス」の時（＝「定規」の区切り）向けの調整。
+                              直前が「アコーディオン」の時（＝「段数カウンター」の区切り）は
+                              .sec-div-loose で上書きする */
     }
+    .sec-div.sec-div-loose { margin-top: 2px; } /* 「定規の下」「段数カウンターの下」と同じ幅に揃えた
+                                                     （2026年9月〜。以前は14pxで、他の2箇所より広かった） */
     .sec-div span {
       font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 10px;
+      font-size: 10px; /* タブ文字(11px)より控えめにして、主役はタブ側に譲る（2026年9月〜） */
       font-weight: 700;
       color: var(--text-sub);
       white-space: nowrap;
@@ -928,8 +934,9 @@
     .sec-div::before, .sec-div::after {
       content: '';
       flex: 1;
-      height: 1px;
-      background: var(--border);
+      height: 0;
+      border-top: 1.5px dashed var(--border); /* 実線だと少し硬い印象だったので、点線にして
+                                                   柔らかさを出した（2026年9月〜） */
     }
     .toggle-row {
       display: flex;
@@ -3093,6 +3100,7 @@
     <!-- 定規カスタマイズ -->
     <div class="ruler-card" id="ruler-card">
       <div class="ruler-usage-hint">💡 <span>往復編み・輪編みのための定規</span></div>
+      <div class="sec-div"><span>定規</span></div>
       <!-- アコーディオン①カスタマイズ -->
       <div class="card-accordion" id="band-acc-custom">
         <button class="card-accordion-btn" onclick="toggleCardAcc('band-acc-custom')">
@@ -3159,6 +3167,7 @@
       </div>
 
       <!-- アコーディオン③段数カウンター -->
+      <div class="sec-div sec-div-loose"><span>段数カウンター</span></div>
       <div class="card-accordion" id="band-acc-counter">
         <button class="card-accordion-btn" onclick="toggleCardAcc('band-acc-counter')">
           <span>段数カウンター</span>
@@ -3245,6 +3254,7 @@
     <!-- 丸定規カード -->
     <div class="ruler-card" id="circle-card" style="display:none;">
       <div class="ruler-usage-hint">💡 <span>円形モチーフのための定規</span></div>
+      <div class="sec-div"><span>定規</span></div>
       
       <!-- アコーディオン①カスタマイズ -->
       <div class="card-accordion" id="circle-acc-custom">
@@ -3312,6 +3322,7 @@
       </div>
 
       <!-- アコーディオン③段数カウンター -->
+      <div class="sec-div sec-div-loose"><span>段数カウンター</span></div>
       <div class="card-accordion" id="circle-acc-counter">
         <button class="card-accordion-btn" onclick="toggleCardAcc('circle-acc-counter')">
           <span>段数カウンター</span>
@@ -3372,6 +3383,7 @@
     <!-- 四角定規カード -->
     <div class="ruler-card" id="box-card" style="display:none;">
       <div class="ruler-usage-hint">💡 <span>四角モチーフのための定規</span></div>
+      <div class="sec-div"><span>定規</span></div>
 
       <!-- アコーディオン①カスタマイズ -->
       <div class="card-accordion" id="box-acc-custom">
@@ -3445,6 +3457,7 @@
       </div>
 
       <!-- アコーディオン③段数カウンター -->
+      <div class="sec-div sec-div-loose"><span>段数カウンター</span></div>
       <div class="card-accordion" id="box-acc-counter">
         <button class="card-accordion-btn" onclick="toggleCardAcc('box-acc-counter')">
           <span>段数カウンター</span>
@@ -4386,6 +4399,50 @@
     } catch(err) {}
   }
   window.forwardPointerdownToMejirushiPin = forwardPointerdownToMejirushiPin;
+
+  // 四角・円定規のタッチ操作中に、めじるしピンへイベントを転送するための、より確実な仕組み。
+  // 以前はpointerdownだけを合成イベントとして転送していたが、合成イベントの中で
+  // hitEl.setPointerCapture()を呼んでも「本物のユーザー操作由来のイベントではない」として
+  // ブラウザに無視されることがあり、その場合ピン側にpointerup（指を離した後の処理）が
+  // 届かず、タップしても編集カードが開かない不具合になっていた（長押しの拡大縮小は
+  // タイマーで独立して動くため、この問題の影響を受けなかった）。
+  // そこで、キャプチャ自体は「本物のイベント」であるキャンバス側のpointerdownで行い、
+  // 以降のpointermove/pointerup/pointercancelもキャンバス側で受け取ってからピンへ
+  // 転送する形にした（2026年9月〜）
+  function setupMejirushiTouchForwarding(canvasEl) {
+    let fwdId = null, fwdEl = null;
+    function forward(type, e) {
+      if (!fwdEl) return;
+      try {
+        fwdEl.dispatchEvent(new PointerEvent(type, {
+          clientX: e.clientX, clientY: e.clientY, pointerId: e.pointerId,
+          pointerType: e.pointerType, bubbles: true, cancelable: true
+        }));
+      } catch(err) {}
+    }
+    canvasEl.addEventListener('pointerdown', e => {
+      if (e.pointerType !== 'touch') return;
+      const hitEl = findMejirushiPinHitAt(e.clientX, e.clientY);
+      if (!hitEl) return;
+      try { canvasEl.setPointerCapture(e.pointerId); } catch(err) {}
+      fwdId = e.pointerId; fwdEl = hitEl;
+      forward('pointerdown', e);
+    }, true); // captureフェーズ：他のpointerdownリスナー（パネルを閉じる等）より先に確定させる
+    canvasEl.addEventListener('pointermove', e => {
+      if (fwdId === null || e.pointerId !== fwdId) return;
+      forward('pointermove', e);
+    });
+    canvasEl.addEventListener('pointerup', e => {
+      if (fwdId === null || e.pointerId !== fwdId) return;
+      forward('pointerup', e);
+      fwdId = null; fwdEl = null;
+    });
+    canvasEl.addEventListener('pointercancel', e => {
+      if (fwdId === null || e.pointerId !== fwdId) return;
+      fwdId = null; fwdEl = null;
+    });
+  }
+  window.setupMejirushiTouchForwarding = setupMejirushiTouchForwarding;
 
   // 四角・円定規は画面いっぱいの当たり判定キャンバスがマウスの:hoverを奪ってしまうため、
   // 直線定規のようにCSSの:hoverだけでは吹き出しが出せない。そこでCircle・Box自身の
@@ -7426,6 +7483,7 @@
   /* ========== 丸定規 ========== */
   const circleOverlay  = document.getElementById('circle-overlay');
   const circleCanvas   = document.getElementById('circle-canvas');
+  if (window.setupMejirushiTouchForwarding) window.setupMejirushiTouchForwarding(circleCanvas);
   const circleCtx      = circleCanvas.getContext('2d');
   const circle3dLayer  = document.getElementById('circle-3d-layer');
   // canvas（操作判定）とSVGレイヤー（見た目）の両方にdraggingクラスを同期させる
@@ -7732,9 +7790,8 @@
   // タッチで円の外側を押した瞬間にパネルを閉じる（直線のviewer pointerdownと同じ即時クローズ方式）
   circleCanvas.addEventListener('pointerdown', e => {
     if (e.pointerType !== 'touch') return;
-    // めじるしのピンの近くなら、円定規の操作より優先してピン側へ譲る（2026年9月〜）
-    const mejHitTouch = window.findMejirushiPinHitAt ? window.findMejirushiPinHitAt(e.clientX, e.clientY) : null;
-    if (mejHitTouch) { window.forwardPointerdownToMejirushiPin(mejHitTouch, e); return; }
+    // めじるしのピンの近くなら、パネルを閉じる判定はしない（転送自体はsetupMejirushiTouchForwardingが担当）
+    if (window.findMejirushiPinHitAt && window.findMejirushiPinHitAt(e.clientX, e.clientY)) return;
     const dx = e.clientX - cX, dy = e.clientY - cY;
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (dist > cR && !isOnCircleRim(e.clientX, e.clientY)) {
@@ -8049,6 +8106,7 @@
   /* ========== 四角定規 ========== */
   const boxOverlay  = document.getElementById('box-overlay');
   const boxCanvas   = document.getElementById('box-canvas');
+  if (window.setupMejirushiTouchForwarding) window.setupMejirushiTouchForwarding(boxCanvas);
   const boxCtx      = boxCanvas.getContext('2d');
   const box3dLayer  = document.getElementById('box-3d-layer');
   // canvas（操作判定）とSVGレイヤー（見た目）の両方にdraggingクラスを同期させる
@@ -8697,9 +8755,8 @@
   // タッチで外側を押した瞬間にパネルを閉じる
   boxCanvas.addEventListener('pointerdown', e => {
     if (e.pointerType !== 'touch') return;
-    // めじるしのピンの近くなら、四角定規の操作より優先してピン側へ譲る（2026年9月〜）
-    const mejHitTouch = window.findMejirushiPinHitAt ? window.findMejirushiPinHitAt(e.clientX, e.clientY) : null;
-    if (mejHitTouch) { window.forwardPointerdownToMejirushiPin(mejHitTouch, e); return; }
+    // めじるしのピンの近くなら、パネルを閉じる判定はしない（転送自体はsetupMejirushiTouchForwardingが担当）
+    if (window.findMejirushiPinHitAt && window.findMejirushiPinHitAt(e.clientX, e.clientY)) return;
     if (boxHitTest(e.clientX, e.clientY) === null) {
       closeBoxPanelIfOpen();
     }
