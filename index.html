@@ -1115,7 +1115,9 @@
          ボタンの文言を「計測」「線引」→「計測する」「線を引く」に変更した分、250px→280pxに再拡大（2026年8月〜）
          ラベル幅を78px→90pxに拡大（3桁px対応）、ボタン幅を78px固定にした分、
          一度280px→300pxに拡大したが、パネル自体は広げずに済むよう、行内の余白
-         （padding・gap・ボタン幅など）を詰める方向に変更し、280pxへ戻した（2026年8月〜） */
+         （padding・gap・ボタン幅など）を詰める方向に変更し、280pxへ戻した（2026年8月〜）
+         →その後、狭い方を優先する方針により250pxで確定（ボタン文言は「線を引く」のまま変更しないことで
+         収まる想定）。上の「280pxへ戻した」は過去の経緯としてそのまま残す（2026年9月〜） */
       width: 250px;
     }
     #counter-panel:active { cursor: grabbing; }
@@ -1491,7 +1493,7 @@
        編み図を縮小してもマークだけ画面上で一定サイズのままだと、「置いた場所」と「見た目の中心」の
        ズレ量（固定px）がマス目1個の大きさに対して相対的に変わってしまい、
        別のマス目に置いたように見えてしまう不具合があったため、マス目と一緒に拡縮する仕様に変更） */
-    .mej-pin-icon svg { display: block; fill: none; stroke: #B8434F; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); transition: width .18s ease, height .18s ease; }
+    .mej-pin-icon svg { display: block; fill: none; stroke: #B8434F; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); transition: width .18s ease, height .18s ease, transform .18s ease; }
     /* 色は全マーク共通ではなく1個ずつ持つ（2026年9月〜）。stroke-colorはJS側でピンごとに
        インラインstyleとしてセットする（positionMejirushiPin参照）。上のstroke: #B8434Fは、
        万が一インライン指定が効かない場合の保険的な既定値 */
@@ -1505,9 +1507,24 @@
       font-family: 'Zen Maru Gothic', sans-serif;
       font-size: 11px;
       letter-spacing: .02em;
-      padding: 6px 10px;
+      padding: 8px;
       border-radius: 8px;
-      white-space: nowrap;
+      /* メモは最大30文字入るため、nowrap（1行固定）のままだと画面外にはみ出すことがある。
+         幅の上限を決めて折り返す（2026年9月〜）。
+         ただし親の.mej-pinが「幅0のアンカー」のため、max-widthだけ指定すると
+         ブラウザが利用可能幅をほぼ0と誤算し、1文字ごとに改行される不具合が発生した。
+         width: max-content を併用し、まず文章の自然な幅で計算してから190pxで
+         クランプするようにして解消（2026年9月〜）。
+         ↑これだと折り返しが必要な時、箱の幅が常にきっちり190pxになってしまい、
+         短い行の右側にわずかな余白ができる。fit-content(190px)やJSでの実測調整も
+         試したが、実機で見た目の変化がほとんど分からなかったため、コードを
+         シンプルに保つ方針を優先し、このCSSのみの状態で妥協することにした（2026年9月〜） */
+      white-space: normal;
+      width: max-content;
+      max-width: 190px;
+      text-align: left;
+      line-height: 1.5;
+      word-break: break-word;
       opacity: 0;
       pointer-events: none;
       transition: opacity .15s;
@@ -1554,7 +1571,9 @@
     #mejirushi-note::placeholder { color: var(--text-sub); opacity: .65; }
     #mejirushi-note:read-only { background: #F2F2EC; color: var(--text-sub); cursor: default; }
     #mejirushi-lock-btn,
-    #mejirushi-trash-btn {
+    #mejirushi-trash-btn,
+    #mejirushi-rotate-btn {
+      position: relative; /* 中のホバーツールチップ（.action-tooltip）をこのボタン基準で配置するため */
       width: 26px;
       height: 26px;
       border-radius: 7px;
@@ -1569,14 +1588,25 @@
       -webkit-tap-highlight-color: transparent;
     }
     #mejirushi-lock-btn svg,
-    #mejirushi-trash-btn svg { width: 15px; height: 15px; fill: none; stroke: var(--text-sub); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    #mejirushi-trash-btn svg,
+    #mejirushi-rotate-btn svg { width: 15px; height: 15px; fill: none; stroke: var(--text-sub); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     #mejirushi-trash-btn:hover { background: #FBEAEA; border-color: #C97A7A; }
     #mejirushi-lock-btn:hover { background: #F4F9F7; border-color: #93B8AC; }
+    /* 回転ボタン：直線・四角・円のすべての定規で使える（2026年9月〜。
+       お試し導入時は直線定規だけだったが、好評だったため全定規に展開した） */
+    #mejirushi-rotate-btn:hover { background: #F4F9F7; border-color: #93B8AC; }
+    /* 回転・ロック・削除ボタンのホバーツールチップ（既存の.action-tooltipを再利用。2026年9月〜） */
+    #mejirushi-rotate-btn:hover .action-tooltip,
+    #mejirushi-lock-btn:hover .action-tooltip,
+    #mejirushi-trash-btn:hover .action-tooltip {
+      opacity: 1;
+    }
     /* ロック中は強調表示にして、今その状態であることが一目で分かるようにする */
     #mejirushi-lock-btn.active { background: #F9E4E4; border-color: #B8434F; }
     #mejirushi-lock-btn.active svg { stroke: #B8434F; }
     #mejirushi-trash-btn:hover svg { stroke: #993C1D; }
     #mejirushi-trash-btn:disabled { opacity: .4; cursor: default; pointer-events: none; }
+    #mejirushi-rotate-btn:disabled { opacity: .4; cursor: default; pointer-events: none; }
     #mejirushi-edit-done-btn {
       flex: 1;
       background: var(--primary);
@@ -2883,11 +2913,18 @@
   <input type="text" id="mejirushi-note" maxlength="30" placeholder="ひとことメモ" aria-label="めじるしのメモ" autocomplete="off">
   <div class="mej-edit-row">
     <button type="button" id="mejirushi-edit-done-btn">完了</button>
+    <!-- 回転ボタン：直線・四角・円のすべての定規で使える（2026年9月〜） -->
+    <button type="button" id="mejirushi-rotate-btn" aria-label="めじるしを回転">
+      <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>
+      <span class="action-tooltip">回転</span>
+    </button>
     <button type="button" id="mejirushi-lock-btn" aria-label="めじるしの位置をロック">
-      <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      <span class="mej-lock-icon-slot"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
+      <span class="action-tooltip">ロック</span>
     </button>
     <button type="button" id="mejirushi-trash-btn" aria-label="めじるしを削除">
       <svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      <span class="action-tooltip">削除</span>
     </button>
   </div>
 </div>
@@ -3181,7 +3218,7 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段数ガイド機能も使えるようになります。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段数ガイド・目数ガイド・めじるし機能も使えるようになります。<br>
           <strong style="font-weight:600; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・「−」を長押しすると、数字を0に戻せます（定規のサイズ・位置は変わりません）。</p>
         </div>
@@ -3201,7 +3238,7 @@
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em; margin-top:2px;"><span style="font-size:11px; font-weight:600; color:var(--text);">【1段の高さの計測方法】</span><br>
           段数カウンターの「段数ガイド」スイッチをONにし、「計測」ボタンを押して、編み図の1段の高さを計測してください。<br><span style="display:block; height:6px;"></span>
           ・1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
-          ・計測後は、カウンターの「1段：◯◯ px」の数値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。</p>
+          ・計測後は、カウンターの「1段：◯◯ px」の計測値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。</p>
         </div>
       </div>
       <input type="hidden" id="ruler-step" value="40">
@@ -3241,9 +3278,10 @@
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 20px; gap:6px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「めじるし」スイッチで、ON/OFFを切り替えます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしをおく」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークと色を選んで、編み図の好きな場所にめじるしを置けます</span>（最大20個）。置いためじるしをタップすると、ひとことメモ・ロック・削除ができます。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしをおく」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大20個）。置いためじるしをタップすると、ひとことメモ（最大30文字）・回転・ロック・削除ができます。<br>
           <strong style="font-weight:600; color:var(--text);">OFF</strong>：めじるしが一時的に隠れます。データは消えないので、再度ONにすると元通り表示されます。<br><span style="display:block; height:6px;"></span>
           ・長押しすると、マークの大きさが3倍⇔通常サイズで切り替わります（編み図によって見やすい大きさが変わるため）。<br>
+          ・回転ボタンをタップすると、マークの向きを10°ずつ変えられます。<br>
           ・つまんでドラッグすると、位置を動かせます。<br>
           ・直線・四角・円、どの定規でも使えます（めじるしは定規ごとに別々に記録されます）。</p>
         </div>
@@ -3336,7 +3374,7 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段数ガイド機能も使えるようになります。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段数ガイド・めじるし機能も使えるようになります。<br>
           <strong style="font-weight:600; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・「−」を長押しすると、数字を0に戻せます（定規のサイズ・位置は変わりません）。</p>
         </div>
@@ -3356,7 +3394,7 @@
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em; margin-top:2px;"><span style="font-size:11px; font-weight:600; color:var(--text);">【1段の高さの計測方法】</span><br>
           段数カウンターの「段数ガイド」スイッチをONにし、「計測」ボタンを押して、編み図の1段の高さを計測してください。<br><span style="display:block; height:6px;"></span>
           ・1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
-          ・計測後は、カウンターの「1段：◯◯ px」の数値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。</p>
+          ・計測後は、カウンターの「1段：◯◯ px」の計測値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。</p>
         </div>
       </div>
       <input type="hidden" id="circle-step" value="20">
@@ -3370,9 +3408,10 @@
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 20px; gap:6px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「めじるし」スイッチで、ON/OFFを切り替えます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしをおく」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークと色を選んで、編み図の好きな場所にめじるしを置けます</span>（最大20個）。置いためじるしをタップすると、ひとことメモ・ロック・削除ができます。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしをおく」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大20個）。置いためじるしをタップすると、ひとことメモ（最大30文字）・回転・ロック・削除ができます。<br>
           <strong style="font-weight:600; color:var(--text);">OFF</strong>：めじるしが一時的に隠れます。データは消えないので、再度ONにすると元通り表示されます。<br><span style="display:block; height:6px;"></span>
           ・長押しすると、マークの大きさが3倍⇔通常サイズで切り替わります（編み図によって見やすい大きさが変わるため）。<br>
+          ・回転ボタンをタップすると、マークの向きを10°ずつ変えられます。<br>
           ・つまんでドラッグすると、位置を動かせます。<br>
           ・直線・四角・円、どの定規でも使えます（めじるしは定規ごとに別々に記録されます）。</p>
         </div>
@@ -3471,7 +3510,7 @@
               <span class="toggle-knob"></span>
             </label>
           </div>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段数ガイド機能も使えるようになります。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段数ガイド・めじるし機能も使えるようになります。<br>
           <strong style="font-weight:600; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・「−」を長押しすると、数字を0に戻せます（定規のサイズ・位置は変わりません）。</p>
         </div>
@@ -3491,7 +3530,7 @@
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em; margin-top:2px;"><span style="font-size:11px; font-weight:600; color:var(--text);">【1段の高さの計測方法】</span><br>
           段数カウンターの「段数ガイド」スイッチをONにし、「計測」ボタンを押して、編み図の1段の高さを計測してください。<br><span style="display:block; height:6px;"></span>
           ・1度計測すると、編み図を拡大・縮小しても1段の高さが追従します。<br>
-          ・計測後は、カウンターの「1段：◯◯ px」の数値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。</p>
+          ・計測後は、カウンターの「1段：◯◯ px」の計測値をタップすると、1px単位で微調整したり「未計測に戻す」ができます。</p>
         </div>
       </div>
       <input type="hidden" id="box-step" value="20">
@@ -3505,9 +3544,10 @@
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 20px; gap:6px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「めじるし」スイッチで、ON/OFFを切り替えます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしをおく」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークと色を選んで、編み図の好きな場所にめじるしを置けます</span>（最大20個）。置いためじるしをタップすると、ひとことメモ・ロック・削除ができます。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしをおく」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大20個）。置いためじるしをタップすると、ひとことメモ（最大30文字）・回転・ロック・削除ができます。<br>
           <strong style="font-weight:600; color:var(--text);">OFF</strong>：めじるしが一時的に隠れます。データは消えないので、再度ONにすると元通り表示されます。<br><span style="display:block; height:6px;"></span>
           ・長押しすると、マークの大きさが3倍⇔通常サイズで切り替わります（編み図によって見やすい大きさが変わるため）。<br>
+          ・回転ボタンをタップすると、マークの向きを10°ずつ変えられます。<br>
           ・つまんでドラッグすると、位置を動かせます。<br>
           ・直線・四角・円、どの定規でも使えます（めじるしは定規ごとに別々に記録されます）。</p>
         </div>
@@ -3648,6 +3688,7 @@
   const mejirushiTrashBtn = document.getElementById('mejirushi-trash-btn');
   const mejirushiEditDoneBtn = document.getElementById('mejirushi-edit-done-btn');
   const mejirushiLockBtn = document.getElementById('mejirushi-lock-btn');
+  const mejirushiRotateBtn = document.getElementById('mejirushi-rotate-btn'); // 回転機能（直線・四角・円すべての定規で使用可・2026年9月〜）
   const rulerOverlay = document.getElementById('ruler-overlay');
   const rulerHandle  = document.getElementById('ruler-handle');
   const rulerSizeInput    = document.getElementById('ruler-size');
@@ -3772,7 +3813,8 @@
   // 別々の変数になっているのと同じ考え方）。定規タブを切り替える瞬間だけ、
   // syncMejirushiActiveRulerVars()で退避・入れ替えを行う（switchRulerTab()から呼ばれる）
   let mejirushiEnabled = false;      // トグルON/OFF（表示のON/OFF。データは保持されたまま）
-  let mejirushiPins = [];            // [{ x, y, icon, color, note, locked, big }, ...]（x/yは画像等倍のpx座標）
+  let mejirushiPins = [];            // [{ x, y, icon, color, note, locked, big, rotation }, ...]（x/yは画像等倍のpx座標）
+                                      // rotationは回転機能に使う（直線・四角・円すべての定規で共通。2026年9月〜）
   let selectedMejirushiIndex = null; // 今選択中（編集ポップアップ表示中）のインデックス。null＝未選択
 
   let mejirushiEnabledBand = false, mejirushiPinsBand = [];
@@ -4465,6 +4507,11 @@
   window.updateMejirushiHoverTip = updateMejirushiHoverTip;
   window.clearMejirushiHoverTip = clearMejirushiHoverTip;
 
+  // めじるしの吹き出し（.mej-tip）を、実際の折り返した行の幅にJSでぴったり合わせる案を
+  // 試したことがあるが、実機で見た目の変化がほとんど分からなかったため、
+  // コードをシンプルに保つ方針を優先してやめた（2026年9月〜）。
+  // 現状はCSS側（width: max-content + max-width: 190px）のみで対応している。
+
   function rebuildMejirushiPinElements() {
     if (!mejirushiPinsWrap) return;
     mejirushiPinsWrap.innerHTML = '';
@@ -4518,6 +4565,9 @@
           svgEl.style.height = thisIconPx + 'px';
           svgEl.style.stroke = pin.color || '#B8434F'; // 色は1個ずつ持つ（2026年9月〜）。
                                                           // 古いデータ（色を持たない）は既定色にフォールバック
+          // 回転機能：直線・四角・円すべての定規で使える（2026年9月〜）。古いデータ（rotationを
+          // 持たない）は0度扱いにする
+          svgEl.style.transform = 'rotate(' + (pin.rotation || 0) + 'deg)';
         }
       }
       const tipEl = el.querySelector('.mej-tip');
@@ -4555,11 +4605,18 @@
       const locked = !!pin.locked;
       if (mejirushiLockBtn) {
         mejirushiLockBtn.classList.toggle('active', locked);
-        mejirushiLockBtn.innerHTML = locked ? MEJ_LOCK_SVG_CLOSED : MEJ_LOCK_SVG_OPEN;
+        // アイコンは.mej-lock-icon-slotの中身だけ差し替える（ボタン全体のinnerHTMLを
+        // 書き換えると、ホバーツールチップ用の<span class="action-tooltip">まで
+        // 消えてしまうため。2026年9月〜）
+        const lockIconSlot = mejirushiLockBtn.querySelector('.mej-lock-icon-slot');
+        if (lockIconSlot) lockIconSlot.innerHTML = locked ? MEJ_LOCK_SVG_CLOSED : MEJ_LOCK_SVG_OPEN;
         mejirushiLockBtn.setAttribute('aria-label', locked ? 'めじるしの位置ロックを解除' : 'めじるしの位置をロック');
       }
       if (mejirushiNoteInput) mejirushiNoteInput.readOnly = locked;
       if (mejirushiTrashBtn) mejirushiTrashBtn.disabled = locked;
+      // 回転機能：お試し導入時は直線定規だけに絞っていたが、好評だったため
+      // 直線・四角・円のすべての定規で使えるようにした（2026年9月〜）
+      if (mejirushiRotateBtn) mejirushiRotateBtn.disabled = locked;
     } else if (mejirushiEditPop) {
       mejirushiEditPop.classList.remove('show');
     }
@@ -4595,6 +4652,9 @@
       showModal('めじるしは\n最大' + MEJIRUSHI_MAX + '個までです。', 'OK', () => {}, false);
       return;
     }
+    // メニューパネルが開いたままだと編み図が隠れて見えにくいので、配置を始めるタイミングで
+    // 開いていれば自動で閉じる（計測開始時と同じ考え方。2026年9月〜）
+    if (!floatPanel.classList.contains('collapsed')) togglePanel(true);
     // 計測中・目数ガイド編集中は同時に使わせない（段数ガイド⇄目数ガイドの相互ロックと同じ考え方。
     // めじるしだけこの相互ロックから漏れていたのを2026年9月に修正）
     if (window.stopMeasureIfActive) window.stopMeasureIfActive();
@@ -4642,7 +4702,7 @@
       showModal('めじるしは\n最大' + MEJIRUSHI_MAX + '個までです。', 'OK', () => {}, false);
       return;
     }
-    mejirushiPins.push({ x: imgX, y: imgY, icon: mejirushiIconSelected, color: mejirushiColorSelected, note: '', locked: false, big: false });
+    mejirushiPins.push({ x: imgX, y: imgY, icon: mejirushiIconSelected, color: mejirushiColorSelected, note: '', locked: false, big: false, rotation: 0 });
     selectedMejirushiIndex = null; // 置いた直後は編集ポップアップを開かない（既存の挙動を踏襲）
     if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
     positionMejirushiPin();
@@ -4722,6 +4782,24 @@
       const pin = mejirushiPins[selectedMejirushiIndex];
       if (!pin) return;
       pin.locked = !pin.locked;
+      positionMejirushiPin();
+      saveMejirushiSettings();
+    });
+  }
+  // 回転ボタン：直線・四角・円のすべての定規で使える（2026年9月〜。
+  // お試し導入時は直線定規だけだったが、好評だったため全定規に展開した）。
+  // 押すたびに10°ずつ回転する（見た目は36方向で一周する）。ロック中は位置以外も
+  // まとめて凍結する方針に合わせ、回転もできなくする
+  if (mejirushiRotateBtn) {
+    mejirushiRotateBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (selectedMejirushiIndex === null) return;
+      const pin = mejirushiPins[selectedMejirushiIndex];
+      if (!pin || pin.locked) return;
+      // 360で割った余りに戻すと「315→0」のように数字が急に減り、CSSのtransition（滑らかな
+      // アニメーション）が逆回転して戻るように見えてしまう。0度も360度も見た目は同じなので、
+      // 割り切らずにそのまま増やし続けることで、常に同じ向きにくるくる回るようにする（2026年9月〜）
+      pin.rotation = (pin.rotation || 0) + 10;
       positionMejirushiPin();
       saveMejirushiSettings();
     });
@@ -5161,6 +5239,8 @@
 
   function toggleStepAdjust(e) {
     if (e) e.stopPropagation();
+    // 「1段の高さ」ラベル部分をタップした時は開かない（開くのは計測値部分のみ）
+    if (e && e.target && e.target.closest && e.target.closest('.gp-val-label')) return;
     if (stepAdjustLocked) return;
     if (gpStepLabel.classList.contains('unmeasured')) return;
     const card = document.getElementById('step-adjust-card');
@@ -6431,6 +6511,9 @@
   const STITCH_MODE_RULER_OPACITY = '0.4';
   function startStitchGuideMode() {
     stitchGuideMode = true;
+    // メニューパネルが開いたままだと編み図が隠れて見えにくいので、線引きを始めるタイミングで
+    // 開いていれば自動で閉じる（計測・めじるし配置と同じ考え方。2026年9月〜）
+    if (!floatPanel.classList.contains('collapsed')) togglePanel(true);
     // フロートパネル側の「線引」ボタンはヒントバーの✕／完了と役目が重複するので、
     // 編集中は押せなくする（段数ガイドの「計測」ボタンが計測中に押せなくなるのと同じ考え方。2026年8月〜）
     if (stitchEditBtn) { stitchEditBtn.disabled = true; stitchEditBtn.classList.add('active'); }
@@ -9785,6 +9868,9 @@
     }
 
     window.startMeasure = function() {
+      // メニューパネルが開いたままだと編み図が隠れて見えにくいので、計測を始めるタイミングで
+      // 開いていれば自動で閉じる（スマホでの見やすさ優先。2026年9月〜）
+      if (!floatPanel.classList.contains('collapsed')) togglePanel(true);
       // 計測が終わったら自動で戻せるよう、今の表示サイズ・位置を覚えておく
       preMeasureScale = scale; preMeasureOffsetX = offsetX; preMeasureOffsetY = offsetY;
       document.getElementById('measure-float-btn').style.display = 'none';
