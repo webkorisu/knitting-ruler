@@ -1087,8 +1087,8 @@
     /* ===== カウンターフローティングパネル（段数ガイド機能付き） ===== */
     #counter-panel {
       position: fixed;
-      /* 目数ガイド編集中のヒントバー・カラーパレット・複製削除ボタン（z-index:210〜211）や
-         めじるしの配置バー（211）より常に手前に表示されるようにする。カウンターパネルは
+      /* 目数ガイド編集中のヒントバー・カラーパレット・複製削除ボタン（z-index:110〜111）や
+         めじるしの配置バー・編集カード（111〜113）より常に手前に表示されるようにする。カウンターパネルは
          ドラッグで動かせるので、それでも重なって邪魔な時はユーザー自身が端へ寄せられる（2026年9月〜） */
       z-index: 220;
       bottom: 24px;
@@ -1129,7 +1129,8 @@
       position: fixed;
       inset: 0;
       pointer-events: none;
-      z-index: 210;
+      z-index: 110; /* 以前はパネルより上（210）だったが、パネルを開き直した時に不自然に
+                       重なって見える問題があったため、パネルより下に変更した（2026年9月〜） */
     }
     .stitch-guide-bound {
       position: absolute;
@@ -1174,7 +1175,7 @@
 
     #stitch-line-actions {
       position: fixed;
-      z-index: 211;
+      z-index: 111; /* 以前はパネルより上（211）だったが、パネルより下に変更した（2026年9月〜） */
       display: none;
       width: 0; /* 幅0のアンカー。leftに線のx座標そのものが入る */
       transform: translateY(-50%);
@@ -1209,26 +1210,25 @@
       box-shadow: 0 4px 14px rgba(0,0,0,0.16);
       -webkit-tap-highlight-color: transparent;
     }
-    /* 「一括削除」だけは、他の線の色に関わらず常に警告色にして区別する
-       （取り返しがつかない操作なので、複製・削除より一段強い注意を引く色にしている） */
-    #stitch-line-clear-all-btn {
-      color: #993C1D !important;
-      border-color: #993C1D !important;
-    }
+    /* 一括削除ボタンは、カウンターパネルの「縦線 ◯本」タップに統合したので削除した（2026年9月〜） */
 
     /* 目数ガイド：線引ボタンを押している間、編み図の上部中央に浮かべるカラーパレット */
     /* 目数ガイド：線引ボタンを押している間、編み図の上部中央に浮かべるヒントバー。
        段数ガイドの計測バー（#measure-bar）と全く同じ考え方（説明文＋完了ボタン、ドラッグ可能）で作り、
        一貫性を出している。カラーパレットより上に置くので、カラーパレットのtopはこの下にずらしてある */
+    /* ヒントバー：文言の見やすさを優先し、カラーパレットとは別の独立した要素に戻した（2026年9月〜）。
+       1枚のカードにまとめると、カラー行の幅（234px程度）に文言側も合わせる必要が出てしまい、
+       文言を短く削らざるを得なくなって分かりにくくなった。分けておけば、このバーは
+       width: max-content のとおり、必要な文の長さに合わせて自由に伸び縮みできる */
     #stitch-hint-bar {
       position: fixed;
       top: 96px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 211;
+      z-index: 111; /* 以前はパネルより上（211）だったが、パネルより下に変更した（2026年9月〜） */
       display: none;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: nowrap;
       background: #FFFFFF;
       border: 1.5px solid var(--border);
@@ -1252,11 +1252,11 @@
       font-size: 13px;
       font-weight: 700;
       color: var(--text);
-      white-space: normal;
+      white-space: normal; /* 文の長さは伸び縮みするバー側で吸収するので、万一の折り返しも許容する */
       flex-shrink: 1;
       min-width: 0;
       text-align: left;
-      line-height: 1.5;
+      line-height: 1.4;
     }
     #stitch-hint-done-btn {
       background: var(--primary);
@@ -1274,12 +1274,14 @@
       -webkit-tap-highlight-color: transparent;
       transition: opacity .15s, transform .1s;
     }
+    /* カラーパレット：ヒントバーとは別の、独立して浮く要素に戻した（2026年9月〜）。
+       自前でドラッグ・表示ON/OFFを持つ（ヒントバーの動きとは連動しない、それぞれ好きな位置に置ける） */
     #stitch-color-float {
       position: fixed;
       top: 154px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 211;
+      z-index: 111; /* 以前はパネルより上（211）だったが、パネルより下に変更した（2026年9月〜） */
       display: none;
       gap: 6px;
       align-items: center;
@@ -1355,12 +1357,94 @@
     .mej-mk-sm svg { width: 14px; height: 14px; stroke-width: 2.1; }
 
     /* 浮かぶマーク選択バー：目数ガイドのカラーパレットと同じ位置・見た目の考え方（トグルONの間ずっと表示） */
+    /* ヒントバー：文言の見やすさを優先し、選択カードとは別の独立した要素に戻した（2026年9月〜）。
+       目数ガイドのヒントバーと全く同じ考え方。width: max-content のとおり、
+       必要な文の長さに合わせて自由に伸び縮みできる */
     #mejirushi-palette-float {
       position: fixed;
       top: 96px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 211;
+      z-index: 111; /* 以前はパネルより上（211）だったが、パネルより下に変更した（2026年9月〜） */
+      display: none;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+      background: #FFFFFF;
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 8px 10px 8px 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      font-family: 'Zen Maru Gothic', sans-serif;
+      pointer-events: all;
+      width: max-content;
+      max-width: calc(100vw - 24px);
+      cursor: grab;
+      touch-action: none;
+    }
+    #mejirushi-palette-float.show { display: flex; }
+    #mejirushi-palette-float.dragging {
+      cursor: grabbing;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.24), 0 3px 10px rgba(0,0,0,0.12);
+      opacity: 0.96;
+    }
+    #mejirushi-palette-hint {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: normal; /* 文の長さは伸び縮みするバー側で吸収するので、万一の折り返しも許容する */
+      flex-shrink: 1;
+      min-width: 0;
+      text-align: left;
+      line-height: 1.4;
+    }
+    /* ✕・完了は常に両方表示する（段数ガイドの計測バーと同じ考え方。2026年9月〜） */
+    #mejirushi-palette-close {
+      position: relative;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #F8FDFC;
+      border: 1.5px solid var(--border);
+      color: var(--text-sub);
+      font-size: 12px;
+      opacity: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #mejirushi-palette-close:active { transform: scale(.92); }
+    #mejirushi-palette-done-btn {
+      position: relative;
+      background: var(--primary);
+      border: none;
+      border-radius: 16px;
+      padding: 5px 14px 7px;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.10);
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity .15s, transform .1s;
+    }
+    #mejirushi-palette-done-btn:hover { opacity: 0.75; }
+    #mejirushi-palette-done-btn:active { transform: scale(.95); }
+    /* マーク・カラーの選択カード：ヒントバーとは別の、独立して浮く要素に戻した（2026年9月〜） */
+    #mejirushi-select-float {
+      position: fixed;
+      top: 154px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 111;
       display: none;
       flex-direction: column;
       gap: 8px;
@@ -1371,56 +1455,16 @@
       box-shadow: 0 4px 16px rgba(0,0,0,0.12);
       pointer-events: all;
       width: max-content;
-      max-width: min(234px, calc(100vw - 24px)); /* アイコン・色の行の幅（210px＋左右padding）に合わせる。
-                                                      以前はwidth:max-contentのままヒント文字が1行に
-                                                      収まろうとして、カード全体が横に間延びしていた */
+      max-width: min(234px, calc(100vw - 24px));
       cursor: grab;
       touch-action: none;
     }
-    #mejirushi-palette-float.show { display: flex; }
-    #mejirushi-palette-float.dragging {
+    #mejirushi-select-float.show { display: flex; }
+    #mejirushi-select-float.dragging {
       cursor: grabbing;
       box-shadow: 0 10px 30px rgba(0,0,0,0.24), 0 3px 10px rgba(0,0,0,0.12);
       opacity: 0.96;
     }
-    #mejirushi-palette-top-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding-right: 18px; /* 角に固定された✕ボタン（絶対配置）とテキストが被らないよう避けておく */
-    }
-    #mejirushi-palette-hint {
-      font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text);
-      white-space: normal;
-      flex-shrink: 1;
-      min-width: 0;
-      text-align: left;
-      line-height: 1.3;
-    }
-    #mejirushi-palette-close {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      width: 15px;
-      height: 15px;
-      border-radius: 50%;
-      background: #EDEAEA;
-      border: 1.5px solid #C9C4C4;
-      color: #7A7575;
-      font-size: 7px;
-      opacity: 0.9;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-    #mejirushi-palette-close:active { opacity: 1; transform: scale(.92); }
     #mejirushi-palette-icons { display: flex; gap: 6px; flex-wrap: wrap; max-width: 210px; justify-content: center; }
     /* めじるしの色（全マーク共通の一括変更）。目数ガイドのカラーパレットと同じ並び方（2026年9月〜） */
     #mejirushi-color-row {
@@ -1537,8 +1581,12 @@
     .mej-pin.tip-flash .mej-tip { opacity: .95; }
     #mejirushi-edit-pop {
       position: fixed;
-      z-index: 213; /* 定規・パネルより上。ピン本体(z-index:40)とは別に、編集中だけは
-                       操作できる必要があるので独立して高くしてある */
+      /* 以前はパネルより上（213）にして、パネルを開いたままでも編集操作できるようにしていた。
+         ただし後からパネルを開き直すと、カードだけがパネルの上に不自然に浮いて見える問題があった。
+         マークをタップする瞬間にパネルを自動で閉じるようにはしたが、それでも「編集中に手動で
+         パネルを開き直す」ケースは残るため、目数ガイドの編集ボタン類（旧210〜211）とあわせて
+         パネルより下に統一した（2026年9月〜） */
+      z-index: 113;
       transform: translateX(-50%); /* 中央揃え。left(px)はJS側で毎回セットする（positionMejirushiPin参照） */
       display: none;
       flex-direction: column;
@@ -1556,7 +1604,7 @@
       width: 200px;
     }
     #mejirushi-edit-pop.show { display: flex; }
-    .mej-edit-row { display: flex; gap: 6px; align-items: center; }
+    .mej-edit-row { display: flex; gap: 6px; align-items: center; justify-content: space-between; }
     #mejirushi-note {
       width: 100%;
       box-sizing: border-box;
@@ -1572,6 +1620,8 @@
     #mejirushi-note:read-only { background: #F2F2EC; color: var(--text-sub); cursor: default; }
     #mejirushi-lock-btn,
     #mejirushi-trash-btn,
+    #mejirushi-duplicate-btn,
+    #mejirushi-rotate-ccw-btn,
     #mejirushi-rotate-btn {
       position: relative; /* 中のホバーツールチップ（.action-tooltip）をこのボタン基準で配置するため */
       width: 26px;
@@ -1589,13 +1639,20 @@
     }
     #mejirushi-lock-btn svg,
     #mejirushi-trash-btn svg,
+    #mejirushi-duplicate-btn svg,
+    #mejirushi-rotate-ccw-btn svg,
     #mejirushi-rotate-btn svg { width: 15px; height: 15px; fill: none; stroke: var(--text-sub); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     #mejirushi-trash-btn:hover { background: #FBEAEA; border-color: #C97A7A; }
     #mejirushi-lock-btn:hover { background: #F4F9F7; border-color: #93B8AC; }
+    #mejirushi-duplicate-btn:hover { background: #F4F9F7; border-color: #93B8AC; }
     /* 回転ボタン：直線・四角・円のすべての定規で使える（2026年9月〜。
-       お試し導入時は直線定規だけだったが、好評だったため全定規に展開した） */
-    #mejirushi-rotate-btn:hover { background: #F4F9F7; border-color: #93B8AC; }
-    /* 回転・ロック・削除ボタンのホバーツールチップ（既存の.action-tooltipを再利用。2026年9月〜） */
+       お試し導入時は直線定規だけ・時計回りのみだったが、好評だったため全定規に展開し、
+       角度を通り過ぎた時に戻せるよう反時計回りのボタンも追加した） */
+    #mejirushi-rotate-btn:hover,
+    #mejirushi-rotate-ccw-btn:hover { background: #F4F9F7; border-color: #93B8AC; }
+    /* 複製・回転・ロック・削除ボタンのホバーツールチップ（既存の.action-tooltipを再利用。2026年9月〜） */
+    #mejirushi-duplicate-btn:hover .action-tooltip,
+    #mejirushi-rotate-ccw-btn:hover .action-tooltip,
     #mejirushi-rotate-btn:hover .action-tooltip,
     #mejirushi-lock-btn:hover .action-tooltip,
     #mejirushi-trash-btn:hover .action-tooltip {
@@ -1606,26 +1663,13 @@
     #mejirushi-lock-btn.active svg { stroke: #B8434F; }
     #mejirushi-trash-btn:hover svg { stroke: #993C1D; }
     #mejirushi-trash-btn:disabled { opacity: .4; cursor: default; pointer-events: none; }
+    #mejirushi-duplicate-btn:disabled { opacity: .4; cursor: default; pointer-events: none; }
+    #mejirushi-rotate-ccw-btn:disabled { opacity: .4; cursor: default; pointer-events: none; }
     #mejirushi-rotate-btn:disabled { opacity: .4; cursor: default; pointer-events: none; }
-    #mejirushi-edit-done-btn {
-      flex: 1;
-      background: var(--primary);
-      border: none;
-      border-radius: 10px;
-      padding: 7px 0;
-      font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text);
-      cursor: pointer;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.10);
-      transition: box-shadow .1s, transform .1s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    #mejirushi-edit-done-btn:active {
-      box-shadow: 0 1px 1px rgba(0,0,0,0.10);
-      transform: scale(.97);
-    }
+    /* #mejirushi-edit-done-btn（完了ボタン）は廃止した（2026年9月〜）。
+       編み図の何もない場所をタップすると自動で閉じるようにしたため不要になった */
+    /* #mejirushi-clear-all-btn（一括削除ボタン）も廃止した（2026年9月〜）。
+       カウンターパネルの「めじるし ◯個」タップに統合したため不要になった */
 
     /* TOPへ戻るボタン：設定パネル「の中の」右下に、スクロールしてタブが見えなくなった時だけ表示する。
        パネル自体を基準にした配置なので、パネルをドラッグで動かしても常にパネルの右下についてくる */
@@ -1816,26 +1860,36 @@
       font-family: 'Zen Maru Gothic', sans-serif;
       color: var(--text);
       white-space: nowrap;
-      pointer-events: none;
+      /* 一括削除を、編み図に浮かぶボタンではなく、この数字自体をタップして呼び出す方式に変更した
+         （段数ガイドの「1段の高さ」タップ→調整カードと同じ考え方。2026年9月〜） */
+      pointer-events: auto;
+      cursor: pointer;
       box-sizing: border-box;
       text-align: center; /* お試し中：中央寄せ比較用（2026年9月） */
       padding: 6px 8px;
       border-radius: 15px;
       background: transparent;
-      transition: opacity .15s;
+      transition: opacity .15s, filter .15s;
     }
+    #stitch-count-label:hover { filter: opacity(0.6); }
+    #stitch-count-label:active { filter: opacity(0.6); transform: scale(0.96); }
     #mejirushi-count-label {
       font-family: 'Zen Maru Gothic', sans-serif;
       color: var(--text);
       white-space: nowrap;
-      pointer-events: none;
+      /* 一括削除を、編み図に浮かぶボタンではなく、この数字自体をタップして呼び出す方式に変更した
+         （段数ガイドの「1段の高さ」タップ→調整カードと同じ考え方。2026年9月〜） */
+      pointer-events: auto;
+      cursor: pointer;
       box-sizing: border-box;
       text-align: center;
       padding: 6px 8px;
       border-radius: 15px;
       background: transparent;
-      transition: opacity .15s;
+      transition: opacity .15s, filter .15s;
     }
+    #mejirushi-count-label:hover { filter: opacity(0.6); }
+    #mejirushi-count-label:active { filter: opacity(0.6); transform: scale(0.96); }
     #stitch-edit-btn {
       background: #FFFFFF;
       border: 1.5px solid var(--border);
@@ -2216,7 +2270,10 @@
     }
     #measure-redo-btn:hover .action-tooltip,
     #measure-close-btn:hover .action-tooltip,
-    #measure-move-ruler-btn:hover .action-tooltip {
+    #measure-move-ruler-btn:hover .action-tooltip,
+    #stitch-hint-undo-btn:hover .action-tooltip,
+    #stitch-hint-close-btn:hover .action-tooltip,
+    #mejirushi-palette-close:hover .action-tooltip {
       opacity: 1;
     }
     /* 「定規を動かせます」ON中のボタンアイコン：編み図に実際に打つ点マーク（丸＋線）と同じ見た目 */
@@ -2831,21 +2888,40 @@
 
 <!-- ===== 目数ガイド：選択した線の複製・削除 =====
      #stitch-line-actionsは幅0の「アンカー」（線のx座標そのもの）。
-     左側グループ（複製）は right:0 で自分をアンカーの左に、
-     右側グループ（削除・一括削除の縦並び）は left:0 で自分をアンカーの右に配置する（2026年8月〜） -->
+     左側グループ（複製）は right:0 で自分をアンカーの左に、右側グループ（削除）は
+     left:0 で自分をアンカーの右に配置する（2026年8月〜）。一括削除ボタンは、カウンター
+     パネルの「縦線 ◯本」タップに統合したのでここから削除した（2026年9月〜） -->
 <div id="stitch-line-actions">
   <div class="stitch-actions-left">
     <button type="button" id="stitch-line-duplicate-btn">複製</button>
   </div>
   <div class="stitch-actions-right">
     <button type="button" id="stitch-line-delete-btn">削除</button>
-    <button type="button" id="stitch-line-clear-all-btn">一括削除</button>
   </div>
+</div>
+
+<!-- ===== 目数ガイド：線引ボタンを押している間、編み図の上に浮かべるヒントバー =====
+     段数ガイドの計測バー（#measure-bar）と全く同じ考え方（説明文＋操作ボタン、ドラッグ可能）で、
+     操作の一貫性を出している。ここの「完了」を押せば、フロートパネルまで戻らなくても編集を終えられる。
+     ✕・完了ボタン自体は常に両方表示する（段数ガイドの計測バーと同じ考え方。2026年9月〜）。
+     文言だけは段数ガイドのように状況で切り替える：1本も引いていない間は「目の境目をタップ」、
+     1本以上引いたら「必要な線を引いたら完了をタップ」（まだ引き足せることが伝わるよう、
+     単に「完了をタップ」だけにはしない。updateStitchLineCountLabel参照。2026年9月〜）。
+     ↺（戻る）だけは、取り消す線が無い間は押せても意味が無いので、1本以上引いた時だけ表示する。
+     カラーパレットとは別の独立した要素にしている（一度1枚のカードにまとめてみたが、
+     カラー行の幅に文言側も合わせる必要が出て、文言を削らざるを得なくなり分かりにくくなったため
+     元に戻した。2026年9月〜） -->
+<div id="stitch-hint-bar">
+  <span id="stitch-hint-text">目の境目をタップ</span>
+  <button id="stitch-hint-undo-btn" title="戻る" style="display:none; position:relative; width:24px; height:24px; border-radius:50%; font-size:12px; color:var(--text-sub); background:#f8fdfc; border:1.5px solid var(--border); cursor:pointer; align-items:center; justify-content:center; flex-shrink:0; -webkit-tap-highlight-color:transparent;">↺<span class="action-tooltip">戻る</span></button>
+  <button id="stitch-hint-close-btn" title="やめる" style="position:relative; width:24px; height:24px; border-radius:50%; background:#f8fdfc; border:1.5px solid var(--border); color:var(--text-sub); font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; -webkit-tap-highlight-color:transparent;">✕<span class="action-tooltip">線引きをやめる</span></button>
+  <button id="stitch-hint-done-btn">完了</button>
 </div>
 
 <!-- ===== 目数ガイド：線引ボタンを押している間だけ、編み図の上に浮かべるカラーパレット =====
      設定パネルの色選択と違い、こちらは「今から引く線の色」をその場で選べるようにするためのもの。
-     7色は薄いパステルではなく、線としての視認性を優先した濃い目のトーンにしている（2026年8月〜） -->
+     7色は薄いパステルではなく、線としての視認性を優先した濃い目のトーンにしている（2026年8月〜）。
+     ヒントバーとは別の独立した要素（自前のドラッグ・表示ON/OFF）に戻した（2026年9月〜） -->
 <div id="stitch-color-float">
   <button class="color-dot" data-color="#B8434F" style="background:#B8434F;" title="赤"></button>
   <button class="color-dot" data-color="#C07A2E" style="background:#C07A2E;" title="橙"></button>
@@ -2858,27 +2934,26 @@
   <label for="stitch-color" class="color-custom-label" title="カラーを選ぶ"></label>
 </div>
 
-<!-- ===== 目数ガイド：線引ボタンを押している間、編み図の上に浮かべるヒントバー =====
-     段数ガイドの計測バー（#measure-bar）と全く同じ考え方（説明文＋操作ボタン、ドラッグ可能）で、
-     操作の一貫性を出している。ここの「完了」を押せば、フロートパネルまで戻らなくても編集を終えられる。
-     線が0本の間は「✕」のみ（まだ何も引いていないので、それ自体が「やめる」の意味になる）。
-     1本以上引いたら「戻る（直前の1本を取り消す。連打で複数本を遡って消せる）」＋「完了」に切り替える -->
-<div id="stitch-hint-bar">
-  <span id="stitch-hint-text">目の境目をタップ</span>
-  <button id="stitch-hint-undo-btn" title="戻る" style="display:none; position:relative; width:28px; height:28px; border-radius:50%; font-size:14px; color:var(--text-sub); background:#f8fdfc; border:1.5px solid var(--border); cursor:pointer; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent;">↺</button>
-  <button id="stitch-hint-close-btn" title="やめる" style="position:relative; width:28px; height:28px; border-radius:50%; background:#f8fdfc; border:1.5px solid var(--border); color:var(--text-sub); font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent;">✕</button>
-  <button id="stitch-hint-done-btn" style="display:none;">完了</button>
+
+<!-- ===== めじるし：「めじるしを置く」ボタンを押した時だけ現れる、案内バー =====
+     目数ガイドのヒントバーと全く同じ考え方（文言＋✕・完了、ドラッグ可能・幅は伸び縮み自由）。
+     ✕・完了ボタン自体は常に両方表示する（段数ガイドの計測バーと同じ考え方。2026年9月〜）。
+     文言だけは目数ガイドと同じく状況で切り替える：1個も置いていない間は
+     「マークを選んで、置きたい場所をタップ」、1個以上置いたら
+     「必要なめじるしを置いたら完了をタップ」（まだ置き足せることが伝わるよう、
+     単に「完了をタップ」だけにはしない。updateMejirushiPlaceUI参照。2026年9月〜）。
+     マーク・色の選択カード（#mejirushi-select-float）とは別の独立した要素にしている
+     （一度1枚のカードにまとめてみたが、選択カードの幅に文言側も合わせる必要が出て、
+     文言を削らざるを得なくなり分かりにくくなったため元に戻した。2026年9月〜） -->
+<div id="mejirushi-palette-float">
+  <span id="mejirushi-palette-hint">マークを選んで、置きたい場所をタップ</span>
+  <button type="button" id="mejirushi-palette-close" title="やめる" aria-label="めじるしの配置をやめる">✕<span class="action-tooltip">配置をやめる</span></button>
+  <button type="button" id="mejirushi-palette-done-btn">完了</button>
 </div>
 
-<!-- ===== めじるし：「めじるしをおく」ボタンを押した時だけ現れる、2ステップの配置フローバー
-     （2026年8月〜。以前はトグルONの間ずっと出しっぱなしだったが、段数ガイド「計測する」・
-     目数ガイド「線を引く」と同じテンポ感（ボタン→案内カード→タップ）に統一） =====
-     ①「めじるしにしたいマークをタップ」でマークを選ぶ→②「めじるしを付けたい場所をタップ」で編み図をタップ -->
-<div id="mejirushi-palette-float">
-  <div id="mejirushi-palette-top-row">
-    <span id="mejirushi-palette-hint">マークを選んで、置きたい場所をタップ</span>
-    <button type="button" id="mejirushi-palette-close" title="やめる" aria-label="めじるしの配置をやめる">✕</button>
-  </div>
+<!-- ===== めじるし：マーク・カラーの選択カード =====
+     案内バーとは別の独立した要素に戻した（自前のドラッグ・表示ON/OFF。2026年9月〜） -->
+<div id="mejirushi-select-float">
   <div id="mejirushi-palette-icons"></div>
   <!-- めじるしの色（全マーク共通の一括変更。目数ガイドの縦線カラーと全く同じ仕組み。2026年9月〜） -->
   <div id="mejirushi-color-row">
@@ -2894,7 +2969,8 @@
   </div>
 </div>
 
-<!-- ===== めじるし：編み図に置かれたピン本体（最大20個・2026年9月〜複数対応）=====
+
+<!-- ===== めじるし：編み図に置かれたピン本体（最大99個・2026年9月〜複数対応）=====
      #mejirushi-pins-wrapは中身が空の入れ物。1個1個のピン（.mej-pin）はJS側で
      mejirushiPins配列の数だけ動的に生成する（rebuildMejirushiPinElements参照） -->
 <div id="mejirushi-pins-wrap"></div>
@@ -2908,13 +2984,24 @@
      画面座標に合わせて毎回セットする（positionMejirushiPin()を参照） -->
 <div id="mejirushi-edit-pop">
   <!-- マーク（アイコン）・色は「置く時だけ」選ぶ仕様に統一（2026年9月〜）。
-       既存マークをタップして開くこのカードは、メモ・完了・ロック・削除だけのシンプルな構成。
-       マーク・色を変えたい場合は、削除して新しく置き直す想定 -->
+       既存マークをタップして開くこのカードは、メモ・複製・回転・ロック・削除だけのシンプルな構成。
+       マーク・色を変えたい場合は、削除して新しく置き直す想定。
+       完了ボタンは廃止した（2026年9月〜）。編み図の何もない場所をタップすると自動で閉じる
+       仕組み（設定パネルと同じ考え方）を追加したので、明示的な閉じるボタンは不要と判断した -->
   <input type="text" id="mejirushi-note" maxlength="30" placeholder="ひとことメモ" aria-label="めじるしのメモ" autocomplete="off">
+  <!-- アイコン列：複製・回転（反時計回り／時計回り）・ロック・削除。5個とも1段に収まる -->
   <div class="mej-edit-row">
-    <button type="button" id="mejirushi-edit-done-btn">完了</button>
-    <!-- 回転ボタン：直線・四角・円のすべての定規で使える（2026年9月〜） -->
-    <button type="button" id="mejirushi-rotate-btn" aria-label="めじるしを回転">
+    <button type="button" id="mejirushi-duplicate-btn" aria-label="めじるしを複製">
+      <svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+      <span class="action-tooltip">複製</span>
+    </button>
+    <!-- 回転ボタン：直線・四角・円のすべての定規で使える（2026年9月〜）。反時計回り／時計回りの
+         2方向。片方向しかないと、押しすぎて狙った角度を通り過ぎた時に戻すのが大変なため追加した -->
+    <button type="button" id="mejirushi-rotate-ccw-btn" aria-label="めじるしを反時計回りに回転">
+      <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.34-5.66"/><path d="M4 4v5h5"/></svg>
+      <span class="action-tooltip">回転</span>
+    </button>
+    <button type="button" id="mejirushi-rotate-btn" aria-label="めじるしを時計回りに回転">
       <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>
       <span class="action-tooltip">回転</span>
     </button>
@@ -2927,6 +3014,8 @@
       <span class="action-tooltip">削除</span>
     </button>
   </div>
+  <!-- 一括削除ボタンは、カウンターパネルの「めじるし ◯個」タップに統合したので
+       ここから削除した（編み図上のボタンを減らしてすっきりさせるため。2026年9月〜） -->
 </div>
 
 
@@ -3050,7 +3139,7 @@
       <span id="stitch-count-label" style="opacity:0; pointer-events:none;"><span class="gp-val-label">縦線</span><span class="gp-val-num">0本</span></span>
     </span>
   </div>
-  <!-- 下段：めじるし行（直線定規のみ・最大20個まで複数配置対応。2026年9月〜）。
+  <!-- 下段：めじるし行（直線定規のみ・最大99個まで複数配置対応。2026年9月〜）。
        トグルの横位置が動いて見えないよう、他の2行と同じ1列目にスロットを揃えている -->
   <div id="cp-mejirushi-row">
     <span class="gp-slot">
@@ -3060,7 +3149,7 @@
       </label>
     </span>
     <span class="gp-slot">
-      <button id="mejirushi-place-btn" style="opacity:0; pointer-events:none;"><span id="mejirushi-place-btn-text">めじるしをおく</span></button>
+      <button id="mejirushi-place-btn" style="opacity:0; pointer-events:none;"><span id="mejirushi-place-btn-text">めじるしを置く</span></button>
     </span>
     <span class="gp-slot">
       <span id="mejirushi-count-label" style="opacity:0; pointer-events:none;"><span class="gp-val-label">めじるし</span><span class="gp-val-num">0個</span></span>
@@ -3253,7 +3342,8 @@
         <div class="card-accordion-body" style="padding:14px 12px 20px; gap:6px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「目数ガイド」スイッチで、ON/OFFを切り替えます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">「目数ガイド」の縦線が編み図に表示されます。</span>「線を引く」ボタンを押すと、タップした場所に目安の縦線を置けます（最大99本）。<br>
-          <strong style="font-weight:600; color:var(--text);">OFF</strong>：縦線が一時的に隠れます。線のデータは消えないので、再度ONにすると元通り表示されます。</p>
+          <strong style="font-weight:600; color:var(--text);">OFF</strong>：縦線が一時的に隠れます。線のデータは消えないので、再度ONにすると元通り表示されます。<br>
+          ・カウンターパネルの「縦線」の数字部分をタップすると、今の編み図の縦線を一括削除できます。</p>
           <div class="ruler-control" style="gap:12px; margin-top:8px;">
             <label>カラー</label>
             <div>
@@ -3270,7 +3360,7 @@
         </div>
       </div>
 
-      <!-- アコーディオン⑥めじるし（直線・四角・円の全定規対応・最大20個） -->
+      <!-- アコーディオン⑥めじるし（直線・四角・円の全定規対応・最大99個） -->
       <div class="card-accordion" id="band-acc-mejirushi">
         <button class="card-accordion-btn" onclick="toggleCardAcc('band-acc-mejirushi')">
           <span>めじるし</span>
@@ -3278,12 +3368,13 @@
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 20px; gap:6px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「めじるし」スイッチで、ON/OFFを切り替えます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしをおく」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大20個）。置いためじるしをタップすると、ひとことメモ（最大30文字）・回転・ロック・削除ができます。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしを置く」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大99個）。置いためじるしをタップすると、ひとことメモ（最大30文字）・複製・回転・ロック・削除ができます。<br>
           <strong style="font-weight:600; color:var(--text);">OFF</strong>：めじるしが一時的に隠れます。データは消えないので、再度ONにすると元通り表示されます。<br><span style="display:block; height:6px;"></span>
           ・長押しすると、マークの大きさが3倍⇔通常サイズで切り替わります（編み図によって見やすい大きさが変わるため）。<br>
-          ・回転ボタンをタップすると、マークの向きを10°ずつ変えられます。<br>
-          ・つまんでドラッグすると、位置を動かせます。<br>
-          ・直線・四角・円、どの定規でも使えます（めじるしは定規ごとに別々に記録されます）。</p>
+          ・複製ボタンをタップすると、同じマーク・カラーのめじるしを1個増やせます（近くにずらして追加されます）。<br>
+          ・回転ボタン（反時計回り／時計回り）をタップすると、マークの向きを10°ずつ変えられます。<br>
+          ・カウンターパネルの「めじるし」の数字部分をタップすると、今の編み図のめじるしを一括削除できます（ロック中のマークも消えます）。<br>
+          ・つまんでドラッグすると、位置を動かせます。</p>
         </div>
       </div>
 
@@ -3400,7 +3491,7 @@
       <input type="hidden" id="circle-step" value="20">
       <span id="circle-step-label" style="display:none;">20 px</span>
 
-      <!-- アコーディオン⑤めじるし（直線・四角・円の全定規対応・最大20個） -->
+      <!-- アコーディオン⑤めじるし（直線・四角・円の全定規対応・最大99個） -->
       <div class="card-accordion" id="circle-acc-mejirushi">
         <button class="card-accordion-btn" onclick="toggleCardAcc('circle-acc-mejirushi')">
           <span>めじるし</span>
@@ -3408,12 +3499,13 @@
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 20px; gap:6px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「めじるし」スイッチで、ON/OFFを切り替えます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしをおく」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大20個）。置いためじるしをタップすると、ひとことメモ（最大30文字）・回転・ロック・削除ができます。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしを置く」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大99個）。置いためじるしをタップすると、ひとことメモ（最大30文字）・複製・回転・ロック・削除ができます。<br>
           <strong style="font-weight:600; color:var(--text);">OFF</strong>：めじるしが一時的に隠れます。データは消えないので、再度ONにすると元通り表示されます。<br><span style="display:block; height:6px;"></span>
           ・長押しすると、マークの大きさが3倍⇔通常サイズで切り替わります（編み図によって見やすい大きさが変わるため）。<br>
-          ・回転ボタンをタップすると、マークの向きを10°ずつ変えられます。<br>
-          ・つまんでドラッグすると、位置を動かせます。<br>
-          ・直線・四角・円、どの定規でも使えます（めじるしは定規ごとに別々に記録されます）。</p>
+          ・複製ボタンをタップすると、同じマーク・カラーのめじるしを1個増やせます（近くにずらして追加されます）。<br>
+          ・回転ボタン（反時計回り／時計回り）をタップすると、マークの向きを10°ずつ変えられます。<br>
+          ・カウンターパネルの「めじるし」の数字部分をタップすると、今の編み図のめじるしを一括削除できます（ロック中のマークも消えます）。<br>
+          ・つまんでドラッグすると、位置を動かせます。</p>
         </div>
       </div>
 
@@ -3536,7 +3628,7 @@
       <input type="hidden" id="box-step" value="20">
       <span id="box-step-label" style="display:none;">20 px</span>
 
-      <!-- アコーディオン⑤めじるし（直線・四角・円の全定規対応・最大20個） -->
+      <!-- アコーディオン⑤めじるし（直線・四角・円の全定規対応・最大99個） -->
       <div class="card-accordion" id="box-acc-mejirushi">
         <button class="card-accordion-btn" onclick="toggleCardAcc('box-acc-mejirushi')">
           <span>めじるし</span>
@@ -3544,12 +3636,13 @@
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 20px; gap:6px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「めじるし」スイッチで、ON/OFFを切り替えます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしをおく」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大20個）。置いためじるしをタップすると、ひとことメモ（最大30文字）・回転・ロック・削除ができます。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしを置く」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大99個）。置いためじるしをタップすると、ひとことメモ（最大30文字）・複製・回転・ロック・削除ができます。<br>
           <strong style="font-weight:600; color:var(--text);">OFF</strong>：めじるしが一時的に隠れます。データは消えないので、再度ONにすると元通り表示されます。<br><span style="display:block; height:6px;"></span>
           ・長押しすると、マークの大きさが3倍⇔通常サイズで切り替わります（編み図によって見やすい大きさが変わるため）。<br>
-          ・回転ボタンをタップすると、マークの向きを10°ずつ変えられます。<br>
-          ・つまんでドラッグすると、位置を動かせます。<br>
-          ・直線・四角・円、どの定規でも使えます（めじるしは定規ごとに別々に記録されます）。</p>
+          ・複製ボタンをタップすると、同じマーク・カラーのめじるしを1個増やせます（近くにずらして追加されます）。<br>
+          ・回転ボタン（反時計回り／時計回り）をタップすると、マークの向きを10°ずつ変えられます。<br>
+          ・カウンターパネルの「めじるし」の数字部分をタップすると、今の編み図のめじるしを一括削除できます（ロック中のマークも消えます）。<br>
+          ・つまんでドラッグすると、位置を動かせます。</p>
         </div>
       </div>
 
@@ -3567,7 +3660,7 @@
           <p>② 編み図はドラッグで移動、ピンチ（スマホ・トラックパッド）やマウスホイール（PC）で拡大・縮小できます。</p>
           <p>③ タブで定規の種類を切り替えられます（直線定規／四角定規／円定規）。各タブごとに別々の編み図を読み込めます。</p>
           <p>④ 各定規はサイズ・カラー・濃さをカスタマイズでき、ドラッグで動かせます。よく使う設定はお気に入り定規に保存できます。</p>
-          <p>⑤ 段数カウンター、段数ガイド機能、めじるしは、各定規ごとに設定できます。直線定規では目数ガイド（縦線を引いて目の位置を記録する機能）も使えます。詳しい設定・使用方法は各定規のメニューをご覧ください。</p>
+          <p>⑤ 段数カウンター、段数ガイド機能、めじるしは、各定規ごとに設定できます（同じ編み図でも、定規タブが違えば別々に記録されます）。直線定規では目数ガイド（縦線を引いて目の位置を記録する機能）も使えます。詳しい設定・使用方法は各定規のメニューをご覧ください。</p>
           <p>⑥ メニューパネルと段数カウンターは、ドラッグで移動できます。</p>
           <p>⑦ 段数ガイドを使用した際、編み図の画像の歪みなどにより、定規の位置が実際の段とズレる場合があります。その場合は編み図または定規の位置・サイズを調整し、編み図の段と定規の位置を手動で合わせてください。計測値をタップすると、1段の高さの調整もできます。</p>
         </div>
@@ -3606,7 +3699,7 @@
           <span class="data-note-arrow">▼</span>
         </button>
         <div class="data-note-body">
-          <p>定規の設定（サイズ・カラー・濃さ・位置）、段数ガイド・目数ガイドの記録、カウンターの段数は、<b>開いている編み図（画像）ごと</b>にこの端末のブラウザへ保存されます。同じ画像を選び直すと、前回の状態がそのまま復元されます。別の画像を開いた場合は、その画像専用の記録として新しく一から始まります。スマホとPCなど、端末が異なると記録は共有されません。</p>
+          <p>定規の設定（サイズ・カラー・濃さ・位置）、段数ガイド・目数ガイドの記録、めじるし、カウンターの段数は、<b>開いている編み図（画像）ごと</b>にこの端末のブラウザへ保存されます。同じ画像を選び直すと、前回の状態がそのまま復元されます。別の画像を開いた場合は、その画像専用の記録として新しく一から始まります。スマホとPCなど、端末が異なると記録は共有されません。</p>
           <p>読み込んだ編み図画像はブラウザに保存されません。ページを閉じると消えます。</p>
           <p>ブラウザの「履歴を消去」や「キャッシュ削除」を行うと、保存された設定が消える場合があります。お気に入り定規やカウンターの記録など、大切な内容はメモなどに控えておくと安心です。</p>
           <p>📱 ホーム画面に追加してご利用の場合、アップデート後もすぐには最新版に切り替わらないことがあります。反映されない時は、アプリスイッチャーから一度完全に閉じて開き直すか、下のボタンで最新版を読み込み直せます。その場合、お気に入り定規などの保存データが消えることはありませんが、読み込んでいる編み図画像は消えるため、再度読み込み直してください。</p>
@@ -3660,7 +3753,7 @@
   const stitchLineActionsWrap = document.getElementById('stitch-line-actions');
   const stitchLineDuplicateBtn = document.getElementById('stitch-line-duplicate-btn');
   const stitchLineDeleteBtn = document.getElementById('stitch-line-delete-btn');
-  const stitchLineClearAllBtn = document.getElementById('stitch-line-clear-all-btn');
+  // stitchLineClearAllBtnは廃止（一括削除はカウンターパネルの「縦線 ◯本」タップに統合。2026年9月〜）
   const stitchColorInput = document.getElementById('stitch-color');
   const stitchColorPresets = document.getElementById('stitch-color-float');
   const stitchHintBar = document.getElementById('stitch-hint-bar');
@@ -3671,13 +3764,15 @@
   const stitchThicknessInput = document.getElementById('stitch-thickness');
   const stitchThicknessLabel = document.getElementById('stitch-thickness-label');
   const stitchVisibleToggle = document.getElementById('stitch-visible-toggle');
-  // ===== めじるし（直線定規のみ・最大20個まで複数配置対応。2026年9月〜） =====
+  // ===== めじるし（直線定規のみ・最大99個まで複数配置対応。2026年9月〜） =====
   const cpMejirushiRow = document.getElementById('cp-mejirushi-row');
   const mejirushiToggle = document.getElementById('mejirushi-toggle');
   const mejirushiPlaceBtn = document.getElementById('mejirushi-place-btn');
   const mejirushiPaletteFloat = document.getElementById('mejirushi-palette-float');
+  const mejirushiSelectFloat = document.getElementById('mejirushi-select-float'); // マーク・カラー選択カード（2026年9月〜、ヒントバーと分離）
   const mejirushiPaletteHint = document.getElementById('mejirushi-palette-hint');
   const mejirushiPaletteClose = document.getElementById('mejirushi-palette-close');
+  const mejirushiPaletteDoneBtn = document.getElementById('mejirushi-palette-done-btn'); // ✕⇔完了切り替え用（2026年9月〜）
   const mejirushiPaletteIcons = document.getElementById('mejirushi-palette-icons');
   const mejirushiColorRow = document.getElementById('mejirushi-color-row');
   const mejirushiColorInput = document.getElementById('mejirushi-color');
@@ -3686,9 +3781,11 @@
   const mejirushiEditPop = document.getElementById('mejirushi-edit-pop');
   const mejirushiNoteInput = document.getElementById('mejirushi-note');
   const mejirushiTrashBtn = document.getElementById('mejirushi-trash-btn');
-  const mejirushiEditDoneBtn = document.getElementById('mejirushi-edit-done-btn');
   const mejirushiLockBtn = document.getElementById('mejirushi-lock-btn');
-  const mejirushiRotateBtn = document.getElementById('mejirushi-rotate-btn'); // 回転機能（直線・四角・円すべての定規で使用可・2026年9月〜）
+  const mejirushiRotateBtn = document.getElementById('mejirushi-rotate-btn'); // 回転機能・時計回り（直線・四角・円すべての定規で使用可・2026年9月〜）
+  const mejirushiRotateCcwBtn = document.getElementById('mejirushi-rotate-ccw-btn'); // 回転機能・反時計回り（2026年9月〜）
+  const mejirushiDuplicateBtn = document.getElementById('mejirushi-duplicate-btn'); // 複製機能（2026年9月〜）
+  // mejirushiClearAllBtnは廃止（一括削除はカウンターパネルの「めじるし ◯個」タップに統合。2026年9月〜）
   const rulerOverlay = document.getElementById('ruler-overlay');
   const rulerHandle  = document.getElementById('ruler-handle');
   const rulerSizeInput    = document.getElementById('ruler-size');
@@ -3802,7 +3899,7 @@
                                          //   どのみち引き直しになるので、毎回ユーザー自身が
                                          //   「トグルON→線引ボタン」の順で使い始める形に統一する）
 
-  // ===== めじるし（直線・四角・円の全定規対応・最大20個まで：紙の蛍光ペンの代わりに、
+  // ===== めじるし（直線・四角・円の全定規対応・最大99個まで：紙の蛍光ペンの代わりに、
   //       編み図の複数箇所へ印を置く。2026年8月〜構想、2026年9月〜複数対応、四角・円定規にも展開） =====
   // 目数ガイドと同じ「ファイルごとの辞書」に相乗りする形で保存する（新しい辞書は作らない）。
   // トグルON/OFFは「表示するかどうか」だけのスイッチで、ピンのデータそのものは消さない。
@@ -3839,20 +3936,24 @@
       mejirushiPlaceBtn.style.opacity = mejirushiEnabled ? '1' : '0';
       mejirushiPlaceBtn.style.pointerEvents = mejirushiEnabled ? 'auto' : 'none';
     }
-    if (mejirushiCountLabel) mejirushiCountLabel.style.opacity = mejirushiEnabled ? '1' : '0';
+    if (mejirushiCountLabel) {
+      mejirushiCountLabel.style.opacity = mejirushiEnabled ? '1' : '0';
+      mejirushiCountLabel.style.pointerEvents = mejirushiEnabled ? 'auto' : 'none';
+    }
     if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
     if (typeof cancelMejirushiPlace === 'function') cancelMejirushiPlace(); // 配置フロー中に定規を切り替えることは無い想定だが、念のため必ず閉じる
     if (typeof positionMejirushiPin === 'function') positionMejirushiPin();
   }
-  const MEJIRUSHI_MAX = 20;          // 置ける上限個数（目数ガイドの縦線は99本だが、
-                                      // めじるしはアイコンが大きく編み図を覆ってしまうため、少なめに設定）
+  const MEJIRUSHI_MAX = 99;          // 置ける上限個数（2026年9月〜：以前は20個だったが、
+                                      // データ量・動作の負荷的には問題ないため、目数ガイドの
+                                      // 縦線の上限（99本）に揃えて増やした）
   let mejirushiIconSelected = 'pin'; // パレットで今選んでいる（次に置く）マークの種類。これは定規に関わらず共通でよい
   let mejirushiColorSelected = '#B8434F'; // パレットで今選んでいる（次に置く）マークの色。
                                            // 2026年9月〜：以前は「全マーク共通の色」を一括変更する
                                            // 仕組みだったが、マークごとに違う色を持てた方がいいという
                                            // 判断で、アイコンと同じ「次に置く時の初期値」に変更した。
                                            // 色は各ピン自身が持つ（pin.color）ので、これは保存しない
-  // 「めじるしをおく」ボタンを押している間（配置モード中）かどうか。
+  // 「めじるしを置く」ボタンを押している間（配置モード中）かどうか。
   // 2026年9月〜：以前はマークを選ぶ→場所をタップの2ステップに分けていたが、
   // マーク・色はいつでも選び直せて、モード中はいつでも編み図をタップして置ける
   // 1枚のカード形式に統一したため、ステップの概念は廃止した
@@ -3915,7 +4016,7 @@
           // 段数カウンターの段数も、その編み図の進捗そのものなので一緒に覚えておく（2026年8月〜）
           count: rowCount,
           // めじるし（表示ON/OFFと、複数個のピンの位置・マーク・色・メモ）も
-          // 編み図ごとに覚えておく（最大20個。色は各ピンが自分で持つ。2026年9月〜）
+          // 編み図ごとに覚えておく（最大99個。色は各ピンが自分で持つ。2026年9月〜）
           mejirushiOn: mejirushiEnabled, mejirushiPins: mejirushiPins,
           // 目数ガイドの色・太さ・上端下端の調整も、編み図ごとに覚えておく（2026年8月〜）。
           // 以前はここに含めておらず、共通の変数のままだったため、別の編み図を開くと
@@ -4056,7 +4157,7 @@
               if (remembered.guideOn != null) rulerGuideOn = remembered.guideOn;
               // 段数カウンターの段数（rowCount）も、進捗そのものなので編み図ごとに復元する（2026年8月〜）
               if (remembered.count != null) rowCount = remembered.count;
-              // めじるしも同じ編み図なら復元する（最大20個）
+              // めじるしも同じ編み図なら復元する（最大99個）
               mejirushiEnabled = !!remembered.mejirushiOn;
               if (Array.isArray(remembered.mejirushiPins)) {
                 mejirushiPins = remembered.mejirushiPins.slice();
@@ -4146,7 +4247,10 @@
               mejirushiPlaceBtn.style.opacity = mejirushiEnabled ? '1' : '0';
               mejirushiPlaceBtn.style.pointerEvents = mejirushiEnabled ? 'auto' : 'none';
             }
-            if (mejirushiCountLabel) mejirushiCountLabel.style.opacity = mejirushiEnabled ? '1' : '0';
+            if (mejirushiCountLabel) {
+              mejirushiCountLabel.style.opacity = mejirushiEnabled ? '1' : '0';
+              mejirushiCountLabel.style.pointerEvents = mejirushiEnabled ? 'auto' : 'none';
+            }
             if (typeof syncMejirushiEditPop === 'function') syncMejirushiEditPop();
             if (typeof positionMejirushiPin === 'function') positionMejirushiPin();
             currentBandFileId = fileId;
@@ -4178,7 +4282,7 @@
               syncCircleUI();
               syncGuideRowUI('circle');
               applyCircle();
-              // めじるしも同じ編み図なら復元する（最大20個）
+              // めじるしも同じ編み図なら復元する（最大99個）
               mejirushiEnabledCircle = !!remembered.mejirushiOn;
               if (Array.isArray(remembered.mejirushiPins)) {
                 mejirushiPinsCircle = remembered.mejirushiPins.slice();
@@ -4236,7 +4340,7 @@
               syncBoxUI();
               syncGuideRowUI('box');
               applyBox();
-              // めじるしも同じ編み図なら復元する（最大20個）
+              // めじるしも同じ編み図なら復元する（最大99個）
               mejirushiEnabledBox = !!remembered.mejirushiOn;
               if (Array.isArray(remembered.mejirushiPins)) {
                 mejirushiPinsBox = remembered.mejirushiPins.slice();
@@ -4614,22 +4718,27 @@
       }
       if (mejirushiNoteInput) mejirushiNoteInput.readOnly = locked;
       if (mejirushiTrashBtn) mejirushiTrashBtn.disabled = locked;
-      // 回転機能：お試し導入時は直線定規だけに絞っていたが、好評だったため
-      // 直線・四角・円のすべての定規で使えるようにした（2026年9月〜）
+      if (mejirushiDuplicateBtn) mejirushiDuplicateBtn.disabled = locked;
+      // 回転機能：お試し導入時は直線定規だけ・時計回りのみに絞っていたが、好評だったため
+      // 直線・四角・円のすべての定規で使えるようにし、反時計回りのボタンも追加した（2026年9月〜）
       if (mejirushiRotateBtn) mejirushiRotateBtn.disabled = locked;
+      if (mejirushiRotateCcwBtn) mejirushiRotateCcwBtn.disabled = locked;
     } else if (mejirushiEditPop) {
       mejirushiEditPop.classList.remove('show');
     }
     refreshCounterPanelAvoidance();
   }
 
-  // 「めじるしをおく」ボタン→2ステップの配置フロー（段数ガイド「計測する」・目数ガイド「線を引く」と
+  // 「めじるしを置く」ボタン→2ステップの配置フロー（段数ガイド「計測する」・目数ガイド「線を引く」と
   // 同じテンポ感：ボタンを押す→案内バーが出る→タップで進む、の流れに統一。2026年8月〜）
   function updateMejirushiPlaceUI() {
     const show = mejirushiPlaceMode && mejirushiEnabled && !!img;
     if (!show && mejirushiPlaceMode) { mejirushiPlaceMode = false; }
     if (mejirushiPaletteFloat) {
       mejirushiPaletteFloat.classList.toggle('show', show);
+    }
+    if (mejirushiSelectFloat) {
+      mejirushiSelectFloat.classList.toggle('show', show);
     }
     if (mejirushiPlaceBtn) mejirushiPlaceBtn.classList.toggle('active', show);
     // 配置中・既存マークの編集中は、表示トグル自体を押せなくする（オフにするとモードごと
@@ -4641,9 +4750,16 @@
     // （2026年9月〜。以前は「マークを選ぶ」→「場所をタップ」の2段階に分けていたが、
     // 色は全マークに共通する設定なので、置く1個のためだけの一時的な選択に混ぜるのは
     // 筋が違う、という指摘を受けて見直した。マーク・色はいつでも選び直せて、
-    // その状態のまま編み図をタップすればどこにでも置ける） */
+    // その状態のまま編み図をタップすればどこにでも置ける）。
+    // 文言だけは目数ガイドと同じく状況で切り替える（2026年9月〜）：まだ1個も置いていない間は
+    // 「マークを選んで、置きたい場所をタップ」、1個以上置いたら「必要なめじるしを置いたら
+    // 完了をタップ」に切り替える。単に「完了をタップ」だけだと、まだ置き足せることが
+    // 伝わらず分かりにくいという指摘を受けて見直した。✕・完了ボタン自体は常に両方表示のまま。
+    // ヒントバーは選択カードと別要素で幅の制約が無いため、この長さでも折り返しは問題ない
     if (mejirushiPaletteHint) {
-      mejirushiPaletteHint.textContent = 'マークを選んで、置きたい場所をタップ';
+      mejirushiPaletteHint.textContent = mejirushiPins.length > 0
+        ? '必要なめじるしを置いたら完了をタップ'
+        : 'マークを選んで、置きたい場所をタップ';
     }
   }
   function startMejirushiPlace() {
@@ -4676,8 +4792,11 @@
     // 計測・目数ガイドのボタンも押せなくする（逆方向と同じ考え方に揃える）
     if (gpMeasureBtn) gpMeasureBtn.disabled = true;
     if (stitchEditBtn) stitchEditBtn.disabled = true;
-    // 新しく置く場所を選ぶ間、既存のピンがタップを横取りしないようにロックする（2026年9月〜）
-    setMejirushiPinsLocked(true);
+    // 以前は「新しく置く場所を選ぶ間、既存のピンがタップを横取りしないように」ロックしていたが、
+    // 配置モード中も既存マークをタップ・編集できた方が使いやすい（連続で置きながら、その場で
+    // メモを付けたり回転させたりできる）ため、ロックはやめた（2026年9月〜）。
+    // 元々「新規に置く」と「既存をタップして選ぶ」は編み図のタップ位置（.mej-pinの上か、それ以外か）
+    // で判定が分かれているため、ロックしなくても2つの操作が競合することはない
     // 配置中は他のタブ（段数ガイド／目数ガイド）へ切り替えられなくする（2026年9月〜）
     setGuideTabsLocked(true);
     updateMejirushiPlaceUI();
@@ -4696,7 +4815,7 @@
     updateMejirushiPlaceUI();
   }
 
-  // 編み図をタップした場所（画像等倍のpx座標）に、新しいピンを1個追加する（最大20個まで）
+  // 編み図をタップした場所（画像等倍のpx座標）に、新しいピンを1個追加する（最大99個まで）
   function placeMejirushiPin(imgX, imgY) {
     if (mejirushiPins.length >= MEJIRUSHI_MAX) {
       showModal('めじるしは\n最大' + MEJIRUSHI_MAX + '個までです。', 'OK', () => {}, false);
@@ -4741,22 +4860,34 @@
         mejirushiPlaceBtn.style.opacity = isOn ? '1' : '0';
         mejirushiPlaceBtn.style.pointerEvents = isOn ? 'auto' : 'none';
       }
-      if (mejirushiCountLabel) mejirushiCountLabel.style.opacity = isOn ? '1' : '0';
+      if (mejirushiCountLabel) {
+        mejirushiCountLabel.style.opacity = isOn ? '1' : '0';
+        mejirushiCountLabel.style.pointerEvents = isOn ? 'auto' : 'none';
+      }
       positionMejirushiPin();
       updateGuideStatusText();
       saveMejirushiSettings();
     });
   }
-  // 「めじるしをおく」ボタン：配置フローを開始する
+  // 「めじるしを置く」ボタン：配置フローを開始する
   if (mejirushiPlaceBtn) {
     mejirushiPlaceBtn.addEventListener('click', () => {
       if (mejirushiPlaceBtn.disabled) return;
       startMejirushiPlace();
     });
   }
-  // バー右上の✕：配置フローを取りやめる（置きかけの内容は破棄）
+  // バー右上の✕：配置フローを取りやめる（1個も置いていない時だけ表示。目数ガイドと同じ考え方）
   if (mejirushiPaletteClose) {
     mejirushiPaletteClose.addEventListener('click', e => {
+      e.stopPropagation();
+      cancelMejirushiPlace();
+    });
+  }
+  // バー右上の完了：1個以上置いたら✕の代わりに表示される。やることは✕と同じ
+  // （置いたマークは残したまま配置フローを終了する）だが、既に何か置いた後なので
+  // 「取りやめる」より「完了」の方が実態に合っている（目数ガイドの完了ボタンと同じ考え方。2026年9月〜）
+  if (mejirushiPaletteDoneBtn) {
+    mejirushiPaletteDoneBtn.addEventListener('click', e => {
       e.stopPropagation();
       cancelMejirushiPlace();
     });
@@ -4770,6 +4901,27 @@
       const pin = mejirushiPins[selectedMejirushiIndex];
       if (pin && pin.locked) return;
       deleteMejirushiPin();
+    });
+  }
+  // 一括削除：編み図に浮かぶ専用ボタンをやめ、カウンターパネルの「めじるし ◯個」表示自体を
+  // タップして呼び出す方式に変更した（段数ガイドの「1段の高さ」タップと同じ考え方。
+  // 編み図の上がボタンで散らからずに済む。2026年9月〜）。
+  // 取り返しがつかない操作なので確認モーダルを挟む。ロック中のマークも含めて全部消える
+  // （ロックは「うっかり動かす・消す」を防ぐためのもので、明示的に確認した一括削除までは防がない）
+  if (mejirushiCountLabel) {
+    mejirushiCountLabel.addEventListener('click', e => {
+      e.stopPropagation();
+      // 「めじるし」のラベル部分をタップした時は開かない（開くのは数値部分のみ。
+      // 「1段の高さ」の値タップと同じ考え方。2026年9月〜）
+      if (e.target.closest('.gp-val-label')) return;
+      if (!mejirushiEnabled || !mejirushiPins.length) return; // 0個の時はタップしても何も起きない
+      showModal('めじるしを一括削除しますか？\nひとことメモ、ロック中のめじるしも\n削除されます。', '一括削除する', () => {
+        mejirushiPins = [];
+        selectedMejirushiIndex = null;
+        if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
+        positionMejirushiPin();
+        saveMejirushiSettings();
+      });
     });
   }
   // ロックボタン：ONの間は位置（ドラッグ）・マーク変更・メモ入力・削除、すべて凍結する。
@@ -4786,7 +4938,51 @@
       saveMejirushiSettings();
     });
   }
-  // 回転ボタン：直線・四角・円のすべての定規で使える（2026年9月〜。
+  // 複製ボタン：選んでいるマークのアイコン・カラー・回転角度をそのままコピーして、
+  // 少し斜めにずらした位置に新しいマークを1個追加する（目数ガイドの縦線の複製と同じ考え方。2026年9月〜）
+  if (mejirushiDuplicateBtn) {
+    mejirushiDuplicateBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (selectedMejirushiIndex === null || !img) return;
+      if (mejirushiPins.length >= MEJIRUSHI_MAX) {
+        showModal('めじるしは\n最大' + MEJIRUSHI_MAX + '個までです。', 'OK', () => {}, false);
+        return;
+      }
+      const base = mejirushiPins[selectedMejirushiIndex];
+      if (!base || base.locked) return;
+      // 画像の外にはみ出す場合は逆方向にずらす（線の複製と同じフォールバック）
+      let newX = base.x + 20;
+      if (newX > img.width) newX = base.x - 20;
+      newX = Math.max(0, Math.min(img.width, newX));
+      let newY = base.y + 20;
+      if (newY > img.height) newY = base.y - 20;
+      newY = Math.max(0, Math.min(img.height, newY));
+      mejirushiPins.push({
+        x: newX, y: newY,
+        icon: base.icon, color: base.color, note: base.note,
+        locked: false, big: base.big, rotation: base.rotation || 0
+      });
+      selectedMejirushiIndex = mejirushiPins.length - 1; // 複製した方をすぐ選択状態にする
+      positionMejirushiPin();
+      saveMejirushiSettings();
+    });
+  }
+  // 回転ボタン（反時計回り）：時計回りボタンと対になる逆方向。押しすぎて狙った角度を
+  // 通り過ぎた時に、時計回りボタンだけだと戻すのが大変なので追加した（2026年9月〜）
+  if (mejirushiRotateCcwBtn) {
+    mejirushiRotateCcwBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (selectedMejirushiIndex === null) return;
+      const pin = mejirushiPins[selectedMejirushiIndex];
+      if (!pin || pin.locked) return;
+      // 時計回りボタンと同じ理由で、0未満に減らし続けてもCSSのtransitionは
+      // 問題なく逆方向に回り続けてくれるので、割り切ったりはしない（2026年9月〜）
+      pin.rotation = (pin.rotation || 0) - 10;
+      positionMejirushiPin();
+      saveMejirushiSettings();
+    });
+  }
+  // 回転ボタン（時計回り）：直線・四角・円のすべての定規で使える（2026年9月〜。
   // お試し導入時は直線定規だけだったが、好評だったため全定規に展開した）。
   // 押すたびに10°ずつ回転する（見た目は36方向で一周する）。ロック中は位置以外も
   // まとめて凍結する方針に合わせ、回転もできなくする
@@ -4804,16 +5000,17 @@
       saveMejirushiSettings();
     });
   }
-  // 完了ボタン：メモの入力を確定してポップアップを閉じる
-  if (mejirushiEditDoneBtn) {
-    mejirushiEditDoneBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      saveMejirushiSettings();
-      selectedMejirushiIndex = null;
-      if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
-      positionMejirushiPin(); // 選択中ハイライトの解除・表示トグルのロック解除もあわせて反映する
-    });
-  }
+  // 完了ボタンは廃止した（2026年9月〜）。代わりに、編み図の何もない場所（viewer内の
+  // 背景・キャンバス部分）をタップしたら自動で閉じるようにする（設定パネルを畳んだ時と同じ考え方）。
+  // ピン本体・編集ポップアップ自体はviewerの子要素ではない（別要素として独立させてある）ため、
+  // それらをタップした時にこの処理が誤って発火することはない
+  viewer.addEventListener('pointerdown', () => {
+    if (selectedMejirushiIndex === null) return;
+    saveMejirushiSettings();
+    selectedMejirushiIndex = null;
+    if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
+    positionMejirushiPin(); // 選択中ハイライトの解除・表示トグルのロック解除もあわせて反映する
+  });
   // メモ欄：入力のたびに吹き出しへ反映し、フォーカスが外れたタイミングで保存する
   // （ロック中はinput自体をreadonlyにしてあるので、ここに来る時点でロック中は基本無い。
   //   念のため二重にチェックしている）。選択中の1個だけに反映する
@@ -4899,9 +5096,9 @@
         imgX = Math.max(0, Math.min(img.width,  imgX));
         imgY = Math.max(0, Math.min(img.height, imgY));
         pin.x = imgX; pin.y = imgY;
-        // 「今ドラッグしているピン」と「編集ポップアップを開いている選択中のピン」が同じ時だけ閉じる。
-        // 別ピンをドラッグした時に、開いていた無関係なポップアップまで巻き添えで閉じないようにする（2026年9月〜）
-        if (mejDragIndex === selectedMejirushiIndex && mejirushiEditPop) mejirushiEditPop.classList.remove('show');
+        // 以前はドラッグ中だけ一旦カードを隠していたが、位置の再計算自体は
+        // 元々毎回（このすぐ下のpositionMejirushiPin()で）行われていたので、
+        // 隠す処理さえやめれば、動いている間もそのまま追従して開いたままにできる（2026年9月〜）
         positionMejirushiPin();
       }
     });
@@ -4919,14 +5116,23 @@
         return;
       }
       if (mejMoved) {
-        // 選択中だったピンを動かした場合は、閉じたポップアップの状態と選択状態を揃えておく
-        if (idx === selectedMejirushiIndex) selectedMejirushiIndex = null;
+        // 以前は「動かしたら選択解除（カードも閉じる）」だったが、カードを開いたまま
+        // 位置調整できた方が使いやすいため、選択状態は維持するようにした（2026年9月〜）。
+        // さらに、ドラッグ中もカードを隠さず追従表示するようにしたので（pointermove側を参照）、
+        // ここでの classList.add('show') は基本的には既に付いている状態への保険（念のため）
         mejDragIndex = null;
         saveMejirushiSettings();
+        if (idx === selectedMejirushiIndex && mejirushiEditPop) {
+          mejirushiEditPop.classList.add('show');
+        }
+        positionMejirushiPin();
         return;
       }
       // 動かさなかった＝タップ：もう一度同じピンをタップしたら選択解除、違うピンなら選択を切り替える
       selectedMejirushiIndex = (selectedMejirushiIndex === idx) ? null : idx;
+      // 編集カードが開く時、メニューパネルが開いていたら閉じる（計測・配置開始・線引き開始と
+      // 同じ考え方。既存マークをタップして編集する時だけ抜けていたので追加した。2026年9月〜）
+      if (selectedMejirushiIndex !== null && !floatPanel.classList.contains('collapsed')) togglePanel(true);
       if (mejirushiEditPop) mejirushiEditPop.classList.toggle('show', selectedMejirushiIndex !== null);
       flashMejirushiTip(idx); // タップした場所のメモを、その場でも一瞬見えるようにする（スマホ向け）
       mejDragIndex = null;
@@ -4943,14 +5149,17 @@
     });
   }
 
-  // 編み図本体をタップ：配置モード中（トグルON＋「めじるしをおく」を押した後）は、
+  // 編み図本体をタップ：配置モード中（トグルON＋「めじるしを置く」を押した後）は、
   // どのタイミングでタップしても、その場所に新しいピンを1個追加する（2026年9月〜：
   // マーク・色を選ぶ段階と場所をタップする段階を分けるのをやめ、1枚のカードでいつでも
-  // 選び直せて、いつでも編み図をタップして置けるようにしたのに合わせて単純化した）
+  // 選び直せて、いつでも編み図をタップして置けるようにしたのに合わせて単純化した）。
+  // 以前は1個置くたびに自動でモードを終了していたが、同じ記号に何個も印を付けたい時に
+  // 毎回「めじるしを置く」ボタンを押し直す手間がかかっていた。目数ガイドの線引きと同じく、
+  // 「完了」（またはまだ何も置いていなければ✕）をタップするまで連続で置けるようにした（2026年9月〜）
   let mejTapActive = false, mejTapStartX = 0, mejTapStartY = 0;
   viewer.addEventListener('pointerdown', e => {
     if (!mejirushiPlaceMode || !img) return;
-    if (e.target.closest('#mejirushi-palette-float') || e.target.closest('.mej-pin')) return;
+    if (e.target.closest('#mejirushi-palette-float') || e.target.closest('#mejirushi-select-float') || e.target.closest('.mej-pin')) return;
     if (e.target.closest('#float-panel') || e.target.closest('#counter-panel')) return;
     mejTapActive = true;
     mejTapStartX = e.clientX; mejTapStartY = e.clientY;
@@ -4959,7 +5168,7 @@
     if (!mejTapActive) return;
     mejTapActive = false;
     if (!mejirushiPlaceMode || !img) return;
-    if (e.target.closest('#mejirushi-palette-float') || e.target.closest('.mej-pin')) return;
+    if (e.target.closest('#mejirushi-palette-float') || e.target.closest('#mejirushi-select-float') || e.target.closest('.mej-pin')) return;
     const dx = e.clientX - mejTapStartX, dy = e.clientY - mejTapStartY;
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (dist >= 8) return; // ドラッグ（パン）とみなし、配置はしない
@@ -4968,7 +5177,6 @@
     let imgY = (e.clientY - rect.top  - offsetY) / scale;
     if (imgX < 0 || imgX > img.width || imgY < 0 || imgY > img.height) return;
     placeMejirushiPin(imgX, imgY);
-    cancelMejirushiPlace(); // 配置完了でフローを終了する
   });
 
   // 上端・下端ハンドルの表示位置を、今の画像の縮尺・移動量に合わせて更新する
@@ -5264,17 +5472,33 @@
     const panel = document.getElementById('counter-panel');
     if (!card || !panel) return;
     const rect = panel.getBoundingClientRect();
-    card.style.right  = Math.max(8, window.innerWidth - rect.right) + 'px';
-    card.style.bottom = Math.max(8, window.innerHeight - rect.top + 10) + 'px';
-    card.style.left = 'auto';
-    card.style.top  = 'auto';
-    // しっぽの位置を「1段：66px」ラベルの中心に合わせる
     const label = document.getElementById('gp-step-label');
+    const cardWidth = card.offsetWidth || 160;
+    // 以前は常にパネルの右端を基準にしていたため、ラベルが右端から離れた位置にあると
+    // カード本体は右端のまま、しっぽだけが遠くまで伸びる形になり見た目がちぐはぐだった。
+    // ラベルの中心にできるだけ寄せて配置し、画面外にはみ出す時だけ端で止める（2026年9月〜）
     if (label) {
       const labelRect = label.getBoundingClientRect();
       const labelCenterX = labelRect.left + labelRect.width / 2;
-      let tailRight = rect.right - labelCenterX;
-      const cardWidth = card.offsetWidth || 160;
+      let cardRight = window.innerWidth - (labelCenterX + cardWidth / 2);
+      cardRight = Math.max(8, Math.min(window.innerWidth - cardWidth - 8, cardRight));
+      card.style.right = cardRight + 'px';
+      // 縦方向も、パネルの上端ではなくラベル自身の位置を基準にする（2026年9月〜。
+      // パネルを開いている時、ラベルはパネルの上端よりずっと下にあるため、
+      // パネル基準のままだとカードが浮いて見えてしまっていた）
+      card.style.bottom = Math.max(8, window.innerHeight - labelRect.top + 10) + 'px';
+    } else {
+      card.style.right = Math.max(8, window.innerWidth - rect.right) + 'px';
+      card.style.bottom = Math.max(8, window.innerHeight - rect.top + 10) + 'px';
+    }
+    card.style.left = 'auto';
+    card.style.top  = 'auto';
+    // しっぽの位置を「1段：66px」ラベルの中心に合わせる
+    if (label) {
+      const labelRect = label.getBoundingClientRect();
+      const labelCenterX = labelRect.left + labelRect.width / 2;
+      const cardActualRight = window.innerWidth - parseFloat(card.style.right);
+      let tailRight = cardActualRight - labelCenterX;
       tailRight = Math.max(16, Math.min(cardWidth - 16, tailRight));
       card.style.setProperty('--tail-right', tailRight + 'px');
     }
@@ -5297,15 +5521,20 @@
   });
 
   /* ===== 目数ガイド：線の本数ラベル（縦線：◯本）と、ヒントバーの表示を更新 =====
-     線が1本もない間は「目の境目をタップ」＋✕（それ自体が「やめる」の意味を兼ねる）。
-     1本以上引いたら「引き終わったら『完了』をタップ」＋戻る（直前の1本を取り消す）＋完了に切り替える */
+     文言は段数ガイドのように状況で切り替える：0本の時「目の境目をタップ」、
+     1本以上で「完了をタップ」。✕・完了ボタン自体は常に両方表示、↺（戻る）だけ
+     1本以上引いた時だけ表示する（2026年9月〜） */
   function updateStitchLineCountLabel() {
     if (stitchCountLabel) stitchCountLabel.innerHTML = '<span class="gp-val-label">縦線</span><span class="gp-val-num">' + stitchGuideLines.length + '<span class="gp-val-unit">本</span></span>';
+    // 文言だけは段数ガイドのように、状況に応じて何をすればいいかを案内する（2026年9月〜）：
+    // まだ1本も引いていない間は「目の境目をタップ」で最初にやることを教え、
+    // 1本以上引いたら「必要な線を引いたら完了をタップ」に切り替える。単に「完了をタップ」
+    // だけだと、まだ線を引き足せることが伝わらず分かりにくいという指摘を受けて見直した（2026年9月〜）。
+    // ✕・完了ボタン自体は（文言と違って）常に両方表示のまま変えない。
+    // ヒントバーはカラーパレットと別要素で幅の制約が無いため、この長さでも折り返しは問題ない
     const hasLines = stitchGuideLines.length > 0;
-    if (stitchHintText) stitchHintText.textContent = hasLines ? '引き終わったら「完了」をタップ' : '目の境目をタップ';
+    if (stitchHintText) stitchHintText.textContent = hasLines ? '必要な線を引いたら完了をタップ' : '目の境目をタップ';
     if (stitchHintUndoBtn) stitchHintUndoBtn.style.display = hasLines ? 'flex' : 'none';
-    if (stitchHintCloseBtn) stitchHintCloseBtn.style.display = hasLines ? 'none' : 'flex';
-    if (stitchHintDoneBtn) stitchHintDoneBtn.style.display = hasLines ? 'inline-block' : 'none';
   }
   // ±ボタン：1段の高さを1pxだけ微調整する
   function adjustStepValue(delta) {
@@ -6054,7 +6283,7 @@
   function viewerMouseDown(e) {
     if (!img) return;
     // パネル上のマウス操作は無視
-    if (e.target.closest('#float-panel') || e.target.closest('#stitch-guide-bounds') || e.target.closest('#stitch-line-actions') || e.target.closest('#mejirushi-palette-float') || e.target.closest('.mej-pin')) return;
+    if (e.target.closest('#float-panel') || e.target.closest('#stitch-guide-bounds') || e.target.closest('#stitch-line-actions') || e.target.closest('#mejirushi-palette-float') || e.target.closest('#mejirushi-select-float') || e.target.closest('.mej-pin')) return;
     panning = true;
     panStartX = e.clientX; panStartY = e.clientY;
     panOffsetX = offsetX;  panOffsetY = offsetY;
@@ -6142,14 +6371,14 @@
   // 編み図のパン・ピンチ処理本体。円定規の円の外側タッチからも呼ばれる（共通化）。
   function viewerTouchStart(e) {
     if (!img) return;
-    if (e.target.closest('#float-panel') || e.target.closest('#ruler-handle') || e.target.closest('#stitch-guide-bounds') || e.target.closest('#stitch-line-actions') || e.target.closest('#mejirushi-palette-float') || e.target.closest('.mej-pin')) return;
+    if (e.target.closest('#float-panel') || e.target.closest('#ruler-handle') || e.target.closest('#stitch-guide-bounds') || e.target.closest('#stitch-line-actions') || e.target.closest('#mejirushi-palette-float') || e.target.closest('#mejirushi-select-float') || e.target.closest('.mej-pin')) return;
     touches = Array.from(e.touches);
     if (touches.length === 1) { lastTouchX = touches[0].clientX; lastTouchY = touches[0].clientY; }
     else if (touches.length === 2) { lastPinchDist = pinchDist(touches); }
   }
   function viewerTouchMove(e) {
     if (!img) return;
-    if (e.target.closest('#float-panel') || e.target.closest('#ruler-handle') || e.target.closest('#stitch-guide-bounds') || e.target.closest('#stitch-line-actions') || e.target.closest('#mejirushi-palette-float') || e.target.closest('.mej-pin')) return;
+    if (e.target.closest('#float-panel') || e.target.closest('#ruler-handle') || e.target.closest('#stitch-guide-bounds') || e.target.closest('#stitch-line-actions') || e.target.closest('#mejirushi-palette-float') || e.target.closest('#mejirushi-select-float') || e.target.closest('.mej-pin')) return;
     if (stitchLineDragIndex !== null) return;
     const now = Array.from(e.touches);
     if (now.length === 1 && touches.length === 1) {
@@ -6261,7 +6490,8 @@
       saveSettings();
     });
 
-    /* ===== カラーパレットのドラッグ（自由に位置を動かせるように。計測バーと同じ考え方） ===== */
+    /* ===== カラーパレットのドラッグ（自由に位置を動かせるように。計測バーと同じ考え方） =====
+       ヒントバーと別要素に戻したので、ドラッグも独立して自前で持つ（2026年9月〜） */
     let scfDragging = false, scfDragStartX = 0, scfDragStartY = 0, scfBarX = 0, scfBarY = 0;
     function getScfPos() {
       const r = stitchColorPresets.getBoundingClientRect();
@@ -6391,7 +6621,7 @@
     stitchHintBar.addEventListener('touchstart', e => e.stopPropagation());
   }
 
-  // めじるしパレット（マーク選択＋色選び）のドラッグ（自由に位置を動かせるように。ヒントバーと同じ考え方。2026年9月〜）
+  // めじるしヒントバーのドラッグ（自由に位置を動かせるように。目数ガイドのヒントバーと同じ考え方。2026年9月〜）
   if (mejirushiPaletteFloat) {
     let mpfDragging = false, mpfDragStartX = 0, mpfDragStartY = 0, mpfBarX = 0, mpfBarY = 0;
     function getMpfPos() {
@@ -6407,11 +6637,11 @@
       mejirushiPaletteFloat.style.left = cx + 'px';
       mejirushiPaletteFloat.style.top  = cy + 'px';
     }
-    // ✕ボタン・マーク選択・色選びの上ではドラッグを開始しない
+    // ✕ボタン・完了ボタンの上ではドラッグを開始しない（マーク・色選びは別要素に分離したので
+    // ここでは除外しなくてよくなった。2026年9月〜）
     function isMpfDragExcluded(target) {
       return !!(target.closest('#mejirushi-palette-close')
-        || target.closest('#mejirushi-palette-icons')
-        || target.closest('#mejirushi-color-row'));
+        || target.closest('#mejirushi-palette-done-btn'));
     }
     mejirushiPaletteFloat.addEventListener('pointerdown', e => {
       if (isMpfDragExcluded(e.target)) return;
@@ -6443,6 +6673,56 @@
     mejirushiPaletteFloat.addEventListener('touchstart', e => e.stopPropagation());
   }
 
+  // めじるしのマーク・カラー選択カードのドラッグ（ヒントバーとは別要素・別ドラッグに戻した。2026年9月〜）
+  if (mejirushiSelectFloat) {
+    let msfDragging = false, msfDragStartX = 0, msfDragStartY = 0, msfBarX = 0, msfBarY = 0;
+    function getMsfPos() {
+      const r = mejirushiSelectFloat.getBoundingClientRect();
+      return { x: r.left, y: r.top };
+    }
+    function setMsfPos(x, y) {
+      const bw = mejirushiSelectFloat.offsetWidth;
+      const bh = mejirushiSelectFloat.offsetHeight;
+      const cx = Math.max(8, Math.min(window.innerWidth  - bw - 8, x));
+      const cy = Math.max(8, Math.min(window.innerHeight - bh - 8, y));
+      mejirushiSelectFloat.style.transform = 'none';
+      mejirushiSelectFloat.style.left = cx + 'px';
+      mejirushiSelectFloat.style.top  = cy + 'px';
+    }
+    // マーク選択・色選びの上ではドラッグを開始しない（タップでの選択を優先する）
+    function isMsfDragExcluded(target) {
+      return !!(target.closest('#mejirushi-palette-icons') || target.closest('#mejirushi-color-row'));
+    }
+    mejirushiSelectFloat.addEventListener('pointerdown', e => {
+      if (isMsfDragExcluded(e.target)) return;
+      e.stopPropagation();
+      e.preventDefault();
+      msfDragging = true;
+      const pos = getMsfPos();
+      msfDragStartX = e.clientX; msfDragStartY = e.clientY;
+      msfBarX = pos.x; msfBarY = pos.y;
+      mejirushiSelectFloat.setPointerCapture(e.pointerId);
+      mejirushiSelectFloat.classList.add('dragging');
+    });
+    mejirushiSelectFloat.addEventListener('pointermove', e => {
+      if (!msfDragging) return;
+      e.stopPropagation();
+      setMsfPos(msfBarX + e.clientX - msfDragStartX, msfBarY + e.clientY - msfDragStartY);
+    });
+    mejirushiSelectFloat.addEventListener('pointerup', e => {
+      if (!msfDragging) return;
+      e.stopPropagation();
+      msfDragging = false;
+      mejirushiSelectFloat.classList.remove('dragging');
+    });
+    mejirushiSelectFloat.addEventListener('pointercancel', () => {
+      msfDragging = false;
+      mejirushiSelectFloat.classList.remove('dragging');
+    });
+    mejirushiSelectFloat.addEventListener('click', e => e.stopPropagation());
+    mejirushiSelectFloat.addEventListener('touchstart', e => e.stopPropagation());
+  }
+
   if (stitchThicknessInput) {
     stitchThicknessInput.addEventListener('input', () => {
       stitchGuideThickness = parseInt(stitchThicknessInput.value);
@@ -6459,7 +6739,9 @@
   function updateStitchWidthLabelVisibility() {
     if (stitchCountLabel) {
       stitchCountLabel.style.opacity = stitchGuideVisible ? '1' : '0';
-      stitchCountLabel.style.pointerEvents = 'none'; // タップしても何も起きない、ただの本数表示
+      // 一括削除をこの数字のタップで呼び出せるようにしたので、表示されている間はタップできる
+      // ようにする（非表示中は透明な当たり判定が残らないようnoneにする。2026年9月〜）
+      stitchCountLabel.style.pointerEvents = stitchGuideVisible ? 'auto' : 'none';
     }
     if (stitchEditBtn) {
       stitchEditBtn.style.opacity = stitchGuideVisible ? '1' : '0';
@@ -6697,11 +6979,16 @@
       saveSettings();
     });
   }
-  // 全部消す：取り返しがつかない操作なので確認モーダルを挟む
-  if (stitchLineClearAllBtn) {
-    stitchLineClearAllBtn.addEventListener('click', e => {
+  // 一括削除：編み図に浮かぶ専用ボタンをやめ、カウンターパネルの「縦線 ◯本」表示自体を
+  // タップして呼び出す方式に変更した（段数ガイドの「1段の高さ」タップと同じ考え方。
+  // 編み図の上がボタンで散らからずに済む。取り返しがつかない操作なので確認モーダルを挟む。2026年9月〜）
+  if (stitchCountLabel) {
+    stitchCountLabel.addEventListener('click', e => {
       e.stopPropagation();
-      if (selectedStitchLine === null) return;
+      // 「縦線」のラベル部分をタップした時は開かない（開くのは数値部分のみ。
+      // 「1段の高さ」の値タップと同じ考え方。2026年9月〜）
+      if (e.target.closest('.gp-val-label')) return;
+      if (!stitchGuideLines.length) return; // 0本の時はタップしても何も起きない
       showModal('目数ガイドの縦線を\n一括削除しますか？', '一括削除する', () => {
         stitchGuideLines = [];
         selectedStitchLine = null;
@@ -7010,6 +7297,7 @@
       document.getElementById('stitch-hint-bar'),
       document.getElementById('stitch-color-float'),
       document.getElementById('mejirushi-palette-float'),
+      document.getElementById('mejirushi-select-float'),
       document.getElementById('mejirushi-edit-pop'),
       // 「1段の高さ」微調整カード（#step-adjust-card）は含めない：
       // positionStepAdjustCard()でカウンターパネルの真上に追従して出る設計のため、
@@ -7066,6 +7354,10 @@
     if (e.target.closest('#gp-measure-btn')) return;
     if (e.target.closest('#stitch-edit-btn')) return;
     if (e.target.closest('#mejirushi-place-btn')) return;
+    // 一括削除のタップを、パネルのドラッグ開始として横取りしないようにする
+    // （0本/0個の時はタップしても何も起きないが、その場合もドラッグ優先でよい。2026年9月〜）
+    if (e.target.closest('#stitch-count-label') && stitchGuideLines.length > 0) return;
+    if (e.target.closest('#mejirushi-count-label') && mejirushiPins.length > 0) return;
     // 未計測の時はタップしても何も起きないので、そこからパネルをドラッグできるようにする。
     // 計測値が出ている時（例：1段：66px）は、タップで調整カードを開く動作を優先し、ドラッグは始めない。
     if (e.target.closest('#gp-step-label') && !gpStepLabel.classList.contains('unmeasured')) return;
@@ -7415,7 +7707,10 @@
       mejirushiPlaceBtn.style.opacity = '0';
       mejirushiPlaceBtn.style.pointerEvents = 'none';
     }
-    if (mejirushiCountLabel) mejirushiCountLabel.style.opacity = '0';
+    if (mejirushiCountLabel) {
+      mejirushiCountLabel.style.opacity = '0';
+      mejirushiCountLabel.style.pointerEvents = 'none';
+    }
     cancelMejirushiPlace();
     if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
     positionMejirushiPin();
