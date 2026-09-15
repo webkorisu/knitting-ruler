@@ -3744,6 +3744,27 @@
 <script>
   /* ========== 要素取得 ========== */
   const viewer       = document.getElementById('viewer');
+
+  // 【2026年9月】iPadなどで「画面下端から上へスワイプしてホームへ戻る」操作をした時、
+  // その指の動きが編み図のパン操作・定規のドラッグ操作としても同時に認識されてしまい、
+  // アプリを閉じようとしている最中に編み図や定規まで一緒に動いてしまう、という報告が
+  // あった。画面最下端のごく近く（OS側がホームインジケーターの操作用に確保している
+  // エリア）から始まったタッチ・クリックは、コンテンツを触ろうとしたのではなく
+  // システム操作である可能性が高いとみなし、アプリ内のどのドラッグ・パン・ピンチ
+  // 処理にも渡さないようにする。定規・編み図・円/四角定規など対象ごとに1つずつ
+  // 直すのではなく、キャプチャフェーズ（各要素固有のハンドラーより必ず先に実行される
+  // 段階）でここ1箇所だけ止めることで、まとめて防ぐ
+  const SYSTEM_GESTURE_EDGE = 16; // px。ホームインジケーターの操作エリアの目安
+  function isNearBottomSystemEdge(y) {
+    return y > window.innerHeight - SYSTEM_GESTURE_EDGE;
+  }
+  document.addEventListener('touchstart', e => {
+    if (Array.from(e.touches).some(t => isNearBottomSystemEdge(t.clientY))) e.stopPropagation();
+  }, { capture: true, passive: true });
+  document.addEventListener('pointerdown', e => {
+    if (isNearBottomSystemEdge(e.clientY)) e.stopPropagation();
+  }, { capture: true });
+
   const canvas       = document.getElementById('chart-canvas');
   const ctx          = canvas.getContext('2d');
   const placeholder  = document.getElementById('placeholder');
@@ -5919,7 +5940,13 @@
   // 段数ガイドONかつ計測済みのときだけステップ移動。OFFや未計測なら0（移動なし）
   function getEffectiveStep() {
     if (!rulerGuideOn) return 0;
-    if (rulerBaseStep > 0) return Math.round(rulerBaseStep * scale);
+    // 【2026年9月バグ修正】ここで小数点以下を毎回四捨五入してから定規を動かしていたため、
+    // 例えば実際の1段が23.7pxでも「+」を押すたびに丸めた24pxずつ動いてしまい、
+    // 数えた段数が増えるほど本来の位置からのズレが積み重なっていく不具合があった
+    // （エクセルで作った寸分違わぬ編み図でも、数えるほどにズレて見えていたのはこれが原因）。
+    // この関数は「1段の高さ」の表示テキストには使われておらず、定規を動かす計算専用
+    // なので、小数のまま返してよい（CSSのtopはpx単位の小数もそのまま扱える）
+    if (rulerBaseStep > 0) return rulerBaseStep * scale;
     return 0;
   }
 
