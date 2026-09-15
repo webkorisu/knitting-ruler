@@ -1865,11 +1865,11 @@
       pointer-events: auto;
       cursor: pointer;
       box-sizing: border-box;
-      text-align: center; /* お試し中：中央寄せ比較用（2026年9月） */
+      text-align: center;
       padding: 6px 8px;
       border-radius: 15px;
       background: transparent;
-      transition: opacity .15s, filter .15s;
+      transition: opacity .15s, visibility .15s, filter .15s;
     }
     #stitch-count-label:hover { filter: opacity(0.6); }
     #stitch-count-label:active { filter: opacity(0.6); transform: scale(0.96); }
@@ -1886,7 +1886,7 @@
       padding: 6px 8px;
       border-radius: 15px;
       background: transparent;
-      transition: opacity .15s, filter .15s;
+      transition: opacity .15s, visibility .15s, filter .15s;
     }
     #mejirushi-count-label:hover { filter: opacity(0.6); }
     #mejirushi-count-label:active { filter: opacity(0.6); transform: scale(0.96); }
@@ -1956,12 +1956,12 @@
       pointer-events: auto;
       cursor: pointer;
       box-sizing: border-box;
-      text-align: center; /* お試し中：中央寄せ比較用（2026年9月） */
+      text-align: center;
       padding: 6px 8px;
       border-radius: 15px;
       background: transparent;
       line-height: 1.15;
-      transition: opacity .15s, color .15s, background .15s, transform .1s, filter .15s;
+      transition: opacity .15s, visibility .15s, color .15s, background .15s, transform .1s, filter .15s;
     }
     /* 計測値ありの時だけ、小さいラベル「1段」＋太字で大きい値「46px」の2行表示にする。
        左揃えにするのは、「1段」と数値で文字幅が違うため中央揃えだとガタついて見えるため */
@@ -3120,7 +3120,7 @@
       <button id="gp-measure-btn" style="opacity:0; pointer-events:none;"><span id="gp-measure-btn-text">計測する</span></button>
     </span>
     <span class="gp-slot">
-      <span id="gp-step-label" class="unmeasured" style="opacity:0; pointer-events:none;" onclick="toggleStepAdjust(event)"><span class="gp-val-label">1段の高さ</span><span class="gp-val-num">未計測</span></span>
+      <span id="gp-step-label" class="unmeasured" style="opacity:0; visibility:hidden; pointer-events:none;" onclick="toggleStepAdjust(event)"><span class="gp-val-label">1段の高さ</span><span class="gp-val-num">未計測</span></span>
     </span>
   </div>
   <!-- 中段：目数ガイド行（直線定規のみ・段数ガイド行と全く同じ構成にして一貫性を出す：
@@ -3133,10 +3133,10 @@
       </label>
     </span>
     <span class="gp-slot">
-      <button id="stitch-edit-btn" style="opacity:0; pointer-events:none;"><span id="stitch-edit-btn-text">線を引く</span></button>
+      <button id="stitch-edit-btn" style="opacity:0; visibility:hidden; pointer-events:none;"><span id="stitch-edit-btn-text">線を引く</span></button>
     </span>
     <span class="gp-slot">
-      <span id="stitch-count-label" style="opacity:0; pointer-events:none;"><span class="gp-val-label">縦線</span><span class="gp-val-num">0本</span></span>
+      <span id="stitch-count-label" style="opacity:0; visibility:hidden; pointer-events:none;"><span class="gp-val-label">縦線</span><span class="gp-val-num">0本</span></span>
     </span>
   </div>
   <!-- 下段：めじるし行（直線定規のみ・最大99個まで複数配置対応。2026年9月〜）。
@@ -3149,10 +3149,10 @@
       </label>
     </span>
     <span class="gp-slot">
-      <button id="mejirushi-place-btn" style="opacity:0; pointer-events:none;"><span id="mejirushi-place-btn-text">めじるしを置く</span></button>
+      <button id="mejirushi-place-btn" style="opacity:0; visibility:hidden; pointer-events:none;"><span id="mejirushi-place-btn-text">めじるしを置く</span></button>
     </span>
     <span class="gp-slot">
-      <span id="mejirushi-count-label" style="opacity:0; pointer-events:none;"><span class="gp-val-label">めじるし</span><span class="gp-val-num">0個</span></span>
+      <span id="mejirushi-count-label" style="opacity:0; visibility:hidden; pointer-events:none;"><span class="gp-val-label">めじるし</span><span class="gp-val-num">0個</span></span>
     </span>
   </div>
   </div><!-- /#cp-guide-group-body -->
@@ -3310,6 +3310,7 @@
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段数ガイド・目数ガイド・めじるし機能も使えるようになります。<br>
           <strong style="font-weight:600; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・「−」を長押しすると、数字を0に戻せます（定規のサイズ・位置は変わりません）。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・カウンター上部の「直線定規」と書かれた部分をタップすると、下の段数ガイド・目数ガイド・めじるしの欄をたたんだり広げたりできます。</p>
         </div>
       </div>
 
@@ -3468,6 +3469,7 @@
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段数ガイド・めじるし機能も使えるようになります。<br>
           <strong style="font-weight:600; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・「−」を長押しすると、数字を0に戻せます（定規のサイズ・位置は変わりません）。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・カウンター上部の「円定規」と書かれた部分をタップすると、下の段数ガイド・めじるしの欄をたたんだり広げたりできます。</p>
         </div>
       </div>
 
@@ -3605,6 +3607,7 @@
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段数ガイド・めじるし機能も使えるようになります。<br>
           <strong style="font-weight:600; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・「−」を長押しすると、数字を0に戻せます（定規のサイズ・位置は変わりません）。</p>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・カウンター上部の「四角定規」と書かれた部分をタップすると、下の段数ガイド・めじるしの欄をたたんだり広げたりできます。</p>
         </div>
       </div>
 
@@ -3724,7 +3727,7 @@
             </svg>
           </a>
         </div>
-        <div class="last-updated">最終更新：2026.08.29</div>
+        <div class="last-updated">最終更新：2026.09.15</div>
       </div>
 
     </div>
@@ -3825,6 +3828,15 @@
     const showCounterForTab = isBand ? showCounter : (currentRulerTab === 'circle' ? showCircleCounter : showBoxCounter);
     if (!showCounterForTab) {
       cpGuideTabbar.style.display = 'none';
+      // 【2026年9月バグ修正】ここで抜けた後、3つの行（段数ガイド・目数ガイド・めじるし）の
+      // display状態を更新せずに関数を抜けていたため、直前に「めじるし」タブを見ていた
+      // 状態のままここへ来ると、cpMejirushiRowが'flex'のまま残ってしまっていた。
+      // 別の場所（showRuler()や段数カウンターのON/OFF切り替え）がcpGuideRowだけを
+      // 'flex'にしてからこの関数を呼ぶ作りだったため、段数ガイドの行とめじるしの行が
+      // 同時に両方表示される、という実機バグが起きていた。ここで必ず3つとも隠しておく。
+      cpGuideRow.style.display = 'none';
+      if (cpStitchRow) cpStitchRow.style.display = 'none';
+      if (cpMejirushiRow) cpMejirushiRow.style.display = 'none';
       return;
     }
     // 目数ガイドタブを選んだ状態のまま直線定規以外に切り替えた場合、そのタブ自体が
@@ -3919,6 +3931,30 @@
   let mejirushiEnabledCircle = false, mejirushiPinsCircle = [];
 
   // 今の「無印」の状態（アクティブな定規のもの）を、その定規専用の変数へ退避する
+  // 段数ガイド・目数ガイド・めじるしの「値表示」（1段の高さ／たてせん／めじるし）を
+  // ON/OFFに合わせて表示・非表示する共通ヘルパー。
+  // 【2026年9月】スイッチをOFFにした瞬間、値の方だけCSSのふわっとした消え方
+  // （transition）につられて一瞬遅れて消えるように見える不具合があった
+  // （PCでは気にならない速さだったが、実機のスマホだとスイッチの切り替えより
+  // 一拍遅れて見える、との報告）。ONにする時の「ふわっと出てくる」動きは
+  // そのまま活かしつつ、OFFにする時だけはtransitionを一時的に無効化して、
+  // スイッチの切り替えと完全に同時に消えるようにした。
+  function setGuideValueVisible(el, visible) {
+    if (!el) return;
+    if (visible) {
+      el.style.transition = '';
+      el.style.opacity = '1';
+      el.style.visibility = 'visible';
+    } else {
+      el.style.transition = 'none';
+      el.style.opacity = '0';
+      el.style.visibility = 'hidden';
+      void el.offsetHeight; // 強制的に再描画させ、transition:noneを確実に反映させてから元に戻す
+      el.style.transition = '';
+    }
+    el.style.pointerEvents = visible ? 'auto' : 'none';
+  }
+
   function stashMejirushiActiveRulerVars(tab) {
     if (tab === 'circle') { mejirushiEnabledCircle = mejirushiEnabled; mejirushiPinsCircle = mejirushiPins; }
     else if (tab === 'box') { mejirushiEnabledBox = mejirushiEnabled; mejirushiPinsBox = mejirushiPins; }
@@ -3933,12 +3969,10 @@
     // トグル・ボタンなど、UI側の見た目も切り替え先の定規のデータに合わせて更新する（2026年9月〜）
     if (mejirushiToggle) mejirushiToggle.checked = mejirushiEnabled;
     if (mejirushiPlaceBtn) {
-      mejirushiPlaceBtn.style.opacity = mejirushiEnabled ? '1' : '0';
-      mejirushiPlaceBtn.style.pointerEvents = mejirushiEnabled ? 'auto' : 'none';
+      setGuideValueVisible(mejirushiPlaceBtn, mejirushiEnabled);
     }
     if (mejirushiCountLabel) {
-      mejirushiCountLabel.style.opacity = mejirushiEnabled ? '1' : '0';
-      mejirushiCountLabel.style.pointerEvents = mejirushiEnabled ? 'auto' : 'none';
+      setGuideValueVisible(mejirushiCountLabel, mejirushiEnabled);
     }
     if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
     if (typeof cancelMejirushiPlace === 'function') cancelMejirushiPlace(); // 配置フロー中に定規を切り替えることは無い想定だが、念のため必ず閉じる
@@ -4022,7 +4056,11 @@
           // 以前はここに含めておらず、共通の変数のままだったため、別の編み図を開くと
           // 色が引き継がれてしまい、上端・下端の調整はどこにも保存されず毎回消えていた
           stitchColor: stitchGuideColor, stitchThickness: stitchGuideThickness,
-          stitchTopY: stitchGuideTopY, stitchBottomY: stitchGuideBottomY
+          stitchTopY: stitchGuideTopY, stitchBottomY: stitchGuideBottomY,
+          // 編み図の拡大率・表示位置も、編み図ごとに覚えておく（2026年9月〜）。
+          // scale/offsetX/offsetYは「今アクティブな定規タブの表示状態」を指す共通の作業用変数
+          // （mejirushiPins等と同じ考え方）なので、直線定規タブがアクティブな時だけ書き込む
+          ...(currentRulerTab === 'band' ? { viewScale: scale, viewOffsetX: offsetX, viewOffsetY: offsetY } : {})
         };
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -4049,6 +4087,21 @@
     const pruned = {};
     keep.forEach(k => { pruned[k] = dict[k]; });
     return pruned;
+  }
+
+  // 【2026年9月バグ修正】fileId（記録のキー）は「ファイル名｜サイズ｜更新日時」の組み合わせ。
+  // 画像の中身は同じまま、ファイル名（タイトル）だけを変えて保存し直したファイルを選び直すと、
+  // ファイル名の部分だけが変わってfileId自体が別物になってしまい、段数ガイド・目数ガイド・
+  // めじるしなどの記録が「初めて開くファイル」として見えなくなってしまっていた。
+  // 完全一致が見つからない時は、次点として「サイズ｜更新日時」だけが一致する記録を探す
+  // （ファイル名のリネームだけなら、たいていサイズ・更新日時は変わらないため）。
+  function findFileRecord(dict, file, fileId) {
+    if (dict[fileId]) return dict[fileId];
+    const suffix = '|' + file.size + '|' + file.lastModified;
+    for (const key in dict) {
+      if (key.endsWith(suffix)) return dict[key];
+    }
+    return undefined;
   }
 
   function loadSettings() {
@@ -4127,6 +4180,11 @@
           // A→B→Aのように別の編み図を挟んでいても復元する。記録がなければ、初めて開く
           // ファイルとみなして空の状態から始める（2026年8月〜）
           const fileId = file.name + '|' + file.size + '|' + file.lastModified;
+          // 編み図を開き直した時、以前見ていた拡大率・表示位置（scale/offsetX/offsetY）も
+          // 定規の大きさと同じように復元してほしい、という要望に対応する（2026年9月〜）。
+          // 直後の共通処理（fitImage()を呼ぶ箇所）で、これが入っていれば画面に合わせた
+          // 初期表示ではなく、こちらの値をそのまま使う
+          let restoredView = null;
           if (currentRulerTab === 'band') {
             // 「✕」で画像を消した後の再選択など、メモリ上の辞書が古い可能性があるため、
             // その場でlocalStorageから読み直してから探す
@@ -4136,7 +4194,7 @@
                 stitchByFile = saved.stitchByFile;
               }
             } catch(err) {}
-            const remembered = stitchByFile[fileId];
+            const remembered = findFileRecord(stitchByFile, file, fileId);
             let rulerLookChanged = false;
             if (remembered) {
               stitchGuideLines = Array.isArray(remembered.lines) ? remembered.lines.slice() : [];
@@ -4175,6 +4233,11 @@
               if (remembered.stitchThickness != null) stitchGuideThickness = remembered.stitchThickness;
               stitchGuideTopY    = (remembered.stitchTopY    !== undefined) ? remembered.stitchTopY    : null;
               stitchGuideBottomY = (remembered.stitchBottomY !== undefined) ? remembered.stitchBottomY : null;
+              // 拡大率・表示位置も、記録があれば復元する（無ければ従来通りfitImage()で
+              // 画面に合わせた初期表示にする。2026年9月〜）
+              if (remembered.viewScale != null) {
+                restoredView = { scale: remembered.viewScale, offsetX: remembered.viewOffsetX || 0, offsetY: remembered.viewOffsetY || 0 };
+              }
             } else {
               // 初めて開く編み図は、線・測定値だけでなく、定規の見た目・位置・
               // 段数ガイドのON/OFF・段数カウントも、まっさらな初期状態から始める。
@@ -4240,16 +4303,13 @@
             if (stitchEditBtn) { stitchEditBtn.disabled = false; stitchEditBtn.classList.remove('active'); }
             viewer.style.cursor = '';
             resetStitchModeRulerLook();
-            if (typeof updateGuideStatusText === 'function') updateGuideStatusText();
             if (typeof syncGuideRowUI === 'function') syncGuideRowUI('band'); // 段数ガイドのON/OFF表示を反映
             if (mejirushiToggle) mejirushiToggle.checked = mejirushiEnabled;
             if (mejirushiPlaceBtn) {
-              mejirushiPlaceBtn.style.opacity = mejirushiEnabled ? '1' : '0';
-              mejirushiPlaceBtn.style.pointerEvents = mejirushiEnabled ? 'auto' : 'none';
+              setGuideValueVisible(mejirushiPlaceBtn, mejirushiEnabled);
             }
             if (mejirushiCountLabel) {
-              mejirushiCountLabel.style.opacity = mejirushiEnabled ? '1' : '0';
-              mejirushiCountLabel.style.pointerEvents = mejirushiEnabled ? 'auto' : 'none';
+              setGuideValueVisible(mejirushiCountLabel, mejirushiEnabled);
             }
             if (typeof syncMejirushiEditPop === 'function') syncMejirushiEditPop();
             if (typeof positionMejirushiPin === 'function') positionMejirushiPin();
@@ -4264,7 +4324,7 @@
                 circleByFile = saved.circleByFile;
               }
             } catch(err) {}
-            const remembered = circleByFile[fileId];
+            const remembered = findFileRecord(circleByFile, file, fileId);
             currentCircleFileId = fileId; // 先に更新（この後の保存処理で正しいファイルIDに紐付くように）
             if (remembered) {
               if (remembered.cX != null) cX = remembered.cX;
@@ -4288,6 +4348,10 @@
                 mejirushiPinsCircle = remembered.mejirushiPins.slice();
               } else {
                 mejirushiPinsCircle = [];
+              }
+              // 拡大率・表示位置も、記録があれば復元する（2026年9月〜）
+              if (remembered.viewScale != null) {
+                restoredView = { scale: remembered.viewScale, offsetX: remembered.viewOffsetX || 0, offsetY: remembered.viewOffsetY || 0 };
               }
             } else {
               // 初めて開く編み図はまっさらな初期状態から（既存のリセット処理を再利用）。
@@ -4313,7 +4377,7 @@
                 boxByFile = saved.boxByFile;
               }
             } catch(err) {}
-            const remembered = boxByFile[fileId];
+            const remembered = findFileRecord(boxByFile, file, fileId);
             currentBoxFileId = fileId;
             if (remembered) {
               if (remembered.sqX != null) bxX = remembered.sqX;
@@ -4347,6 +4411,10 @@
               } else {
                 mejirushiPinsBox = [];
               }
+              // 拡大率・表示位置も、記録があれば復元する（2026年9月〜）
+              if (remembered.viewScale != null) {
+                restoredView = { scale: remembered.viewScale, offsetX: remembered.viewOffsetX || 0, offsetY: remembered.viewOffsetY || 0 };
+              }
             } else {
               // resetBoxDefault()自体は見た目（色・大きさ・位置）しかリセットしない作りなので、
               // 計測値・段数ガイドのON/OFF・段数カウントは先にここで明示的にリセットしておく（2026年8月〜）
@@ -4366,7 +4434,17 @@
           canvas.style.display = 'block';
           viewer.classList.add('has-image');
           updateUploadClearBtn();
-          fitImage();
+          if (restoredView) {
+            // 記録された拡大率・表示位置を復元する（fitImage()による毎回リセットはしない）
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            scale = Math.min(maxScale, Math.max(minScale, restoredView.scale));
+            offsetX = restoredView.offsetX;
+            offsetY = restoredView.offsetY;
+            clampOffset(); // 記録後に画面サイズが変わっていても、画面外へ置き去りにしない
+          } else {
+            fitImage();
+          }
           drawImage();
           switchRulerTab(currentRulerTab);
         };
@@ -4397,12 +4475,27 @@
     offsetY = (vh - img.height * scale) / 2;
   }
 
+  // 編み図の拡大率・表示位置（scale/offsetX/offsetY）は、パン・ピンチ・ホイールの
+  // 途中で細かく変わり続けるため、動くたびに保存すると重くなる。動きが止まってから
+  // 少し待って1回だけまとめて保存する（他の細かい変更のまとめ保存と同じ考え方。2026年9月〜）。
+  // 「編み図を開き直した時に前回の拡大率・表示位置を復元してほしい」という要望に対応するため追加
+  let viewSaveTimer = null;
+  function scheduleViewSave() {
+    if (!img) return;
+    clearTimeout(viewSaveTimer);
+    viewSaveTimer = setTimeout(() => {
+      if (currentRulerTab === 'circle') { if (typeof saveCircleSettings === 'function') saveCircleSettings(); }
+      else if (currentRulerTab === 'box') { if (typeof saveBoxSettings === 'function') saveBoxSettings(); }
+      else { saveSettings(); }
+    }, 500);
+  }
   function drawImage() {
     if (!img) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, offsetX, offsetY, img.width * scale, img.height * scale);
     drawStitchGuideLines();
     positionMejirushiPin();
+    scheduleViewSave();
   }
 
   // 目数ガイドの縦線を描画する。編み図の画像そのものに紐づく線なので、
@@ -4857,15 +4950,12 @@
         if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
       }
       if (mejirushiPlaceBtn) {
-        mejirushiPlaceBtn.style.opacity = isOn ? '1' : '0';
-        mejirushiPlaceBtn.style.pointerEvents = isOn ? 'auto' : 'none';
+        setGuideValueVisible(mejirushiPlaceBtn, isOn);
       }
       if (mejirushiCountLabel) {
-        mejirushiCountLabel.style.opacity = isOn ? '1' : '0';
-        mejirushiCountLabel.style.pointerEvents = isOn ? 'auto' : 'none';
+        setGuideValueVisible(mejirushiCountLabel, isOn);
       }
       positionMejirushiPin();
-      updateGuideStatusText();
       saveMejirushiSettings();
     });
   }
@@ -5004,12 +5094,22 @@
   // 背景・キャンバス部分）をタップしたら自動で閉じるようにする（設定パネルを畳んだ時と同じ考え方）。
   // ピン本体・編集ポップアップ自体はviewerの子要素ではない（別要素として独立させてある）ため、
   // それらをタップした時にこの処理が誤って発火することはない
+  //
+  // 【2026年9月バグ修正】配置モード中（mejirushiPlaceMode）に既存のピンをタップして編集カードを
+  // 開いた後、そのカードを閉じるつもりで編み図の何もない場所をタップすると、この直下の
+  // pointerdownハンドラで「カードを閉じる」処理が走るのと同時に、少し下にある配置モード用の
+  // pointerdown/pointerupハンドラでも「新しい場所がタップされた」と判定されてしまい、
+  // カードを閉じただけのつもりが新しいめじるしまで置かれてしまう不具合があった。
+  // 「このタップはカードを閉じるためのタップだった」という目印を1回分だけ残しておき、
+  // 配置用ハンドラ側でそれを見て今回のタップだけ無視するようにして直した。
+  let mejCardJustClosedByTap = false;
   viewer.addEventListener('pointerdown', () => {
     if (selectedMejirushiIndex === null) return;
     saveMejirushiSettings();
     selectedMejirushiIndex = null;
     if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
     positionMejirushiPin(); // 選択中ハイライトの解除・表示トグルのロック解除もあわせて反映する
+    mejCardJustClosedByTap = true;
   });
   // メモ欄：入力のたびに吹き出しへ反映し、フォーカスが外れたタイミングで保存する
   // （ロック中はinput自体をreadonlyにしてあるので、ここに来る時点でロック中は基本無い。
@@ -5161,6 +5261,9 @@
     if (!mejirushiPlaceMode || !img) return;
     if (e.target.closest('#mejirushi-palette-float') || e.target.closest('#mejirushi-select-float') || e.target.closest('.mej-pin')) return;
     if (e.target.closest('#float-panel') || e.target.closest('#counter-panel')) return;
+    // このタップが直前の処理で「編集カードを閉じるため」に使われていたら、
+    // 新しいめじるしは置かず、今回だけ何もしない（上のバグ修正コメント参照）
+    if (mejCardJustClosedByTap) { mejCardJustClosedByTap = false; return; }
     mejTapActive = true;
     mejTapStartX = e.clientX; mejTapStartY = e.clientY;
   });
@@ -5206,8 +5309,12 @@
     rulerOverlay.style.display = 'block';
     if (showCounter) {
       counterPanel.style.display = 'flex';
-      cpGuideRow.style.display = 'flex';
     }
+    // cpGuideRow（および目数ガイド・めじるしの行）の表示・非表示は、必ずこの直後の
+    // applyGuideTabFilter()だけが決める（2026年9月〜）。以前はここでcpGuideRowだけを
+    // 先に'flex'にしてからapplyGuideTabFilter()を呼んでいたが、呼び出しタイミングに
+    // よっては「めじるし」タブを表示中に段数ガイドの行まで一緒に見えてしまう不具合の
+    // 原因になっていたため、直接のstyle操作をやめてapplyGuideTabFilter()に一本化した
     applyGuideTabFilter();
     rulerTop  = Math.round(window.innerHeight * 0.75);
     rulerLeft = 0;
@@ -5276,7 +5383,7 @@
     // 実際の表示サイズ（pxベース）。applyRulerPos()で設定済みのDOM実測値を使う
     const ow = rulerHandle.offsetWidth  || (rulerWidth / 100) * window.innerWidth;
     const oh = rulerHandle.offsetHeight || rulerHeight;
-    const rad = Math.min(8, ow/3, oh/3); // 箱が小さい時に真円になってしまわないよう、サイズに応じて丸みも小さくする　※角丸を少なめにお試し中（直線のみ・2026年8月）
+    const rad = Math.min(8, ow/3, oh/3); // 箱が小さい時に真円になってしまわないよう、サイズに応じて丸みも小さくする　※角丸を少なめの8pxに確定（四角定規も揃えてある・2026年8月）
     const hl = Math.min(12, ow/3, oh/3); // ハイライトの太さ：上下左右すべて共通の値にする
     const M  = 16; // 外側の光がはみ出すための余白（SVGのキャンバス自体を4辺とも同じだけ広げる）
 
@@ -5369,9 +5476,13 @@
   toggleCounterEl.addEventListener('change', () => {
     showCounter = toggleCounterEl.checked;
     counterPanel.style.display = showCounter ? 'flex' : 'none';
-    cpGuideRow.style.display = showCounter ? 'flex' : 'none';
     applyGuideTabFilter();
     if (!showCounter) {
+      // 段数ガイドはカウンターパネルが無いと動かせない機能なので、道連れでOFFにする。
+      // 目数ガイド・めじるしは編み図の上に直接表示される機能で、段数カウンターが無くても
+      // 見える・使える意味があるため、ここではあえて触らない（2026年9月〜。一時的に
+      // 「段数カウンターOFF＝全部OFF」という道連れ処理を入れたことがあったが、
+      // 目数ガイド・めじるしまで消えてしまうのは意図と違う、という指摘を受けて戻した）
       rulerGuideOn = false;
       rulerStep = 0;
       syncGuideRowUI('band');
@@ -5619,8 +5730,7 @@
       else { rulerGuideOn = false; rulerStep = 0; }
     }
     gpToggleGuide.checked = isOn;
-    gpStepLabel.style.opacity = isOn ? '1' : '0';
-    gpStepLabel.style.pointerEvents = isOn ? 'auto' : 'none';
+    setGuideValueVisible(gpStepLabel, isOn);
     gpMeasureBtn.style.opacity = isOn ? '1' : '0';
     gpMeasureBtn.style.pointerEvents = isOn ? 'auto' : 'none';
     if (baseStep > 0) {
@@ -5629,14 +5739,7 @@
     } else {
       setGpStepUnmeasured();
     }
-    updateGuideStatusText();
   }
-
-  // 折りたたみヘッダーに、今の各ガイドのON/OFF状態を表示する
-  // ヘッダーからON/OFF表示を廃止した（2026年8月〜。定規名バッジ＋「段数カウンター」の
-  // 固定ラベルに変更したため）。呼び出し箇所が多く残っているので、関数自体はそのまま
-  // 何もしない形で残してある（呼び出し側を1つずつ消して回るより安全なため）
-  function updateGuideStatusText() {}
 
 
   gpToggleGuide.addEventListener('change', function() {
@@ -5646,8 +5749,7 @@
       showModal('段数ガイドを使うためには\nメニューパネルから\n編み図を開いてください。', 'OK', () => {}, false);
       return;
     }
-    gpStepLabel.style.opacity = isOn ? '1' : '0';
-    gpStepLabel.style.pointerEvents = isOn ? 'auto' : 'none';
+    setGuideValueVisible(gpStepLabel, isOn);
     gpMeasureBtn.style.opacity = isOn ? '1' : '0';
     gpMeasureBtn.style.pointerEvents = isOn ? 'auto' : 'none';
     if (currentRulerTab === 'circle') {
@@ -5694,7 +5796,6 @@
       }
       saveSettings();
     }
-    updateGuideStatusText();
   });
 
   // 📏計測ボタン：押したときだけ計測モードを起動（カウント中の誤タップ対策として確認モーダルを挟む）
@@ -6738,14 +6839,13 @@
   // 直接stitchGuideVisibleを変える場合もあるため、呼び出しを一本化して更新漏れを防ぐ
   function updateStitchWidthLabelVisibility() {
     if (stitchCountLabel) {
-      stitchCountLabel.style.opacity = stitchGuideVisible ? '1' : '0';
+      setGuideValueVisible(stitchCountLabel, stitchGuideVisible);
       // 一括削除をこの数字のタップで呼び出せるようにしたので、表示されている間はタップできる
       // ようにする（非表示中は透明な当たり判定が残らないようnoneにする。2026年9月〜）
       stitchCountLabel.style.pointerEvents = stitchGuideVisible ? 'auto' : 'none';
     }
     if (stitchEditBtn) {
-      stitchEditBtn.style.opacity = stitchGuideVisible ? '1' : '0';
-      stitchEditBtn.style.pointerEvents = stitchGuideVisible ? 'auto' : 'none';
+      setGuideValueVisible(stitchEditBtn, stitchGuideVisible);
     }
   }
   if (stitchVisibleToggle) {
@@ -6761,7 +6861,6 @@
       if (!stitchGuideVisible && stitchGuideMode) stopStitchGuideMode();
       // 段数ガイドの「計測」ボタンと同じく、表示OFFの間は「線幅」ラベル・「線引」ボタンとも触れなくする
       updateStitchWidthLabelVisibility();
-      updateGuideStatusText();
       drawImage();
       saveSettings();
     });
@@ -6828,7 +6927,6 @@
     }
     positionStitchGuideBounds();
     positionStitchLineActions();
-    updateGuideStatusText();
     refreshCounterPanelAvoidance();
   }
   function stopStitchGuideMode() {
@@ -6851,7 +6949,6 @@
     }
     positionStitchGuideBounds();
     positionStitchLineActions();
-    updateGuideStatusText();
     refreshCounterPanelAvoidance();
   }
   // 「線引」ボタン：押すと編集モードを開始する。編集中はdisabledになるので、
@@ -7695,7 +7792,6 @@
       rulerOverlay.style.display = 'block';
       resetStitchModeRulerLook();
       positionStitchGuideBounds();
-      updateGuideStatusText();
     }
     // 画像を消したら、めじるし（このタブ用）も自動でOFF・データなしに戻す
     // （目数ガイドと違って直線定規専用ではなくなったので、全定規共通の処理にした。2026年9月〜）
@@ -7704,12 +7800,10 @@
     selectedMejirushiIndex = null;
     if (mejirushiToggle) mejirushiToggle.checked = false;
     if (mejirushiPlaceBtn) {
-      mejirushiPlaceBtn.style.opacity = '0';
-      mejirushiPlaceBtn.style.pointerEvents = 'none';
+      setGuideValueVisible(mejirushiPlaceBtn, false);
     }
     if (mejirushiCountLabel) {
-      mejirushiCountLabel.style.opacity = '0';
-      mejirushiCountLabel.style.pointerEvents = 'none';
+      setGuideValueVisible(mejirushiCountLabel, false);
     }
     cancelMejirushiPlace();
     if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
@@ -7991,7 +8085,9 @@
         cX, cY, cR, cColor, cAlpha, circleStep, circleStepBase, circleCount, guideOn: circleGuideOn,
         // めじるし（表示ON/OFFと、複数個のピンの位置・マーク・色・メモ）も編み図ごとに覚えておく。
         // 色は各ピンが自分で持つ（2026年9月〜）
-        mejirushiOn: mejirushiEnabled, mejirushiPins: mejirushiPins
+        mejirushiOn: mejirushiEnabled, mejirushiPins: mejirushiPins,
+        // 編み図の拡大率・表示位置も覚えておく（2026年9月〜）
+        ...(currentRulerTab === 'circle' ? { viewScale: scale, viewOffsetX: offsetX, viewOffsetY: offsetY } : {})
       };
     }
     try { localStorage.setItem(CIRCLE_KEY, JSON.stringify({ cX, cY, cR, cColor, cAlpha, circleStep, circleStepBase, circleCount, showCircleCounter, guideOn: circleGuideOn, circleByFile: pruneFileDict(circleByFile, currentCircleFileId) })); } catch(e) {}
@@ -8044,7 +8140,12 @@
     showCircleCounter = e.target.checked;
     if (currentRulerTab === 'circle') {
       counterPanel.style.display = showCircleCounter ? 'flex' : 'none';
-      cpGuideRow.style.display = showCircleCounter ? 'flex' : 'none';
+      // 【2026年9月バグ修正】以前はここでcpGuideRowだけを直接'flex'/'none'にしていて、
+      // applyGuideTabFilter()を呼んでいなかった。そのため「めじるし」タブを見ている
+      // 最中にこのスイッチを操作すると、段数ガイドの行とめじるしの行が同時に
+      // 表示されてしまう実機バグがあった（3つの行の表示・非表示は必ずこの関数だけが
+      // 決める、というルールに統一する）
+      applyGuideTabFilter();
     }
     saveCircleSettings();
   });
@@ -8732,7 +8833,7 @@
     if (currentBoxFileId) {
       boxByFile[currentBoxFileId] = Object.assign({}, snapshot, {
         mejirushiOn: mejirushiEnabled, mejirushiPins: mejirushiPins
-      });
+      }, currentRulerTab === 'box' ? { viewScale: scale, viewOffsetX: offsetX, viewOffsetY: offsetY } : {});
     }
     try { localStorage.setItem(BOX_KEY, JSON.stringify(Object.assign({}, snapshot, {
       boxByFile: pruneFileDict(boxByFile, currentBoxFileId)
@@ -8802,7 +8903,8 @@
     showBoxCounter = e.target.checked;
     if (currentRulerTab === 'box') {
       counterPanel.style.display = showBoxCounter ? 'flex' : 'none';
-      cpGuideRow.style.display = showBoxCounter ? 'flex' : 'none';
+      // 円定規と同じ理由でapplyGuideTabFilter()に一本化（2026年9月〜）
+      applyGuideTabFilter();
     }
     saveBoxSettings();
   });
