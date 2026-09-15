@@ -568,7 +568,7 @@
       background: #f8fdfc;
       border: 1.5px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 13px 12px 12px;
+      padding: 18px 12px 17px; /* 上下の余白を少し広げた（2026年9月〜。元は13px/12px） */
       display: flex;
       flex-direction: column;
       gap: 14px;
@@ -1758,7 +1758,6 @@
       color: var(--text-sub);
       opacity: .6;
       transition: transform .25s ease;
-      will-change: transform;
     }
     #cp-guide-toggle-arrow.open { transform: rotate(180deg); }
     #cp-guide-group-body {
@@ -3308,7 +3307,7 @@
             </label>
           </div>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段数ガイド・目数ガイド・めじるし機能も使えるようになります。<br>
-          <strong style="font-weight:600; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
+          <strong style="font-weight:600; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。段数ガイドも使えなくなります（カウンターが無いと動かせないため）。目数ガイド・めじるしは、それぞれのスイッチがONであれば、段数カウンターがOFFでも編み図にそのまま表示されます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・「−」を長押しすると、数字を0に戻せます（定規のサイズ・位置は変わりません）。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・カウンター上部の「直線定規」と書かれた部分をタップすると、下の段数ガイド・目数ガイド・めじるしの欄をたたんだり広げたりできます。</p>
         </div>
@@ -3344,7 +3343,8 @@
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「目数ガイド」スイッチで、ON/OFFを切り替えます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">「目数ガイド」の縦線が編み図に表示されます。</span>「線を引く」ボタンを押すと、タップした場所に目安の縦線を置けます（最大99本）。<br>
           <strong style="font-weight:600; color:var(--text);">OFF</strong>：縦線が一時的に隠れます。線のデータは消えないので、再度ONにすると元通り表示されます。<br>
-          ・カウンターパネルの「縦線」の数字部分をタップすると、今の編み図の縦線を一括削除できます。</p>
+          ・カウンターパネルの「縦線」の数字部分をタップすると、今の編み図の縦線を一括削除できます。<br>
+          ・このスイッチがONであれば、「段数カウンター」自体がOFFでも縦線は表示されたままです。</p>
           <div class="ruler-control" style="gap:12px; margin-top:8px;">
             <label>カラー</label>
             <div>
@@ -3370,7 +3370,8 @@
         <div class="card-accordion-body" style="padding:14px 12px 20px; gap:6px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「めじるし」スイッチで、ON/OFFを切り替えます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしを置く」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大99個）。置いためじるしをタップすると、ひとことメモ（最大30文字）・複製・回転・ロック・削除ができます。<br>
-          <strong style="font-weight:600; color:var(--text);">OFF</strong>：めじるしが一時的に隠れます。データは消えないので、再度ONにすると元通り表示されます。<br><span style="display:block; height:6px;"></span>
+          <strong style="font-weight:600; color:var(--text);">OFF</strong>：めじるしが一時的に隠れます。データは消えないので、再度ONにすると元通り表示されます。<br>
+          ・このスイッチがONであれば、「段数カウンター」自体がOFFでもめじるしは表示されたままです。<br><span style="display:block; height:6px;"></span>
           ・長押しすると、マークの大きさが3倍⇔通常サイズで切り替わります（編み図によって見やすい大きさが変わるため）。<br>
           ・複製ボタンをタップすると、同じマーク・カラーのめじるしを1個増やせます（近くにずらして追加されます）。<br>
           ・回転ボタン（反時計回り／時計回り）をタップすると、マークの向きを10°ずつ変えられます。<br>
@@ -3467,7 +3468,7 @@
             </label>
           </div>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段数ガイド・めじるし機能も使えるようになります。<br>
-          <strong style="font-weight:600; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
+          <strong style="font-weight:600; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。段数ガイドも使えなくなります（カウンターが無いと動かせないため）。めじるしは、スイッチがONであれば、段数カウンターがOFFでも編み図にそのまま表示されます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・「−」を長押しすると、数字を0に戻せます（定規のサイズ・位置は変わりません）。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・カウンター上部の「円定規」と書かれた部分をタップすると、下の段数ガイド・めじるしの欄をたたんだり広げたりできます。</p>
         </div>
@@ -3502,7 +3503,8 @@
         <div class="card-accordion-body" style="padding:14px 12px 20px; gap:6px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「めじるし」スイッチで、ON/OFFを切り替えます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしを置く」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大99個）。置いためじるしをタップすると、ひとことメモ（最大30文字）・複製・回転・ロック・削除ができます。<br>
-          <strong style="font-weight:600; color:var(--text);">OFF</strong>：めじるしが一時的に隠れます。データは消えないので、再度ONにすると元通り表示されます。<br><span style="display:block; height:6px;"></span>
+          <strong style="font-weight:600; color:var(--text);">OFF</strong>：めじるしが一時的に隠れます。データは消えないので、再度ONにすると元通り表示されます。<br>
+          ・このスイッチがONであれば、「段数カウンター」自体がOFFでもめじるしは表示されたままです。<br><span style="display:block; height:6px;"></span>
           ・長押しすると、マークの大きさが3倍⇔通常サイズで切り替わります（編み図によって見やすい大きさが変わるため）。<br>
           ・複製ボタンをタップすると、同じマーク・カラーのめじるしを1個増やせます（近くにずらして追加されます）。<br>
           ・回転ボタン（反時計回り／時計回り）をタップすると、マークの向きを10°ずつ変えられます。<br>
@@ -3605,7 +3607,7 @@
             </label>
           </div>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：編み図エリアに段数カウンターが表示され、カウントできます。段数ガイド・めじるし機能も使えるようになります。<br>
-          <strong style="font-weight:600; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。</p>
+          <strong style="font-weight:600; color:var(--text);">OFF</strong>：段数カウンターを非表示にできます。段数ガイドも使えなくなります（カウンターが無いと動かせないため）。めじるしは、スイッチがONであれば、段数カウンターがOFFでも編み図にそのまま表示されます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・「−」を長押しすると、数字を0に戻せます（定規のサイズ・位置は変わりません）。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">・カウンター上部の「四角定規」と書かれた部分をタップすると、下の段数ガイド・めじるしの欄をたたんだり広げたりできます。</p>
         </div>
@@ -3640,7 +3642,8 @@
         <div class="card-accordion-body" style="padding:14px 12px 20px; gap:6px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「めじるし」スイッチで、ON/OFFを切り替えます。</p>
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしを置く」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大99個）。置いためじるしをタップすると、ひとことメモ（最大30文字）・複製・回転・ロック・削除ができます。<br>
-          <strong style="font-weight:600; color:var(--text);">OFF</strong>：めじるしが一時的に隠れます。データは消えないので、再度ONにすると元通り表示されます。<br><span style="display:block; height:6px;"></span>
+          <strong style="font-weight:600; color:var(--text);">OFF</strong>：めじるしが一時的に隠れます。データは消えないので、再度ONにすると元通り表示されます。<br>
+          ・このスイッチがONであれば、「段数カウンター」自体がOFFでもめじるしは表示されたままです。<br><span style="display:block; height:6px;"></span>
           ・長押しすると、マークの大きさが3倍⇔通常サイズで切り替わります（編み図によって見やすい大きさが変わるため）。<br>
           ・複製ボタンをタップすると、同じマーク・カラーのめじるしを1個増やせます（近くにずらして追加されます）。<br>
           ・回転ボタン（反時計回り／時計回り）をタップすると、マークの向きを10°ずつ変えられます。<br>
@@ -3892,6 +3895,10 @@
   // 直線定規タブで「今どのファイルを表示しているか」の識別情報（名前＋サイズ＋更新日時）。
   // 目数ガイドの線をファイルごとに覚えておく（stitchByFile）際のキーとして使う（2026年8月〜）
   let currentBandFileId = null;
+  // 編み図A・編み図B・編み図なし、それぞれ独立してカウントを覚えておきたい、という
+  // 要望に対応する専用の変数（2026年9月〜）。「編み図なし」状態自体を、編み図が
+  // 無いなりの1つの記録先として扱う（値はsaveSettings()/loadSettings()で保存・復元する）
+  let noImageCountBand = 0;
   // ファイルごとの目数ガイドデータ： { [ファイル識別子]: { lines: [...], visible: true/false } }
   // A→B→A のように複数の編み図を行き来しても、それぞれの線を覚えておけるようにするため、
   // 「直前の1ファイル分」ではなく辞書形式で保持する（2026年8月〜）
@@ -4068,6 +4075,9 @@
         width: rulerWidth, left: rulerLeft, top: rulerTop, step: rulerStep,
         baseStep: rulerBaseStep, guideOn: rulerGuideOn,
         showCounter, count: rowCount,
+        // 編み図A・編み図B・編み図なし、それぞれ独立してカウントを覚えておく要望に対応
+        // （2026年9月〜）。「編み図なし」の時だけ更新される専用の記録先
+        noImageCount: noImageCountBand,
         stitchColor: stitchGuideColor, stitchThickness: stitchGuideThickness,
         // 目数ガイドの線・段数ガイドの高さは、ファイルごとの辞書（stitchByFile）で保存する。
         // A→B→Aのように複数の編み図を行き来しても、それぞれを覚えておけるようにするため（2026年8月〜）
@@ -4132,6 +4142,14 @@
       document.getElementById('ruler-step').value = rulerStep;
       document.getElementById('ruler-step-label').textContent = rulerStep + ' px';
       if (s.count  != null) rowCount = s.count;
+      // 編み図A・編み図B・編み図なし、それぞれ独立してカウントを覚えておく要望に対応
+      // （2026年9月〜）。専用の記録（noImageCount）があればそれを使い、まだ無ければ
+      // （このアップデート以前に保存されたデータ）これまで通りの共通カウントを
+      // 「編み図なし」の分としてそのまま引き継ぐ。ここで上書きするrowCountが、
+      // ページを開いた直後（＝まだ編み図を読み込んでいない状態）の実際の表示になる
+      if (s.noImageCount != null) noImageCountBand = s.noImageCount;
+      else if (s.count != null) noImageCountBand = s.count;
+      rowCount = noImageCountBand;
       rulerColorInput.value = rulerColor;
       if (stitchColorInput) stitchColorInput.value = stitchGuideColor;
       if (stitchThicknessInput) { stitchThicknessInput.value = stitchGuideThickness; stitchThicknessLabel.textContent = stitchGuideThickness + 'px'; }
@@ -4174,6 +4192,16 @@
         image.onload = () => {
           img = image;
           filenameLabel.textContent = file.name;
+          // 編み図A・編み図B・編み図なし、それぞれ独立してカウントを覚えておきたい、
+          // という要望に対応する（2026年9月〜）。「編み図なし」の状態から今回初めて
+          // 編み図を開くところなら、直前までの数字は「編み図なし」の分としてこの
+          // タイミングで確定・保存しておく。既に別の編み図が開いていた場合（＝
+          // 編み図を切り替えただけ）は、直前の数字はその編み図自身の記録なので触らない
+          if (!hadImageBefore) {
+            if (currentRulerTab === 'circle') { noImageCountCircle = circleCount; saveCircleSettings(); }
+            else if (currentRulerTab === 'box') { noImageCountBox = boxCount; saveBoxSettings(); }
+            else { noImageCountBand = rowCount; saveSettings(); }
+          }
           // 直線定規タブでの読み込みの時だけ、目数ガイドの線を扱う
           // （四角/円定規タブでの画像入れ替えで、直線定規側の線を消してしまわないため）。
           // ファイルごとの辞書（stitchByFile）に「今開いたファイルの線」が記録されていれば、
@@ -4254,6 +4282,11 @@
               rulerAlpha  = DEFAULT_RULER.alpha;
               rulerGuideOn = false;
               rulerLookChanged = true;
+              // 編み図を開かずに（手元の紙の編み図などを見ながら）カウントだけ使いたい時が
+              // あるとのことで、その数字自体は編み図の有無に関わらずずっと保存され続ける
+              // （saveSettings()が編み図の有無を問わず毎回カウントを保存している）。ただし、
+              // 初めて開く編み図自体は「0から始まる」というシンプルな挙動の方が分かりやすい
+              // とのことだったので、ここでは素直に0にリセットする（2026年9月〜）
               rowCount = 0;
               mejirushiEnabled = false;
               mejirushiPins = [];
@@ -4479,16 +4512,35 @@
   // 途中で細かく変わり続けるため、動くたびに保存すると重くなる。動きが止まってから
   // 少し待って1回だけまとめて保存する（他の細かい変更のまとめ保存と同じ考え方。2026年9月〜）。
   // 「編み図を開き直した時に前回の拡大率・表示位置を復元してほしい」という要望に対応するため追加
+  //
+  // 【2026年9月バグ修正】このsetTimeoutは、ズーム・パンした直後にすぐアプリを閉じたり
+  // ホーム画面に戻ったりすると、0.5秒経つ前にタイマーごと止められてしまい、保存されない
+  // ことがあった（スマホ・タブレットは、バックグラウンドに回ったタブのタイマーを止める・
+  // 遅らせる仕様が一般的なため）。その場合、直前の状態ではなく「その前に保存が間に合った
+  // 時点」の古い状態が復元されて見える、という報告があった。
+  // 画面が非表示になる・閉じられる瞬間（visibilitychange/pagehide）を検知して、
+  // 待っている保存があれば0.5秒を待たずにその場で確定させることで、本当に最後の状態が
+  // 必ず残るようにした。
   let viewSaveTimer = null;
+  function flushViewSave() {
+    if (!viewSaveTimer) return;
+    clearTimeout(viewSaveTimer);
+    viewSaveTimer = null;
+    if (!img) return;
+    if (currentRulerTab === 'circle') { if (typeof saveCircleSettings === 'function') saveCircleSettings(); }
+    else if (currentRulerTab === 'box') { if (typeof saveBoxSettings === 'function') saveBoxSettings(); }
+    else { saveSettings(); }
+  }
   function scheduleViewSave() {
     if (!img) return;
     clearTimeout(viewSaveTimer);
-    viewSaveTimer = setTimeout(() => {
-      if (currentRulerTab === 'circle') { if (typeof saveCircleSettings === 'function') saveCircleSettings(); }
-      else if (currentRulerTab === 'box') { if (typeof saveBoxSettings === 'function') saveBoxSettings(); }
-      else { saveSettings(); }
-    }, 500);
+    viewSaveTimer = setTimeout(flushViewSave, 500);
   }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flushViewSave();
+  });
+  window.addEventListener('pagehide', flushViewSave);
+  window.addEventListener('beforeunload', flushViewSave);
   function drawImage() {
     if (!img) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -5511,20 +5563,50 @@
   // 「1段：66px」をタップした時、微調整カードの表示を切り替える（未計測の時は開かない）
   let stepAdjustLocked = false; // 計測中はtrue（微調整カードを開けなくする）
   // ガイド類（段数ガイド・目数ガイド）の開閉
+  // ページ読み込み時に、前回保存された開閉状態をそのまま反映するだけの版（アニメーションなし）。
+  // 【2026年9月バグ修正】これまでは初期化時にも下のupdateGuideGroupUI()（アニメーション版）を
+  // そのまま呼んでいたため、前回「開いた」状態のまま保存されていると、ページを開くたびに
+  // 矢印がクルッと回るアニメーションが毎回再生されてしまっていた。メニューパネルの
+  // アコーディオン（restoreCardAccStates）は、読み込み時はクラスを直接付け替えるだけで
+  // アニメーションさせておらず、実際にタップした時だけ回る作りだった。この「読み込み時は
+  // 回さない・タップした時だけ回る」という条件の差が、2つの矢印の動きが同じに見えない
+  // 一番の原因だったとみられる。読み込み時専用のこの関数を分けて、動きの条件も完全に揃えた。
+  function applyGuideGroupStateInstant() {
+    if (!cpGuideGroupBody) return;
+    if (cpGuideToggleArrow) {
+      cpGuideToggleArrow.style.transition = 'none';
+      cpGuideToggleArrow.style.transform = guideGroupOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+      void cpGuideToggleArrow.offsetWidth;
+      cpGuideToggleArrow.style.transition = 'transform .25s ease';
+    }
+    cpGuideGroupBody.classList.toggle('open', guideGroupOpen);
+    cpPanelH = counterPanel.offsetHeight;
+  }
   function updateGuideGroupUI() {
     if (!cpGuideGroupBody) return;
     // 矢印の回転：classList.toggleに任せると、実機で「1回目は回るが2回目以降は
     // 瞬時に切り替わる」ことがあった。ブラウザが「回転前」と「回転後」のスタイルを
     // 1回のスタイル再計算にまとめてしまい、アニメーションを省略しているとみられるため、
-    // 開始角度を明示的に指定→強制リフローで確定→目標角度を指定、という手順に変更した（2026年8月〜）
+    // 開始角度を明示的に指定→強制リフローで確定→目標角度を指定、という手順に変更した（2026年8月〜）。
+    // メニューパネルのアコーディオン矢印（toggleCardAcc）と全く同じ手順に揃えてある（2026年9月〜。
+    // 以前はここだけ、矢印自身にもclassList.toggleを別途かけていて、実質何もしていない
+    // （インライン指定に必ず上書きされる）割に、2つの矢印の実装を見比べた時に「同じはずなのに
+    // 書き方が違う」ズレの原因になっていたため削除し、完全に同じ手順に統一した）
+    //
+    // 【2026年9月】開く時、矢印が回っている途中で中身（タブ・トグル類）が一瞬で丸ごと
+    // 出現してしまい、そちらに目が持っていかれて矢印の回転に気づきにくい、という指摘が
+    // あった。中身の見え方を変える案も試したが「中身はすぐ出た方がいい、触りたいのは
+    // 矢印の演出だけ」とのことだったので、中身のタイミングには一切触れず、開く時だけ
+    // 矢印自身の回転にわずかに長さを持たせて、動きそのものに気づきやすくする方向にした
+    // （閉じる時は元々「わかる」とのことなので.25sのまま変更なし）
     if (cpGuideToggleArrow) {
-      cpGuideToggleArrow.classList.toggle('open', guideGroupOpen); // 状態管理用（見た目はこの後の指定が優先される）
       const fromDeg = guideGroupOpen ? 0 : 180;
       const toDeg   = guideGroupOpen ? 180 : 0;
+      const duration = guideGroupOpen ? '.4s' : '.25s';
       cpGuideToggleArrow.style.transition = 'none';
       cpGuideToggleArrow.style.transform = `rotate(${fromDeg}deg)`;
       void cpGuideToggleArrow.offsetWidth; // 強制リフロー：ここまでのスタイルを確定させる
-      cpGuideToggleArrow.style.transition = 'transform .25s ease';
+      cpGuideToggleArrow.style.transition = `transform ${duration} ease`;
       cpGuideToggleArrow.style.transform = `rotate(${toDeg}deg)`;
     }
     // 中身の開閉は同期的に行う（以前は1フレーム遅らせていたが、矢印は上の強制リフロー方式で
@@ -5826,7 +5908,13 @@
   gpMeasureBtn.addEventListener('touchend', triggerMeasure);
 
   /* ========== カウンター ========== */
-  function updateCounter() { cpNum.textContent = rowCount; saveSettings(); }
+  function updateCounter() {
+    cpNum.textContent = rowCount;
+    // 「編み図なし」の間にカウントした分は、専用の記録にも都度反映しておく
+    // （こうしないと、閉じたり開いたりする度に保存されている数字が古いままになる。2026年9月〜）
+    if (!img) noImageCountBand = rowCount;
+    saveSettings();
+  }
 
   // 段数ガイドONかつ計測済みのときだけステップ移動。OFFや未計測なら0（移動なし）
   function getEffectiveStep() {
@@ -5845,6 +5933,7 @@
           applyCircle();
         }
         cpNum.textContent = circleCount;
+        if (!img) noImageCountCircle = circleCount;
         saveCircleSettings();
       }
     } else if (currentRulerTab === 'box') {
@@ -5866,6 +5955,7 @@
           applyBox();
         }
         cpNum.textContent = boxCount;
+        if (!img) noImageCountBox = boxCount;
         saveBoxSettings();
       }
     } else {
@@ -5885,10 +5975,12 @@
     if (currentRulerTab === 'circle') {
       circleCount = 0;
       cpNum.textContent = 0;
+      if (!img) noImageCountCircle = 0;
       saveCircleSettings();
     } else if (currentRulerTab === 'box') {
       boxCount = 0;
       cpNum.textContent = 0;
+      if (!img) noImageCountBox = 0;
       saveBoxSettings();
     } else {
       rowCount = 0;
@@ -5929,6 +6021,7 @@
           applyCircle();
         }
         cpNum.textContent = circleCount;
+        if (!img) noImageCountCircle = circleCount;
         saveCircleSettings();
       }
     } else if (currentRulerTab === 'box') {
@@ -5953,6 +6046,7 @@
           applyBox();
         }
         cpNum.textContent = boxCount;
+        if (!img) noImageCountBox = boxCount;
         saveBoxSettings();
       }
     } else {
@@ -7766,6 +7860,28 @@
     filenameLabel.textContent = '';
     fileInput.value = '';
 
+    // 【2026年9月バグ修正】このすぐ下で段数ガイドを強制OFFにしており、その処理が
+    // saveSettings()等を呼ぶ作り（dispatchEvent経由）になっているため、ここでファイルの
+    // 紐付け（currentBandFileId等）を先に外しておかないと、「今表示していた編み図」の
+    // 保存済み記録が「段数ガイドOFF」で上書きされてしまっていた。実際に「段数ガイドON
+    // のまま✕で画像を消して、同じ編み図を開き直したらOFFになっていた」という報告があった。
+    // 画像を消す＝そのタブの「今どのファイルを見ているか」も分からなくなる、という
+    // 状態なので、null に戻すのが実態にも合っている（保存はfileIdがある時だけ行われる作り）
+    if (currentRulerTab === 'circle') currentCircleFileId = null;
+    else if (currentRulerTab === 'box') currentBoxFileId = null;
+    else currentBandFileId = null;
+
+    // 編み図A・編み図B・編み図なし、それぞれ独立してカウントを覚えておきたい、という
+    // 要望に対応する（2026年9月〜）。編み図を閉じたら、今閉じた編み図の数字のままに
+    // せず、「編み図なし」の時の自分の記録に戻す
+    if (currentRulerTab === 'circle') { circleCount = noImageCountCircle; }
+    else if (currentRulerTab === 'box') { boxCount = noImageCountBox; }
+    else { rowCount = noImageCountBand; }
+    if (cpNum) {
+      cpNum.textContent = (currentRulerTab === 'circle') ? circleCount
+        : (currentRulerTab === 'box') ? boxCount : rowCount;
+    }
+
     // 画像を消したら、段数ガイド（このタブ用）も自動でOFFに戻す
     // （画像がないと使えない機能を、ONのまま残しておくと紛らわしいため）
     let guideWasOn;
@@ -7977,6 +8093,7 @@
   let showCircleCounter = true;
   // 円定規タブで「今どのファイルを表示しているか」の識別情報と、ファイルごとの設定辞書（2026年8月〜）
   let currentCircleFileId = null;
+  let noImageCountCircle = 0; // 直線定規と同じ考え方（2026年9月〜）
   let circleByFile = {};
   // カウンター・リサイズ・ピンチ共通の最小半径(px)。四角定規の正方形モードと同じ実寸30×30pxに揃えている（2026年8月〜）
   const CIRCLE_MIN_R = 15;
@@ -8090,7 +8207,7 @@
         ...(currentRulerTab === 'circle' ? { viewScale: scale, viewOffsetX: offsetX, viewOffsetY: offsetY } : {})
       };
     }
-    try { localStorage.setItem(CIRCLE_KEY, JSON.stringify({ cX, cY, cR, cColor, cAlpha, circleStep, circleStepBase, circleCount, showCircleCounter, guideOn: circleGuideOn, circleByFile: pruneFileDict(circleByFile, currentCircleFileId) })); } catch(e) {}
+    try { localStorage.setItem(CIRCLE_KEY, JSON.stringify({ cX, cY, cR, cColor, cAlpha, circleStep, circleStepBase, circleCount, showCircleCounter, guideOn: circleGuideOn, noImageCount: noImageCountCircle, circleByFile: pruneFileDict(circleByFile, currentCircleFileId) })); } catch(e) {}
   }
   function loadCircleSettings() {
     try {
@@ -8112,6 +8229,9 @@
       circleGuideOn = !!s.guideOn;
       if (!circleGuideOn) circleStep = 0;
       if (s.circleCount != null) circleCount = s.circleCount;
+      if (s.noImageCount != null) noImageCountCircle = s.noImageCount;
+      else if (s.circleCount != null) noImageCountCircle = s.circleCount;
+      circleCount = noImageCountCircle;
       if (s.showCircleCounter != null) showCircleCounter = s.showCircleCounter;
       // ファイルごとの辞書は変数に読み込むだけに留める（実際の反映はimage.onload側で行う）（2026年8月〜）
       if (s.circleByFile && typeof s.circleByFile === 'object') circleByFile = s.circleByFile;
@@ -8597,6 +8717,7 @@
   const BOX_KEY     = 'yucchi_ruler_square';
   // 四角定規タブで「今どのファイルを表示しているか」の識別情報と、ファイルごとの設定辞書（2026年8月〜）
   let currentBoxFileId = null;
+  let noImageCountBox = 0; // 直線定規と同じ考え方（2026年9月〜）
   let boxByFile = {};
 
   let bxX = 0, bxY = 0;          // 中心座標
@@ -8836,6 +8957,7 @@
       }, currentRulerTab === 'box' ? { viewScale: scale, viewOffsetX: offsetX, viewOffsetY: offsetY } : {});
     }
     try { localStorage.setItem(BOX_KEY, JSON.stringify(Object.assign({}, snapshot, {
+      noImageCount: noImageCountBox,
       boxByFile: pruneFileDict(boxByFile, currentBoxFileId)
     }))); } catch(e) {}
   }
@@ -8866,6 +8988,9 @@
       boxGuideOn = !!s.guideOn;
       if (!boxGuideOn) boxStep = 0;
       if (s.squareCount != null) boxCount = s.squareCount;
+      if (s.noImageCount != null) noImageCountBox = s.noImageCount;
+      else if (s.squareCount != null) noImageCountBox = s.squareCount;
+      boxCount = noImageCountBox;
       if (s.showSquareCounter != null) showBoxCounter = s.showSquareCounter;
       if (s.sqRectHalfW != null) bxRectHalfW = s.sqRectHalfW;
       if (s.sqRectHalfH != null) bxRectHalfH = s.sqRectHalfH;
@@ -9753,7 +9878,7 @@
   try {
     guideGroupOpen = localStorage.getItem(GUIDE_GROUP_KEY) === '1';
   } catch(e) {}
-  updateGuideGroupUI();
+  applyGuideGroupStateInstant();
   // スマホ幅（680px未満）の場合は、画面を広く使えるよう最初からメニューパネルを閉じておく
   if (window.innerWidth < 680) {
     floatPanel.classList.add('collapsed');
