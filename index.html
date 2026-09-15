@@ -4212,6 +4212,7 @@
         const image = new Image();
         image.onload = () => {
           img = image;
+          resetRulerFollowTracking(); // 読み込み中に呼ばれるかもしれない途中のdrawImage()が、前の編み図の基準を使って誤動作しないようにしておく（最終的な基準は確定後に別途セットする。2026年9月〜）
           filenameLabel.textContent = file.name;
           // 編み図A・編み図B・編み図なし、それぞれ独立してカウントを覚えておきたい、
           // という要望に対応する（2026年9月〜）。「編み図なし」の状態から今回初めて
@@ -4499,6 +4500,16 @@
           } else {
             fitImage();
           }
+          // 【2026年9月】定規の追従（followRulerToPanZoom）の基準は、ここ（本当に
+          // scale/offsetX/offsetYが確定した直後）で直接セットする。この間に
+          // applyStitchGuideColor()などが内部でdrawImage()を呼ぶことがあり、
+          // それが「まだ確定していない初期値（scale=1/offset=0）」を基準として
+          // 先に覚えてしまい、その直後に本当のscale/offsetへ切り替わった瞬間を
+          // 「編み図がズームされた」と誤認識して、定規が意図せず拡大・移動して
+          // しまう不具合があった。次のdrawImage()呼び出しに基準決めを任せず、
+          // ここで確定値を直接セットしてしまうことで、それより前に起きる
+          // drawImage()の呼び出しが何回あっても影響を受けないようにした
+          rulerFollowScale = scale; rulerFollowOffsetX = offsetX; rulerFollowOffsetY = offsetY;
           drawImage();
           switchRulerTab(currentRulerTab);
         };
@@ -4527,6 +4538,19 @@
     scale = Math.min(sx, sy, 1);
     offsetX = (vw - img.width  * scale) / 2;
     offsetY = (vh - img.height * scale) / 2;
+  }
+
+  // 編み図をパン・ズームした時、直線定規も一緒についてくる機能（2026年9月〜）。
+  // 「編み図を拡大したら、定規が置き去りになって毎回置き直す手間がある」という
+  // 要望に対応する。仕組み：drawImage()が呼ばれるたびに、前回覚えておいた
+  // scale/offsetX/offsetYと今回の値を比べ、変化していれば「編み図の同じ場所」を
+  // 指し続けるように定規のtop/left/width/heightも同じ比率で計算し直す。
+  // ファイルを開き直した時・定規タブを切り替えた時など、「パン・ズームの連続」
+  // ではない場面では、この関数で追跡をリセットしてから使う（そうしないと、
+  // 無関係な場面でも定規が動いてしまう）
+  let rulerFollowScale = null, rulerFollowOffsetX = null, rulerFollowOffsetY = null;
+  function resetRulerFollowTracking() {
+    rulerFollowScale = null; rulerFollowOffsetX = null; rulerFollowOffsetY = null;
   }
 
   // 編み図の拡大率・表示位置（scale/offsetX/offsetY）は、パン・ピンチ・ホイールの
@@ -4562,8 +4586,58 @@
   });
   window.addEventListener('pagehide', flushViewSave);
   window.addEventListener('beforeunload', flushViewSave);
+  // 前回のscale/offsetと比べて変化していれば、定規の位置・大きさを同じ比率で
+  // 動かし、編み図の同じ場所を指し続けるようにする（直線・四角・円、全定規対応・2026年9月〜）
+  function followRulerToPanZoom() {
+    if (rulerFollowScale === null) {
+      // 追跡のリセット直後：比較対象がまだ無いので、今の値を覚えるだけで何もしない
+      rulerFollowScale = scale; rulerFollowOffsetX = offsetX; rulerFollowOffsetY = offsetY;
+      return;
+    }
+    if (scale === rulerFollowScale && offsetX === rulerFollowOffsetX && offsetY === rulerFollowOffsetY) return;
+    if (currentRulerTab === 'circle') {
+      // 中心座標・半径は画面px単位のシンプルな値なので、直線定規より計算はやさしい
+      const imgCX = (cX - rulerFollowOffsetX) / rulerFollowScale;
+      const imgCY = (cY - rulerFollowOffsetY) / rulerFollowScale;
+      const imgR  = cR / rulerFollowScale;
+      cX = offsetX + imgCX * scale;
+      cY = offsetY + imgCY * scale;
+      cR = imgR * scale;
+      applyCircle();
+    } else if (currentRulerTab === 'box') {
+      const imgBX = (bxX - rulerFollowOffsetX) / rulerFollowScale;
+      const imgBY = (bxY - rulerFollowOffsetY) / rulerFollowScale;
+      const imgHalfW = bxHalfW / rulerFollowScale;
+      const imgHalfH = bxHalfH / rulerFollowScale;
+      bxX = offsetX + imgBX * scale;
+      bxY = offsetY + imgBY * scale;
+      bxHalfW = imgHalfW * scale;
+      bxHalfH = imgHalfH * scale;
+      applyBox();
+    } else {
+      const sw = window.innerWidth;
+      const leftPx  = (rulerLeft  / 100) * sw;
+      const widthPx = (rulerWidth / 100) * sw;
+      // 定規の今の画面位置を、いったん「編み図のどこを指しているか」に変換する
+      const imgLeft   = (leftPx   - rulerFollowOffsetX) / rulerFollowScale;
+      const imgTop    = (rulerTop - rulerFollowOffsetY) / rulerFollowScale;
+      const imgWidth  = widthPx     / rulerFollowScale;
+      const imgHeight = rulerHeight / rulerFollowScale;
+      // 新しいscale/offsetで、同じ場所を指す画面位置に戻す
+      const newLeftPx  = offsetX + imgLeft * scale;
+      const newTopPx   = offsetY + imgTop  * scale;
+      rulerLeft   = (newLeftPx / sw) * 100;
+      rulerWidth  = (imgWidth  * scale / sw) * 100;
+      rulerTop    = newTopPx;
+      rulerHeight = imgHeight * scale;
+      applyRulerPos();
+      applyRulerStyle();
+    }
+    rulerFollowScale = scale; rulerFollowOffsetX = offsetX; rulerFollowOffsetY = offsetY;
+  }
   function drawImage() {
     if (!img) return;
+    followRulerToPanZoom();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, offsetX, offsetY, img.width * scale, img.height * scale);
     drawStitchGuideLines();
@@ -8024,6 +8098,10 @@
       clearTimeout(boxEdgeToastTimer);
     }
     if (currentRulerTab !== tab) {
+      // タブが実際に切り替わる時だけリセットする。この関数はファイルを読み込むたびにも
+      // 呼ばれる（タブが変わらない場合を含む）ため、無条件でリセットすると、読み込み直後の
+      // drawImage()がせっかく決めた追跡の基準がすぐ消されてしまっていた（2026年9月〜）
+      resetRulerFollowTracking();
       // 計測モード中にタブを切り替えた場合、計測パネルが残ってしまうため強制終了する
       if (window.stopMeasureIfActive) window.stopMeasureIfActive();
       saveChartStateForTab(currentRulerTab);
@@ -10374,16 +10452,23 @@
       hint.style.display = 'none';
       zoomDoneBtn.style.display = 'none';
       axisToggle.style.display = 'none'; // 2点目を選んだ時点で縦横は確定済みなので隠す
-      pxLabel.textContent = dist + ' px';
+      pxLabel.textContent = Math.round(dist) + ' px'; // 表示だけ丸める（実際の値distは小数のまま使う）
       resultCol.style.display = 'flex';
     }
 
     // 現在のpt1/pt2から、軸（縦/横/斜め）に応じた距離(px)を計算
+    // 【2026年9月バグ修正】ここでMath.round()して小数点以下を切り捨てていたため、
+    // 「1段の高さ」の元になる計測値そのものに、測った瞬間から小さな誤差が
+    // 含まれてしまっていた（例：本当は172.4pxなのに172pxとして記録される）。
+    // 定規を動かす計算側の丸め誤差（すでに修正済み）とは別の、計測そのものの
+    // 誤差で、これも段数を重ねるほど少しずつズレとして積み重なっていく。
+    // 画面に「◯◯px」と表示する時だけ丸めればよく、実際に使う数値（dist）
+    // 自体は小数のまま正確に保持するようにした
     function calcDist() {
       if (!pt1 || !pt2) return 0;
-      if (currentRulerTab === 'circle') return Math.round(Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y));
-      if (currentRulerTab === 'box' && measureAxis === 'h') return Math.round(Math.abs(pt2.x - pt1.x));
-      return Math.round(Math.abs(pt2.y - pt1.y));
+      if (currentRulerTab === 'circle') return Math.hypot(pt2.x - pt1.x, pt2.y - pt1.y);
+      if (currentRulerTab === 'box' && measureAxis === 'h') return Math.abs(pt2.x - pt1.x);
+      return Math.abs(pt2.y - pt1.y);
     }
 
     function onTap(e) {
@@ -10670,7 +10755,7 @@
       }
       draw();
       const dist = calcDist();
-      pxLabel.textContent = dist + ' px';
+      pxLabel.textContent = Math.round(dist) + ' px';
       // 線の左側中央に追従させる（点とは反対側なので、つかむ操作とは競合しない）
       positionBarForLine();
     }
