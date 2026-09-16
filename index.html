@@ -26,8 +26,15 @@
       color-scheme: light only;
     }
     @media (prefers-color-scheme: dark) {
-      html { background: #D4E9E2 !important; }
-      body { background-color: #D4E9E2 !important; color: #2D4A43 !important; }
+      /* 【2026年9月】以前はここを編み図エリアのアクセントカラー（ミント）に合わせていたが、
+         このアプリの画面のほとんどを占める実際の見た目（#viewerの背景）は白。
+         iPadでアプリ切り替えのスワイプ操作をした時、OS側が画面を縮小するアニメーション中に
+         canvasのサイズがその一瞬だけ実際の画面サイズに追いつかず、このbody/htmlの背景色が
+         端にチラッと見えることがある、という報告があった。ダークモードの端末だとここが
+         ミントのまま浮いて見えてしまっていたため、#viewerと同じ白に合わせて、
+         たとえチラ見えしても違和感が出ないようにした */
+      html { background: #FFFFFF !important; }
+      body { background-color: #FFFFFF !important; color: #2D4A43 !important; }
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
