@@ -255,7 +255,9 @@
       line-height: 1;
       color: var(--text);
       background: rgba(255,255,255,0.55);
-      padding: 4px 8px;
+      padding: 3.5px 7px 4.5px 8px; /* Zen Maru Gothicの文字が下寄りに見える対策で上下は0.5px刻みに調整済み。
+         左右は、letter-spacingが最後の文字の後ろにも余白を作ってしまい文字が左寄りに見えるため、
+         右を合計1px狭くして補正（2026年9月〜） */
       border-radius: 10px;
       letter-spacing: .04em;
       white-space: nowrap;
@@ -1533,6 +1535,14 @@
       position: absolute;
       inset: -20px;
     }
+    /* 【2026年9月】新しくめじるしを置いている最中（配置モード中）は、この見えない拡張範囲が
+       仇になっていた。1つ置いた直後、そのすぐ上下左右に次のマークを置こうとしても、
+       前のマークの見えない当たり判定（20px分の余白）に毎回吸い込まれてしまい、
+       近い間隔でマークを並べるのがとても難しいという指摘があった。
+       配置モード中だけ、この余白を大きく狭める（既存マークのタップ・編集自体は
+       引き続きできるようにしたいので、当たり判定を完全に無効にはしない。
+       あくまで「余白の広さ」だけを配置中は控えめにする） */
+    #mejirushi-pins-wrap.mej-placing .mej-pin-hit::before { inset: -6px; }
     .mej-pin-hit.dragging { cursor: grabbing; }
     .mej-pin-hit.locked { cursor: default; }
     /* 段数ガイド計測中・目数ガイド編集中は、めじるしのピンがタップ・ドラッグに反応しないようにする。
@@ -1544,7 +1554,16 @@
        編み図を縮小してもマークだけ画面上で一定サイズのままだと、「置いた場所」と「見た目の中心」の
        ズレ量（固定px）がマス目1個の大きさに対して相対的に変わってしまい、
        別のマス目に置いたように見えてしまう不具合があったため、マス目と一緒に拡縮する仕様に変更） */
-    .mej-pin-icon svg { display: block; fill: none; stroke: #B8434F; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); transition: width .18s ease, height .18s ease, transform .18s ease; }
+    .mej-pin-icon svg { display: block; fill: none; stroke: #B8434F; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); transition: transform .18s ease; }
+    /* 【2026年9月】長押しでの3倍⇔通常サイズ切り替え（pin.big）の時だけ、サイズ変化になめらかな
+       アニメーションを付けたい。ただし常時このtransitionを効かせていると、編み図をピンチ/ホイールで
+       拡大縮小するたびに毎フレームwidth/heightが変わり、めじるしのサイズ変更がその都度0.18秒
+       遅れて追いつく形になり、「ワンテンポ遅れて拡大される」ように見えてしまっていた。
+       そのため普段はサイズ変更を即時反映にし、長押しでpin.bigを切り替えた瞬間だけ、
+       JS側でこのクラスを一時的に付けてアニメーションさせる（付け外しはpointerdownの
+       長押しタイマー内を参照）。svg.mej-big-anim側のクラスをより詳しく指定することで、
+       上のルールより優先されるようにしている */
+    .mej-pin-icon svg.mej-big-anim { transition: width .18s ease, height .18s ease, transform .18s ease; }
     /* 色は全マーク共通ではなく1個ずつ持つ（2026年9月〜）。stroke-colorはJS側でピンごとに
        インラインstyleとしてセットする（positionMejirushiPin参照）。上のstroke: #B8434Fは、
        万が一インライン指定が効かない場合の保険的な既定値 */
@@ -1754,7 +1773,9 @@
       line-height: 1;
       color: var(--text);
       background: rgba(255,255,255,0.55);
-      padding: 5px 10px;
+      padding: 4.5px 9px 5.5px 10px; /* Zen Maru Gothicの文字が下寄りに見える対策で上下は0.5px刻みに調整済み。
+         左右は、letter-spacingが最後の文字の後ろにも余白を作ってしまい文字が左寄りに見えるため、
+         右を合計1px狭くして補正（2026年9月〜） */
       border-radius: 10px;
       letter-spacing: .04em;
       white-space: nowrap;
@@ -3348,10 +3369,13 @@
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 20px; gap:6px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「目数ガイド」スイッチで、ON/OFFを切り替えます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">「目数ガイド」の縦線が編み図に表示されます。</span>「線を引く」ボタンを押すと、タップした場所に目安の縦線を置けます（最大99本）。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">「目数ガイド」の縦線が編み図に表示されます。</span>「線を引く」ボタンを押すと編集中になり、タップした場所に目安の縦線を置けます（最大99本）。<br>
           <strong style="font-weight:600; color:var(--text);">OFF</strong>：縦線が一時的に隠れます。線のデータは消えないので、再度ONにすると元通り表示されます。<br>
-          ・カウンターパネルの「縦線」の数字部分をタップすると、今の編み図の縦線を一括削除できます。<br>
-          ・このスイッチがONであれば、「段数カウンター」自体がOFFでも縦線は表示されたままです。</p>
+          ・このスイッチがONであれば、「段数カウンター」自体がOFFでも縦線は表示されたままです。<br><span style="display:block; height:6px;"></span>
+          ・編集中に置いた線をタップすると選択され、複製・削除ができます。<br>
+          ・編集中であれば、選択した線をそのままつまんでドラッグすると位置を動かせます。<br>
+          ・線の色は、編集中に表示されるカラーパレットから選べます（全ての線で共通の色になります）。<br>
+          ・カウンターパネルの「縦線」の数字部分をタップすると、今の編み図の縦線を一括削除できます。</p>
           <div class="ruler-control" style="gap:12px; margin-top:8px;">
             <label>カラー</label>
             <div>
@@ -3376,14 +3400,13 @@
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 20px; gap:6px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「めじるし」スイッチで、ON/OFFを切り替えます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしを置く」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大99個）。置いためじるしをタップすると、ひとことメモ（最大30文字）・複製・回転・ロック・削除ができます。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしを置く」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大99個）。<br>
           <strong style="font-weight:600; color:var(--text);">OFF</strong>：めじるしが一時的に隠れます。データは消えないので、再度ONにすると元通り表示されます。<br>
           ・このスイッチがONであれば、「段数カウンター」自体がOFFでもめじるしは表示されたままです。<br><span style="display:block; height:6px;"></span>
-          ・長押しすると、マークの大きさが3倍⇔通常サイズで切り替わります（編み図によって見やすい大きさが変わるため）。<br>
-          ・複製ボタンをタップすると、同じマーク・カラーのめじるしを1個増やせます（近くにずらして追加されます）。<br>
-          ・回転ボタン（反時計回り／時計回り）をタップすると、マークの向きを10°ずつ変えられます。<br>
-          ・カウンターパネルの「めじるし」の数字部分をタップすると、今の編み図のめじるしを一括削除できます（ロック中のマークも消えます）。<br>
-          ・つまんでドラッグすると、位置を動かせます。</p>
+          ・置いためじるしをタップすると編集カードが開き、ひとことメモ（最大30文字）の入力や、めじるしの複製・回転・ロック・削除ができます。<br>
+          ・置いためじるしは、そのままつまんでドラッグすると位置を動かせます。<br>
+          ・長押しすると、めじるしの大きさが通常⇔3倍で切り替わります。<br>
+          ・カウンターパネルの「めじるし」の数字部分をタップすると、今の編み図のめじるしを一括削除できます（ひとことメモ、ロック中のめじるしも削除されます）。</p>
         </div>
       </div>
 
@@ -3509,14 +3532,13 @@
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 20px; gap:6px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「めじるし」スイッチで、ON/OFFを切り替えます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしを置く」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大99個）。置いためじるしをタップすると、ひとことメモ（最大30文字）・複製・回転・ロック・削除ができます。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしを置く」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大99個）。<br>
           <strong style="font-weight:600; color:var(--text);">OFF</strong>：めじるしが一時的に隠れます。データは消えないので、再度ONにすると元通り表示されます。<br>
           ・このスイッチがONであれば、「段数カウンター」自体がOFFでもめじるしは表示されたままです。<br><span style="display:block; height:6px;"></span>
-          ・長押しすると、マークの大きさが3倍⇔通常サイズで切り替わります（編み図によって見やすい大きさが変わるため）。<br>
-          ・複製ボタンをタップすると、同じマーク・カラーのめじるしを1個増やせます（近くにずらして追加されます）。<br>
-          ・回転ボタン（反時計回り／時計回り）をタップすると、マークの向きを10°ずつ変えられます。<br>
-          ・カウンターパネルの「めじるし」の数字部分をタップすると、今の編み図のめじるしを一括削除できます（ロック中のマークも消えます）。<br>
-          ・つまんでドラッグすると、位置を動かせます。</p>
+          ・置いためじるしをタップすると編集カードが開き、ひとことメモ（最大30文字）の入力や、めじるしの複製・回転・ロック・削除ができます。<br>
+          ・置いためじるしは、そのままつまんでドラッグすると位置を動かせます。<br>
+          ・長押しすると、めじるしの大きさが通常⇔3倍で切り替わります。<br>
+          ・カウンターパネルの「めじるし」の数字部分をタップすると、今の編み図のめじるしを一括削除できます（ひとことメモ、ロック中のめじるしも削除されます）。</p>
         </div>
       </div>
 
@@ -3648,14 +3670,13 @@
         </button>
         <div class="card-accordion-body" style="padding:14px 12px 20px; gap:6px;">
           <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;">「段数カウンター」の中の「めじるし」スイッチで、ON/OFFを切り替えます。</p>
-          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしを置く」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大99個）。置いためじるしをタップすると、ひとことメモ（最大30文字）・複製・回転・ロック・削除ができます。<br>
+          <p style="font-family:'Zen Maru Gothic',sans-serif; font-size:10px; color:var(--text-sub); line-height:1.9; letter-spacing:.02em;"><strong style="font-weight:600; color:var(--text);">ON</strong>：「めじるしを置く」ボタンを押すと<span style="background:linear-gradient(transparent 60%, #F5D4D4 60%); padding:0 1px;">マークとカラーを選んで、編み図の好きな場所にめじるしを置けます</span>（最大99個）。<br>
           <strong style="font-weight:600; color:var(--text);">OFF</strong>：めじるしが一時的に隠れます。データは消えないので、再度ONにすると元通り表示されます。<br>
           ・このスイッチがONであれば、「段数カウンター」自体がOFFでもめじるしは表示されたままです。<br><span style="display:block; height:6px;"></span>
-          ・長押しすると、マークの大きさが3倍⇔通常サイズで切り替わります（編み図によって見やすい大きさが変わるため）。<br>
-          ・複製ボタンをタップすると、同じマーク・カラーのめじるしを1個増やせます（近くにずらして追加されます）。<br>
-          ・回転ボタン（反時計回り／時計回り）をタップすると、マークの向きを10°ずつ変えられます。<br>
-          ・カウンターパネルの「めじるし」の数字部分をタップすると、今の編み図のめじるしを一括削除できます（ロック中のマークも消えます）。<br>
-          ・つまんでドラッグすると、位置を動かせます。</p>
+          ・置いためじるしをタップすると編集カードが開き、ひとことメモ（最大30文字）の入力や、めじるしの複製・回転・ロック・削除ができます。<br>
+          ・置いためじるしは、そのままつまんでドラッグすると位置を動かせます。<br>
+          ・長押しすると、めじるしの大きさが通常⇔3倍で切り替わります。<br>
+          ・カウンターパネルの「めじるし」の数字部分をタップすると、今の編み図のめじるしを一括削除できます（ひとことメモ、ロック中のめじるしも削除されます）。</p>
         </div>
       </div>
 
@@ -3686,10 +3707,10 @@
         </button>
         <div class="data-note-body">
           <p>JPG / PNG / WebP / GIFなど、ブラウザが対応している画像形式が読み込めます。HEIC（iPhoneの写真）はSafariでは開けますが、他のブラウザでは開けないことがあります。</p>
-          <p>📱 HEICが開けない時は、写真をスクリーンショットで撮り直すと読み込めます。</p>
-          <p>⚠️ PDFはそのままでは開けません。スクリーンショットで画像に変換してからお使いください。</p>
+          <p>📱 Safari以外のブラウザでHEICが開けない時は、スクリーンショットで対応形式に変換すると読み込めます。</p>
+          <p>⚠️ PDFは書類の形式で、画像ではないため、そのままでは開けません。スクリーンショットで画像に変換してからお使いください。</p>
           <p>📱 スマホ：スクリーンショットで撮影。</p>
-          <p style="display:flex; gap:6px;"><span>💻</span><span>Mac：Shift+⌘+4 で切り取り。<br>Windows：Snipping Toolで切り取り。</span></p>
+          <p style="display:flex; gap:6px;"><span>💻</span><span>Mac：Shift+⌘+4 で切り取り。<br>Windows：Win+Shift+S で切り取り（通知から保存）。</span></p>
         </div>
       </div>
 
@@ -4980,7 +5001,7 @@
   // 同じテンポ感：ボタンを押す→案内バーが出る→タップで進む、の流れに統一。2026年8月〜）
   function updateMejirushiPlaceUI() {
     const show = mejirushiPlaceMode && mejirushiEnabled && !!img;
-    if (!show && mejirushiPlaceMode) { mejirushiPlaceMode = false; }
+    if (!show && mejirushiPlaceMode) { mejirushiPlaceMode = false; if (mejirushiPinsWrap) mejirushiPinsWrap.classList.remove('mej-placing'); }
     if (mejirushiPaletteFloat) {
       mejirushiPaletteFloat.classList.toggle('show', show);
     }
@@ -5046,10 +5067,12 @@
     // で判定が分かれているため、ロックしなくても2つの操作が競合することはない
     // 配置中は他のタブ（段数ガイド／目数ガイド）へ切り替えられなくする（2026年9月〜）
     setGuideTabsLocked(true);
+    if (mejirushiPinsWrap) mejirushiPinsWrap.classList.add('mej-placing'); // 配置中は既存ピンの見えない余白を狭める（2026年9月〜）
     updateMejirushiPlaceUI();
   }
   function cancelMejirushiPlace() {
     mejirushiPlaceMode = false;
+    if (mejirushiPinsWrap) mejirushiPinsWrap.classList.remove('mej-placing');
     // 隠していた定規本体を元に戻す（今アクティブな定規に応じて対象を切り替える。2026年9月〜）
     if (currentRulerTab === 'band') rulerHandle.style.display = '';
     else if (currentRulerTab === 'circle') circleOverlay.style.display = 'block';
@@ -5257,14 +5280,22 @@
   // 「このタップはカードを閉じるためのタップだった」という目印を1回分だけ残しておき、
   // 配置用ハンドラ側でそれを見て今回のタップだけ無視するようにして直した。
   let mejCardJustClosedByTap = false;
-  viewer.addEventListener('pointerdown', () => {
+  // めじるしの編集カードが開いていれば閉じる。直線定規は編み図のタップがそのまま#viewerに
+  // 届くので、下のviewer.addEventListener('pointerdown', ...)から直接呼んでいる。
+  // 四角・円定規は、画面いっぱいに広がった専用の当たり判定キャンバス（box-canvas/circle-canvas）が
+  // #viewerより手前でタップを受け取ってしまい、#viewer側のこの処理までタップが届かない
+  // （＝編み図の何もない場所をタップしてもカードが閉じない）不具合があったため、
+  // 四角・円それぞれの「外側タップで設定パネルを閉じる」処理（closeBoxPanelIfOpen /
+  // closeCirclePanelIfOpen）からも、この関数を呼ぶようにして揃えた（2026年9月〜修正）
+  function closeMejirushiEditPopIfOpen() {
     if (selectedMejirushiIndex === null) return;
     saveMejirushiSettings();
     selectedMejirushiIndex = null;
     if (mejirushiEditPop) mejirushiEditPop.classList.remove('show');
     positionMejirushiPin(); // 選択中ハイライトの解除・表示トグルのロック解除もあわせて反映する
     mejCardJustClosedByTap = true;
-  });
+  }
+  viewer.addEventListener('pointerdown', closeMejirushiEditPopIfOpen);
   // メモ欄：入力のたびに吹き出しへ反映し、フォーカスが外れたタイミングで保存する
   // （ロック中はinput自体をreadonlyにしてあるので、ここに来る時点でロック中は基本無い。
   //   念のため二重にチェックしている）。選択中の1個だけに反映する
@@ -5324,6 +5355,16 @@
         if (!pin || pin.locked) return; // ロック中はサイズも変えない
         mejLongPressFired = true;
         pin.big = !pin.big;
+        // サイズ切り替えの瞬間だけなめらかに（この時だけmej-big-animを付ける。
+        // 編み図のズーム時は付けないままにして、サイズ変更を即時反映させる＝ワンテンポ遅れ対策）
+        const svgElForBigAnim = pinEl.querySelector('.mej-pin-icon svg');
+        if (svgElForBigAnim) {
+          svgElForBigAnim.classList.add('mej-big-anim');
+          clearTimeout(svgElForBigAnim._mejBigAnimTimer);
+          svgElForBigAnim._mejBigAnimTimer = setTimeout(() => {
+            svgElForBigAnim.classList.remove('mej-big-anim');
+          }, 220); // transitionの.18秒より少し長めに残してから外す
+        }
         positionMejirushiPin();
         saveMejirushiSettings();
         if (navigator.vibrate) navigator.vibrate(15); // 対応端末なら軽い振動でフィードバック
@@ -8082,20 +8123,25 @@
     const labels = { band: '直線定規', circle: '円定規', box: '四角定規' };
     const mainEl = document.getElementById('panel-current-ruler-badge-main');
     const subEl  = document.getElementById('panel-current-ruler-badge-sub');
-    if (mainEl) mainEl.textContent = labels[currentRulerTab] || '直線定規';
+    const baseLabel = labels[currentRulerTab] || '直線定規';
+    // 四角定規の時だけ、今実際に見えている形（ロック中のモードではなく実寸で判定）を
+    // 「（正方形）」「（長方形）」として添える。メニューパネルのバッジ・カウンターパネルの
+    // バッジ、どちらも同じ判定・同じ文言を使って表記を揃える（2026年9月〜）
+    const shapeSuffix = (currentRulerTab === 'box')
+      ? ((typeof bxHalfW !== 'undefined' && bxHalfW === bxHalfH) ? '（正方形）' : '（長方形）')
+      : '';
+    if (mainEl) mainEl.textContent = baseLabel;
     if (subEl) {
-      if (currentRulerTab === 'box') {
-        // ロック（モード）ではなく、今実際に見えている形をそのまま表示する
-        const looksSquare = (typeof bxHalfW !== 'undefined' && bxHalfW === bxHalfH);
-        subEl.textContent = looksSquare ? '（正方形）' : '（長方形）';
-        subEl.classList.add('show');
-      } else {
-        subEl.classList.remove('show');
-      }
+      subEl.textContent = shapeSuffix;
+      subEl.classList.toggle('show', currentRulerTab === 'box');
     }
-    // カウンターパネルのヘッダーにも同じ定規名バッジを表示する（2026年8月〜）
+    // カウンターパネルのヘッダーには、あえて正方形/長方形の補足を付けない（2026年9月〜）。
+    // 段数ガイド・めじるしのデータは、形（正方形/長方形）とは無関係に「編み図（読み込んだ画像）ごと」に
+    // 保存される。カウンターパネルは段数ガイド・めじるしの操作パネルのすぐそばにあるため、
+    // そこに形の情報まで表示すると「ガイドの設定が形ごとに分かれている」という誤解を招きかねない
+    // ため、あえてメニューパネル側だけに残すことにした（一度は揃えたが、この理由で差し戻した）
     const cpBadge = document.getElementById('cp-ruler-badge');
-    if (cpBadge) cpBadge.textContent = labels[currentRulerTab] || '直線定規';
+    if (cpBadge) cpBadge.textContent = baseLabel;
   }
   window.switchRulerTab = function(tab) {
     // 四角定規の「正方形/長方形になりました」トーストは、タブをまたいで残ってしまうと
@@ -8424,6 +8470,7 @@
   /* ----- rim判定（外枠リサイズゾーン） ----- */
   function closeCirclePanelIfOpen() {
     if (!floatPanel.classList.contains('collapsed')) togglePanel(true);
+    closeMejirushiEditPopIfOpen(); // 円定規で編み図の外側をタップした時も、めじるしの編集カードを閉じる（2026年9月〜追加）
   }
   function syncCircleSizeUI() {
     // サイズスライダー削除済み（ドラッグ操作のみ）
@@ -9199,6 +9246,7 @@
   /* ----- 角・辺判定（リサイズゾーン） ----- */
   function closeBoxPanelIfOpen() {
     if (!floatPanel.classList.contains('collapsed')) togglePanel(true);
+    closeMejirushiEditPopIfOpen(); // 四角定規で編み図の外側をタップした時も、めじるしの編集カードを閉じる（2026年9月〜追加）
   }
   const BX_HANDLE_R = 26; // 角・辺の当たり判定の許容範囲(px)　※スマホでも掴みやすいよう16→26に拡大
   // リサイズ・カウンター共通の最小半径(px)。モードごとに別の値を持つ（2026年8月〜）
