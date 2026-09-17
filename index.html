@@ -5489,12 +5489,15 @@
     stitchGuideBottomHandle.style.top = (offsetY + bottomImgY * scale) + 'px';
   }
 
-  /* 画像が完全に画面外へ消えないよう、常に一定量(margin)は画面内に残るようオフセットを補正 */
+  /* 画像が完全に画面外へ消えないよう、常に一定量(margin)は画面内に残るようオフセットを補正。
+     編み図のスクリーンショットは外側に余白（白背景など）が写り込んでいることが多く、
+     見えているのがその余白部分だけだと、実質的に編み図を見失っているのと変わらない。
+     そのため、定規（44px）より広めの200pxを確保している（2026年9月〜） */
   function clampOffset() {
     if (!img) return;
     const vw = window.innerWidth, vh = window.innerHeight;
     const imgW = img.width * scale, imgH = img.height * scale;
-    const margin = 60;
+    const margin = 200;
     offsetX = Math.min(vw - margin, Math.max(margin - imgW, offsetX));
     offsetY = Math.min(vh - margin, Math.max(margin - imgH, offsetY));
   }
