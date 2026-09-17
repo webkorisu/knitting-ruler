@@ -6111,7 +6111,11 @@
       if (rowCount < 999) {
         rowCount++;
         const effectiveStep = getEffectiveStep();
-        rulerTop = Math.max(-rulerHeight + 20, rulerTop - effectiveStep);
+        // 他のクランプ（ドラッグ移動・リサイズ・画面回転時など）と同じ「最低44px（指1本分）は
+        // 必ず見える」基準に揃える。以前はここだけ20pxという緩い基準が残っており、段数ガイドで
+        // カウントを重ねるうちに定規がほぼ画面外へ消えてしまう不具合があった（2026年9月〜修正）
+        const vVisible = Math.max(44, rulerHeight * 0.1);
+        rulerTop = Math.max(-(rulerHeight - vVisible), rulerTop - effectiveStep);
         applyRulerPos();
         updateCounter();
       }
@@ -6202,7 +6206,9 @@
       if (rowCount > 0) {
         rowCount--;
         const effectiveStep = getEffectiveStep();
-        rulerTop = Math.min(window.innerHeight - 20, rulerTop + effectiveStep);
+        // ＋ボタン側と同じ理由・同じ基準（2026年9月〜修正）
+        const vVisible = Math.max(44, rulerHeight * 0.1);
+        rulerTop = Math.min(window.innerHeight - vVisible, rulerTop + effectiveStep);
         applyRulerPos();
       }
       updateCounter();
