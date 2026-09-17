@@ -3843,14 +3843,10 @@
   // mejirushiClearAllBtnは廃止（一括削除はカウンターパネルの「めじるし ◯個」タップに統合。2026年9月〜）
   const rulerOverlay = document.getElementById('ruler-overlay');
   const rulerHandle  = document.getElementById('ruler-handle');
-  const rulerSizeInput    = document.getElementById('ruler-size');
-  const rulerSizeLabel    = document.getElementById('ruler-size-label');
   const rulerOpacityInput = document.getElementById('ruler-opacity');
   const rulerOpacityLabel = document.getElementById('ruler-opacity-label');
   const rulerColorInput   = document.getElementById('ruler-color');
   const colorPresets      = document.getElementById('color-presets');
-  const rulerWidthInput   = document.getElementById('ruler-width');
-  const rulerWidthLabel   = document.getElementById('ruler-width-label');
   const toggleCounterEl   = document.getElementById('toggle-counter');
   
   const counterPanel = document.getElementById('counter-panel');
@@ -4206,10 +4202,6 @@
       rulerAlpha100 = Math.round(rulerAlpha * 100);
       rulerOpacityInput.value  = rulerAlpha100;
       rulerOpacityLabel.textContent = rulerAlpha100 + '%';
-      if (rulerSizeInput)  rulerSizeInput.value  = rulerHeight;
-      if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
-      if (rulerWidthInput) rulerWidthInput.value = rulerWidth;
-      if (rulerWidthLabel) rulerWidthLabel.textContent = rulerWidth + '%';
       toggleCounterEl.checked = showCounter;
       cpNum.textContent = rowCount;
       // 段数ガイドの状態（直線専用変数に保持。DOM反映はsyncGuideRowUIに一本化）
@@ -4356,10 +4348,6 @@
               rulerAlpha100 = Math.round(rulerAlpha * 100);
               rulerOpacityInput.value = rulerAlpha100;
               rulerOpacityLabel.textContent = rulerAlpha100 + '%';
-              if (rulerSizeInput)  rulerSizeInput.value  = rulerHeight;
-              if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
-              if (rulerWidthInput) rulerWidthInput.value = rulerWidth;
-              if (rulerWidthLabel) rulerWidthLabel.textContent = rulerWidth + '%';
               applyRulerPos(); // 位置・大きさ・見た目（色/濃さ）をまとめて反映
             }
             cpNum.textContent = rowCount; // 段数カウンターの表示を更新
@@ -5671,6 +5659,34 @@
     applyRulerStyle(); saveSettings();
   });
 
+  // リセット（四角・円定規のresetBoxDefault/resetCircleDefaultと同じ考え方。
+  // 見た目（色・濃さ・大きさ）と位置・表示状態だけをリセットし、段数ガイドの計測値は触らない）
+  window.resetBandDefault = function() {
+    rulerColor  = DEFAULT_RULER.color;
+    rulerAlpha  = DEFAULT_RULER.alpha;
+    rulerHeight = DEFAULT_RULER.height;
+    rulerWidth  = DEFAULT_RULER.width;
+    rulerLeft   = DEFAULT_RULER.left;
+    rulerTop    = DEFAULT_RULER.top;
+    showCounter = true;
+    rulerAlpha100 = Math.round(rulerAlpha * 100);
+    rulerOpacityInput.value = rulerAlpha100;
+    rulerOpacityLabel.textContent = rulerAlpha100 + '%';
+    rulerColorInput.value = rulerColor;
+    toggleCounterEl.checked = showCounter;
+    cpNum.textContent = rowCount;
+    document.querySelectorAll('.color-dot').forEach(d =>
+      d.classList.toggle('active', d.dataset.color === rulerColor));
+    syncGuideRowUI('band');
+    applyRulerPos(); // 位置・大きさ・見た目（色/濃さ）をまとめて反映
+    saveSettings();
+    bandUndo.resetHistory();
+    refreshBandUndoBtns();
+  };
+  function confirmResetBand() {
+    showModal('定規を初期設定に戻しますか？', 'リセットする', () => resetBandDefault());
+  }
+
   toggleCounterEl.addEventListener('change', () => {
     showCounter = toggleCounterEl.checked;
     counterPanel.style.display = showCounter ? 'flex' : 'none';
@@ -6289,10 +6305,6 @@
         rulerTop    = Math.round(rulerTop);
         rulerHeight = Math.round(bottomEdge - rulerTop);
       }
-      if (rulerWidthInput) rulerWidthInput.value = Math.round(rulerWidth);
-      if (rulerWidthLabel) rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
-      if (rulerSizeInput)  rulerSizeInput.value = Math.max(24, Math.min(120, rulerHeight));
-      if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
       applyRulerPos();
       e.preventDefault();
     });
@@ -6375,10 +6387,6 @@
         rulerHeight = Math.round(bottomEdge - rulerTop);
       }
 
-      if (rulerWidthInput) rulerWidthInput.value = Math.round(rulerWidth);
-      if (rulerWidthLabel) rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
-      if (rulerSizeInput)  rulerSizeInput.value = Math.max(24, Math.min(120, rulerHeight));
-      if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
       applyRulerPos();
       e.preventDefault();
     });
@@ -6460,10 +6468,6 @@
         rulerHeight = Math.round(bottomEdge - rulerTop);
       }
       // スライダーに反映
-      if (rulerWidthInput) rulerWidthInput.value = Math.round(rulerWidth);
-      if (rulerWidthLabel) rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
-      if (rulerSizeInput)  rulerSizeInput.value = Math.max(24, Math.min(120, rulerHeight));
-      if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
       applyRulerPos();
       e.preventDefault();
     } else if (rulerDragging) {
@@ -6568,10 +6572,6 @@
     // 縦幅（px）
     rulerHeight = Math.round((rulerPinchH0 * ratio) / 4) * 4;
     // UI反映
-    if (rulerWidthInput) rulerWidthInput.value = rulerWidth;
-    if (rulerWidthLabel) rulerWidthLabel.textContent = rulerWidth + '%';
-    if (rulerSizeInput)  rulerSizeInput.value = rulerHeight;
-    if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
     applyRulerPos();
   }, { passive: false });
 
@@ -6621,10 +6621,6 @@
     rulerLeft   = Math.round(rulerLeft * 10) / 10;
     rulerTop    = Math.max(-10, Math.min(window.innerHeight - rulerHeight + 10, cyPx - rulerHeight / 2));
     rulerTop    = Math.round(rulerTop);
-    if (rulerWidthInput) rulerWidthInput.value = Math.round(rulerWidth);
-    if (rulerWidthLabel) rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
-    if (rulerSizeInput)  rulerSizeInput.value = Math.max(24, Math.min(120, rulerHeight));
-    if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
     applyRulerPos();
     rulerHandle.classList.add('resizing');
     clearTimeout(rulerWheelPinchTimer);
@@ -7480,10 +7476,6 @@
     if (rulerColorInput)   rulerColorInput.value = rulerColor;
     if (rulerOpacityInput) rulerOpacityInput.value = Math.round(rulerAlpha * 100);
     if (rulerOpacityLabel) rulerOpacityLabel.textContent = Math.round(rulerAlpha * 100) + '%';
-    if (rulerWidthInput)   rulerWidthInput.value = Math.round(rulerWidth);
-    if (rulerWidthLabel)   rulerWidthLabel.textContent = Math.round(rulerWidth) + '%';
-    if (rulerSizeInput)    rulerSizeInput.value = Math.max(24, Math.min(600, rulerHeight));
-    if (rulerSizeLabel)    rulerSizeLabel.textContent = rulerHeight + ' px';
     document.querySelectorAll('.color-dot').forEach(d =>
       d.classList.toggle('active', d.dataset.color === rulerColor));
     applyRulerPos();
@@ -9983,10 +9975,6 @@
     document.querySelectorAll('.color-dot').forEach(d => d.classList.toggle('active', d.dataset.color === rulerColor));
     rulerOpacityInput.value = rulerAlpha100;
     rulerOpacityLabel.textContent = rulerAlpha100 + '%';
-    if (rulerSizeInput)  rulerSizeInput.value = rulerHeight;
-    if (rulerSizeLabel)  rulerSizeLabel.textContent = rulerHeight + ' px';
-    if (rulerWidthInput) rulerWidthInput.value = rulerWidth;
-    if (rulerWidthLabel) rulerWidthLabel.textContent = rulerWidth + '%';
     applyRulerStyle();
     applyRulerPos();
     saveSettings();
