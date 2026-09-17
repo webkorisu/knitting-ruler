@@ -4530,7 +4530,7 @@
           // しまう不具合があった。次のdrawImage()呼び出しに基準決めを任せず、
           // ここで確定値を直接セットしてしまうことで、それより前に起きる
           // drawImage()の呼び出しが何回あっても影響を受けないようにした
-          rulerFollowScale = scale; rulerFollowOffsetX = offsetX; rulerFollowOffsetY = offsetY;
+          rulerFollowScale = scale; rulerFollowOffsetX = offsetX; rulerFollowOffsetY = offsetY; rulerFollowSw = window.innerWidth;
           drawImage();
           switchRulerTab(currentRulerTab);
         };
@@ -4569,9 +4569,9 @@
   // ファイルを開き直した時・定規タブを切り替えた時など、「パン・ズームの連続」
   // ではない場面では、この関数で追跡をリセットしてから使う（そうしないと、
   // 無関係な場面でも定規が動いてしまう）
-  let rulerFollowScale = null, rulerFollowOffsetX = null, rulerFollowOffsetY = null;
+  let rulerFollowScale = null, rulerFollowOffsetX = null, rulerFollowOffsetY = null, rulerFollowSw = null;
   function resetRulerFollowTracking() {
-    rulerFollowScale = null; rulerFollowOffsetX = null; rulerFollowOffsetY = null;
+    rulerFollowScale = null; rulerFollowOffsetX = null; rulerFollowOffsetY = null; rulerFollowSw = null;
   }
 
   // 編み図の拡大率・表示位置（scale/offsetX/offsetY）は、パン・ピンチ・ホイールの
@@ -4612,7 +4612,7 @@
   function followRulerToPanZoom() {
     if (rulerFollowScale === null) {
       // 追跡のリセット直後：比較対象がまだ無いので、今の値を覚えるだけで何もしない
-      rulerFollowScale = scale; rulerFollowOffsetX = offsetX; rulerFollowOffsetY = offsetY;
+      rulerFollowScale = scale; rulerFollowOffsetX = offsetX; rulerFollowOffsetY = offsetY; rulerFollowSw = window.innerWidth;
       return;
     }
     if (scale === rulerFollowScale && offsetX === rulerFollowOffsetX && offsetY === rulerFollowOffsetY) return;
@@ -4636,25 +4636,30 @@
       bxHalfH = imgHalfH * scale;
       applyBox();
     } else {
-      const sw = window.innerWidth;
-      const leftPx  = (rulerLeft  / 100) * sw;
-      const widthPx = (rulerWidth / 100) * sw;
+      // rulerLeft/rulerWidthは画面幅に対する%で保存されているため、「今の画面位置」に
+      // 戻す時は、その%が計算された時点の画面幅（rulerFollowSw＝前回同期した時の幅）を
+      // 使う必要がある。ここを新しい画面幅で計算してしまうと、回転などで画面幅が
+      // 大きく変わった時に毎回ズレが積み重なる不具合があった（2026年9月〜修正）
+      const oldSw = rulerFollowSw;
+      const newSw = window.innerWidth;
+      const leftPx  = (rulerLeft  / 100) * oldSw;
+      const widthPx = (rulerWidth / 100) * oldSw;
       // 定規の今の画面位置を、いったん「編み図のどこを指しているか」に変換する
       const imgLeft   = (leftPx   - rulerFollowOffsetX) / rulerFollowScale;
       const imgTop    = (rulerTop - rulerFollowOffsetY) / rulerFollowScale;
       const imgWidth  = widthPx     / rulerFollowScale;
       const imgHeight = rulerHeight / rulerFollowScale;
-      // 新しいscale/offsetで、同じ場所を指す画面位置に戻す
+      // 新しいscale/offset・新しい画面幅で、同じ場所を指す画面位置に戻す
       const newLeftPx  = offsetX + imgLeft * scale;
       const newTopPx   = offsetY + imgTop  * scale;
-      rulerLeft   = (newLeftPx / sw) * 100;
-      rulerWidth  = (imgWidth  * scale / sw) * 100;
+      rulerLeft   = (newLeftPx / newSw) * 100;
+      rulerWidth  = (imgWidth  * scale / newSw) * 100;
       rulerTop    = newTopPx;
       rulerHeight = imgHeight * scale;
       applyRulerPos();
       applyRulerStyle();
     }
-    rulerFollowScale = scale; rulerFollowOffsetX = offsetX; rulerFollowOffsetY = offsetY;
+    rulerFollowScale = scale; rulerFollowOffsetX = offsetX; rulerFollowOffsetY = offsetY; rulerFollowSw = window.innerWidth;
   }
   function drawImage() {
     if (!img) return;
