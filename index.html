@@ -798,6 +798,11 @@
       min-width: 72px;
       box-sizing: border-box;
     }
+    /* 「戻る・進む」ラベルだけ、letter-spacingが最後の文字の後ろにも余白を作ってしまい
+       文字が左寄りに見えるため、右paddingだけ少し狭めて右寄りに調整（バッジの調整と同じ考え方） */
+    .ruler-control label.undo-redo-label {
+      padding: 4px 7.5px 6px 10px;
+    }
     .ruler-control input[type=range] {
       flex: 1;
       cursor: pointer;
@@ -3290,7 +3295,7 @@
             </div>
           </div>
           <div class="ruler-control" style="gap:10px;">
-            <label>戻る・進む</label>
+            <label class="undo-redo-label">戻る・進む</label>
             <div style="padding-left:0;">
               <div class="undo-redo-row">
                 <button type="button" class="undo-redo-btn" id="band-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
@@ -3453,7 +3458,7 @@
             </div>
           </div>
           <div class="ruler-control" style="gap:10px;">
-            <label>戻る・進む</label>
+            <label class="undo-redo-label">戻る・進む</label>
             <div style="padding-left:0;">
               <div class="undo-redo-row">
                 <button type="button" class="undo-redo-btn" id="circle-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
@@ -3591,7 +3596,7 @@
             </div>
           </div>
           <div class="ruler-control" style="gap:10px;">
-            <label>戻る・進む</label>
+            <label class="undo-redo-label">戻る・進む</label>
             <div style="padding-left:0;">
               <div class="undo-redo-row">
                 <button type="button" class="undo-redo-btn" id="box-undo-btn" title="戻る" aria-label="1つ前の状態に戻る" disabled>↺<span class="action-tooltip">戻る</span></button>
@@ -3710,7 +3715,7 @@
           <p>📱 Safari以外のブラウザでHEICが開けない時は、スクリーンショットで対応形式に変換すると読み込めます。</p>
           <p>⚠️ PDFは書類の形式で、画像ではないため、そのままでは開けません。スクリーンショットで画像に変換してからお使いください。</p>
           <p>📱 スマホ：スクリーンショットで撮影。</p>
-          <p style="display:flex; gap:6px;"><span>💻</span><span>Mac：Shift+⌘+4 で切り取り。<br>Windows：Win+Shift+S で切り取り（通知から保存）。</span></p>
+          <p style="display:flex; gap:6px;"><span>💻</span><span>Mac：Shift+⌘+4 で切り取り。<br>Windows：Win+Shift+S で切り取り<span style="white-space:nowrap;">（通知から保存）。</span></span></p>
         </div>
       </div>
 
@@ -5666,8 +5671,16 @@
     rulerAlpha  = DEFAULT_RULER.alpha;
     rulerHeight = DEFAULT_RULER.height;
     rulerWidth  = DEFAULT_RULER.width;
-    rulerLeft   = DEFAULT_RULER.left;
-    rulerTop    = DEFAULT_RULER.top;
+    // 位置は固定値ではなく、四角・円定規のリセットと同じ考え方でその場で計算する
+    // （横：rulerWidthの帯を画面中央に来るよう左右均等に余白を残す／縦：「編み図がありません」
+    //   プレースホルダーのすぐ下に来る位置。四角・円のbxY・cYの計算式と揃えてある）
+    const sh = window.innerHeight;
+    const textCenterY = sh / 2; // プレースホルダーはflex中央
+    const textBlockH = 14 * 2 + 16 + 18;
+    const hintBlockH = 46 + (11 * 1.7 * 2) + 10;
+    const textBottom = textCenterY + Math.max(textBlockH / 2, hintBlockH);
+    rulerLeft = (100 - rulerWidth) / 2; // %指定なので、左右の余白が均等になる位置
+    rulerTop  = Math.round(textBottom + 35);
     showCounter = true;
     rulerAlpha100 = Math.round(rulerAlpha * 100);
     rulerOpacityInput.value = rulerAlpha100;
