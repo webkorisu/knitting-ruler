@@ -3763,7 +3763,7 @@
             </svg>
           </a>
         </div>
-        <div class="last-updated">最終更新：2026.09.17</div>
+        <div class="last-updated">最終更新：2026.09.18</div>
       </div>
 
     </div>
@@ -7363,14 +7363,22 @@
     const pw = canvas.width, ph = canvas.height;
     canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
+    // 編み図が中心を保つために動く量（dx/dy）。回転などで画面の縦横比が大きく変わった時、
+    // 編み図側だけこの分だけ動くのに、定規（直線・四角・円）が画面に固定されたままだと、
+    // 編み図と定規の位置関係が見た目でズレてしまう。そのため、編み図と同じ移動量を
+    // 3定規すべての位置にも適用し、常に一緒に動くようにする（2026年9月〜）
+    const dx = (canvas.width  - pw) / 2;
+    const dy = (canvas.height - ph) / 2;
     if (img) {
       // 中心を維持してオフセット調整
-      offsetX += (canvas.width  - pw) / 2;
-      offsetY += (canvas.height - ph) / 2;
+      offsetX += dx;
+      offsetY += dy;
       drawImage();
     }
-    // 直線定規：位置だけ画面内に収まるようクランプ（サイズは変えない。10%だけ画面内に見えていればOK、最低44px保証）
+    // 直線定規：編み図と同じ分だけ動かしてから、画面内に収まるようクランプ（サイズは変えない。10%だけ画面内に見えていればOK、最低44px保証）
     {
+      rulerTop  += dy;
+      rulerLeft = ((rulerLeft / 100) * pw + dx) / canvas.width * 100;
       const vVisible = Math.max(44, rulerHeight * 0.1);
       const hVisible = Math.max(44, (rulerWidth / 100) * window.innerWidth * 0.1);
       const hVisiblePct = (hVisible / window.innerWidth) * 100;
@@ -7378,13 +7386,15 @@
       rulerLeft = Math.max(-(rulerWidth - hVisiblePct), Math.min(100 - hVisiblePct, rulerLeft));
     }
     applyRulerPos();
-    // 円定規：位置だけ画面内に収まるようクランプ（サイズは変えない。直径の10%だけ画面内に見えていればOK）
+    // 円定規：編み図と同じ分だけ動かしてから、画面内に収まるようクランプ（サイズは変えない。直径の10%だけ画面内に見えていればOK）
     if (typeof applyCircle === 'function') {
+      cX += dx; cY += dy;
       clampCircleCenter();
       resizeCircleCanvas();
     }
-    // 四角定規：位置だけ画面内に収まるようクランプ（サイズは変えない。10%だけ画面内に見えていればOK）
+    // 四角定規：編み図と同じ分だけ動かしてから、画面内に収まるようクランプ（サイズは変えない。10%だけ画面内に見えていればOK）
     if (typeof applyBox === 'function') {
+      bxX += dx; bxY += dy;
       const marginW = bxHalfW * 0.8;
       const marginH = bxHalfH * 0.8;
       bxX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, bxX));
