@@ -9,6 +9,27 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>編み図ルーラー | Knitting Chart Ruler ✿ YUCCHI ✿</title>
+  <meta name="description" content="直線・四角・円の3種類の定規で編み図を見やすく。カウントに連動して動く「段数ガイド」つきの編み物ツール。データは端末内保存で外部送信なし、無料・ログイン不要で使えます。">
+  <link rel="canonical" href="https://webkorisu.github.io/knitting-ruler/">
+
+  <!-- OGP（X・LINE等でシェアされた時のカード表示用） -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="編み図ルーラー | Knitting Chart Ruler ✿ YUCCHI ✿">
+  <meta property="og:description" content="直線・四角・円の3種類の定規で編み図を見やすく。カウントに連動して動く「段数ガイド」つきの編み物ツール。無料・ログイン不要。">
+  <meta property="og:url" content="https://webkorisu.github.io/knitting-ruler/">
+  <meta property="og:site_name" content="編み図ルーラー ✿ YUCCHI ✿">
+  <meta property="og:locale" content="ja_JP">
+  <!-- カード画像（og:image） -->
+  <meta property="og:image" content="https://webkorisu.github.io/knitting-ruler/ruler-thumb.jpg">
+  <meta property="og:image:width" content="900">
+  <meta property="og:image:height" content="481">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="編み図ルーラー | Knitting Chart Ruler ✿ YUCCHI ✿">
+  <meta name="twitter:description" content="直線・四角・円の3種類の定規で編み図を見やすく。カウントに連動して動く「段数ガイド」つきの編み物ツール。">
+  <meta name="twitter:image" content="https://webkorisu.github.io/knitting-ruler/ruler-thumb.jpg">
+
   <link rel="icon" href="favicon.ico">
   <link rel="shortcut icon" href="favicon.ico">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Zen+Maru+Gothic:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -411,6 +432,8 @@
       flex: none;
       min-width: 0;
       max-width: 100%;
+      min-height: 22px; /* ✕ボタン(22px)の分をあらかじめ確保。ボタンが非表示の時（画像なし）も
+                            高さを合わせておき、ファイル名の有無で枠全体の高さが変わらないようにする */
     }
     .upload-filename {
       font-size: 11px;
@@ -3763,7 +3786,7 @@
             </svg>
           </a>
         </div>
-        <div class="last-updated">最終更新：2026.09.18</div>
+        <div class="last-updated">最終更新：2026.09.20</div>
       </div>
 
     </div>
