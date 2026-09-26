@@ -3788,7 +3788,7 @@
             </svg>
           </a>
         </div>
-        <div class="last-updated">最終更新：2026.09.22</div>
+        <div class="last-updated">最終更新：2026.09.26</div>
       </div>
 
     </div>
@@ -7393,13 +7393,20 @@
     const pw = canvas.width, ph = canvas.height;
     canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
+    // 編み図が中心を保つために動く量（dx/dy）。回転などで画面の縦横比が大きく変わった時、
+    // ドラッグで動かして固定位置（left/top指定）になっているパネル類も、これと同じ分だけ
+    // 動かしてからクランプしないと、「置いたつもりの場所」から相対的にズレて見えてしまう
+    // （直線・四角・円定規は、この下のfollowRulerToPanZoom()が編み図と連動して個別に
+    //   正しく追従してくれるので、ここでは手を加えない。2026年9月〜）
+    const dx = (canvas.width  - pw) / 2;
+    const dy = (canvas.height - ph) / 2;
     if (img) {
       // 中心を維持してオフセット調整。この後のdrawImage()内でfollowRulerToPanZoom()が走り、
       // offsetX/offsetYが変化したことを検知して、今表示中の定規（直線・四角・円のうち
       // アクティブな1つ）を編み図の同じ場所に追従させてくれる（2026年9月〜の既存の仕組み）。
       // そのため、ここで定規の位置を手動でズラす必要はない（二重にズラすと逆にズレる）
-      offsetX += (canvas.width  - pw) / 2;
-      offsetY += (canvas.height - ph) / 2;
+      offsetX += dx;
+      offsetY += dy;
       drawImage();
     }
     // 直線定規：位置だけ画面内に収まるようクランプ（サイズは変えない。10%だけ画面内に見えていればOK、最低44px保証）
@@ -7423,6 +7430,17 @@
       bxX = Math.max(-marginW, Math.min(window.innerWidth  + marginW, bxX));
       bxY = Math.max(-marginH, Math.min(window.innerHeight + marginH, bxY));
       resizeBoxCanvas();
+    }
+    // 設定パネル：ドラッグで動かして固定位置になっている場合だけ、編み図と同じ分だけ動かす
+    // （まだ一度もドラッグしていない場合はCSS側のbottom/right指定のままなので触らない）
+    if (floatPanel.style.left) {
+      const ppos = getPanelPos();
+      setPanelPos(ppos.x + dx, ppos.y + dy);
+    }
+    // 段数カウンターパネル：同上。ドラッグ済みの場合だけ、編み図と同じ分だけ動かす
+    if (counterPanel.style.left) {
+      const cppos = getCpPos();
+      setCpPos(cppos.x + dx, cppos.y + dy);
     }
     // パネルが画面外に出ないようにクランプ
     clampPanel();
