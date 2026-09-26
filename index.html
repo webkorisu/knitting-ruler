@@ -7431,16 +7431,26 @@
       bxY = Math.max(-marginH, Math.min(window.innerHeight + marginH, bxY));
       resizeBoxCanvas();
     }
-    // 設定パネル：ドラッグで動かして固定位置になっている場合だけ、編み図と同じ分だけ動かす
-    // （まだ一度もドラッグしていない場合はCSS側のbottom/right指定のままなので触らない）
+    // 設定パネル：ドラッグして固定位置になっている場合だけ、画面の中でどれくらいの
+    // 割合の位置にあったかを保ち、新しい画面サイズでも同じ割合の位置に来るようにする
+    // （回転など、幅と高さが大きく入れ替わる時は、絶対px移動だと逆にズレてしまうため。
+    //   横%で保存していたrulerLeftを直した時と同じ、割合ベースの考え方。2026年9月〜）
     if (floatPanel.style.left) {
       const ppos = getPanelPos();
-      setPanelPos(ppos.x + dx, ppos.y + dy);
+      const panelW = floatPanel.offsetWidth, panelH = floatPanel.offsetHeight;
+      const oldMaxX = Math.max(1, pw - panelW), oldMaxY = Math.max(1, ph - panelH);
+      const newMaxX = Math.max(0, canvas.width  - panelW);
+      const newMaxY = Math.max(0, canvas.height - panelH);
+      setPanelPos((ppos.x / oldMaxX) * newMaxX, (ppos.y / oldMaxY) * newMaxY);
     }
-    // 段数カウンターパネル：同上。ドラッグ済みの場合だけ、編み図と同じ分だけ動かす
+    // 段数カウンターパネル：同上（絶対px移動ではなく割合を保つ方式に統一）
     if (counterPanel.style.left) {
-      const cppos = getCpPos();
-      setCpPos(cppos.x + dx, cppos.y + dy);
+      const cpos = getCpPos();
+      const cpW = counterPanel.offsetWidth, cpH = counterPanel.offsetHeight;
+      const oldMaxX = Math.max(1, pw - cpW), oldMaxY = Math.max(1, ph - cpH);
+      const newMaxX = Math.max(0, canvas.width  - cpW);
+      const newMaxY = Math.max(0, canvas.height - cpH);
+      setCpPos((cpos.x / oldMaxX) * newMaxX, (cpos.y / oldMaxY) * newMaxY);
     }
     // パネルが画面外に出ないようにクランプ
     clampPanel();
